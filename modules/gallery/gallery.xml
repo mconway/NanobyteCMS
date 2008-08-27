@@ -1,0 +1,8 @@
+<module>
+    <author email="mike.conway@wiredbyte.com" url="http://www.wiredbyte.com/">Michael Conway</author>
+    <title>Gallery</title>
+    <version>0.1</version>
+    <status>Dev</status>
+    <site>http://www.wiredbyte.com</site>
+    <description>This is a jquery gallery based on the old gallery demo at ui.jquery.com</description>
+</module>
