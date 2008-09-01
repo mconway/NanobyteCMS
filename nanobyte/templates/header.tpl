@@ -19,8 +19,8 @@
 			<div id="siteslogan">{$siteslogan}</div>
 		</div>
 		<div id="menu">
-			{foreach from=$menu item=link key=key}
-				<a href="{$link}">{$key|capitalize}</a>
+			{foreach from=$menu item=link}
+				{$link}
 			{/foreach}
 		</div>
 		{include file="user.login.tpl"}

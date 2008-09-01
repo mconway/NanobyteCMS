@@ -13,7 +13,8 @@ BaseController::AddCss('templates/css/style.css'); // Add the main CSS styles fo
 $smarty->assign('sitename',SITE_NAME); // Assign the Site Name
 $smarty->assign('feedurl', Core::url('rss')); // Set the RSS URL
 $smarty->assign('siteslogan', SITE_SLOGAN); // Assign the Site Slogan
-BaseController::GetMenu($smarty); // Get the Site Menu
+$user = $_SESSION['user'] ? unserialize($_SESSION['user']) : new User(0);
+MenuController::GetMenu('main',$user->group); // Get the Site Menu
 if (strpos($_GET['page'], 'home') !== false){  // If the page is 'home', unset it, since this is the index page
 	unset($_GET['page']);
 } 

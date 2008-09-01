@@ -1,5 +1,5 @@
 body{
-	width:750px; 
+	width:850px; 
 	margin: 0 auto;
 	font-family: Verdana, sans-serif;
 	font-size: 9pt;
@@ -28,6 +28,7 @@ a img{
 	text-align: center;
 	position: relative;
 	top: 15px;
+	display: none;
 }
 #siteslogan{
 	color:#FFFFFF;
@@ -55,7 +56,7 @@ a img{
 #menu{
 	position: absolute;
 	top: 46px;
-	padding-left: 30px;
+	padding-left: 35px;
 }
 #menu a:link,#menu a:visited {
 	color: #fff;
@@ -87,7 +88,7 @@ float: left;
 #main{
 	margin-right: 190px;
 	float: left;
-	width:560px;
+	width:660px;
 }
 #iconmenu{
 	height:50px;
@@ -105,7 +106,7 @@ float: left;
 	/*
 	float:right;
 	*/
-	margin-left:560px;
+	margin-left:660px;
 	padding:0 8px 20px;
 	/*
 	position:fixed;

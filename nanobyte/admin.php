@@ -19,7 +19,7 @@ if(isset($_SESSION['hash'])){
 	 $user = unserialize($_SESSION['user']);
 	 if ($_SESSION['hash'] == $user->SessionHash()){
 	 	// Check user permissions
-	 	if (Core::AuthUser($user, 'admin')){
+	 	if (Core::AuthUser($user, 'access admin pages')){
 	 		$smarty->assign('auth', 1); //Set auth to TRUE
 	 		$smarty->assign('page', $args[0]); //Set Page Name
 	 		$smarty->assign('links', AdminController::GetAdminMenu());  // Get the Admin Menu
@@ -91,6 +91,24 @@ if(isset($_SESSION['hash'])){
 							break;
 					}
 					break;
+				//Menus Sub Page
+				case 'menus':
+					switch($args[1]){
+						case 'add':
+						case 'delete':
+						case 'edit':
+							if($args[2]){
+								MenuController::ListMenuItems($args[2]);
+								$smarty->assign('file','list.tpl');
+							}else{
+								Core::SetMessage('You must specify a menu!', 'error');
+							}
+							break;
+						default:
+							MenuController::ListMenus();
+							$smarty->assign('file','list.tpl');
+					}
+					break;
 				// Settings Sub Page
 	 			case 'settings':
 	 				AdminController::ShowConfig();
@@ -105,9 +123,21 @@ if(isset($_SESSION['hash'])){
 				case 'perms':
 				//args: add, edit, delete
 					$perms = new Perms();
-					$perms->GetAll();
-					AdminController::ListPerms($perms);
-					$smarty->assign('file','list.tpl');
+					switch($args[1]){
+						case 'edit':
+							if(isset($_POST['submit'])){
+						 		AdminController::WriteGroups($perms);
+							}
+							AdminController::EditGroups($perms);
+							$smarty->assign('file','list.tpl');
+							break;
+						default: 
+							$perms->GetAll();
+							AdminController::ListPerms($perms);
+							$smarty->assign('file','list.tpl');
+							break;
+					}
+
 					break;
 				// When no sub page is specified display default
 				default:

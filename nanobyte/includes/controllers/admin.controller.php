@@ -5,33 +5,27 @@ class AdminController extends BaseController{
 			//make construct check for perms, hash and then make object.
 	}
 	public function DeleteUserRequest(){
-		if(isset($_SESSION['hash'])){
-		$user = unserialize($_SESSION['user']);
-		if ($_SESSION['hash'] == $user->SessionHash()){
-		 	if (Core::AuthUser($user, 'admin')){
-		 		if (isset($_GET['uid'])){
-		 			$delUser[] = $_GET['uid'];
-		 		}elseif(isset($_POST['users'])){
-		 			$delUser = $_POST['users'];
-		 		}
-		 		if(isset($delUser)){
-			 		foreach($delUser as $delete){
-			 			if ($user->uid != $delete){
-			 				$deleted = Admin::DeleteObject('user', 'uid', $delete);
-		 					if ($deleted === true){
-								Core::SetMessage('User '.$delete.' has been deleted!', 'info');
-							} else {
-								Core::SetMessage('Unable to delete user '.$delete.' , an error has occurred.', 'error');
-							}
-		 				}else{
-		 					Core::SetMessage('You are not allowed to delete yourself!', 'error');
-			 			}
-		 			}	
-		 		}else
-		 			Core::SetMessage('You must choose a user(s) to delete!', 'error');
-		 		}
-			}
-		}
+ 		if (isset($_GET['uid'])){
+ 			$delUser[] = $_GET['uid'];
+ 		}elseif(isset($_POST['users'])){
+ 			$delUser = $_POST['users'];
+ 		}
+ 		if(isset($delUser)){
+	 		foreach($delUser as $delete){
+	 			if ($user->uid != $delete){
+	 				$deleted = Admin::DeleteObject('user', 'uid', $delete);
+ 					if ($deleted === true){
+						Core::SetMessage('User '.$delete.' has been deleted!', 'info');
+					} else {
+						Core::SetMessage('Unable to delete user '.$delete.' , an error has occurred.', 'error');
+					}
+ 				}else{
+ 					Core::SetMessage('You are not allowed to delete yourself!', 'error');
+	 			}
+ 			}	
+ 		}else{
+ 			Core::SetMessage('You must choose a user(s) to delete!', 'error');
+ 		}
 	}
 	public static function EditConfig($params){
 		$params['dbuser'] = Admin::EncodeConfParams($params['dbuser']);
@@ -100,7 +94,7 @@ class AdminController extends BaseController{
 	//	}
 	}
 	public static function GetAdminMenu(){
-		$array = array('users','posts','modules','stats','perms','settings');
+		$array = array('users','posts','modules','menus','stats','perms','settings');
 		foreach ($array as $link){
 			$links[$link] = Core::Url('admin/'.$link);
 		}
@@ -133,13 +127,39 @@ class AdminController extends BaseController{
 			);
 		}
 		//create the actions options
-		$actions = array('' => '--With Selected--', 'delete' => 'Delete');
-		$extra = '{html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
+		$actions = array('delete' => 'Delete');
+		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
+		$options['image'] = '24';
+		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/perms/add',$options), 'edit'=>Core::l('edit','admin/perms/edit',$options));
 		// bind the params to smarty
+		$smarty->assign('sublinks',$links);
 		$smarty->assign('self','admin/perms');
 		$smarty->assign('actions',$actions);
 		$smarty->assign('extra', $extra);
 		$smarty->assign('list', $list);
+	}
+	public static function EditGroups($perms){
+		global $smarty;
+		$permList = $perms->GetPermissionsList();
+		$perms->GetAll();
+		$i = 0;
+		foreach($permList as $group){
+			$list[$i] = array();
+			$list[$i]['description'] = $group['description'];
+			foreach($perms->all as $pset){
+				$checked = strpos($pset['permissions'],$group['description']) !== false ? 'checked="checked"' : '';
+				$list[$i][$pset['name']] = '<input type="checkbox" name="'.$pset['name'].'[]" value="'.$group['description'].'" '.$checked.'/>';
+			}
+			$i++;
+		}
+		$smarty->assign('self'. 'admin/perms/edit');
+		$smarty->assign('list',$list);
+		$smarty->assign('extra', '<input type="submit" value="Submit" name="submit"/>');
+	} 
+	public static function WriteGroups($perms){
+		$perms->data = $_POST;
+		unset($perms->data['submit']);
+		$perms->commit();
 	}
 }
 

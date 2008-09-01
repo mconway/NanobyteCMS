@@ -1,13 +1,15 @@
 <h2>{$page|capitalize}</h2>
 <div id="{$page}list">
 	<form action="{$self}" method="post">
-	{if $extra}
-		{eval var=$extra}
+	{if $sublinks}
+		{foreach from=$sublinks item=link}
+			{$link}
+		{/foreach}
 	{/if}
 		<table class="tablesorter">
 			<thead>
 				<tr>
-					<th><input type="checkbox" value=""/></th>
+					{if $cb == true}<th><input type="checkbox" value=""/></th>{/if}
 					{foreach from=$list.0 key=key item=item}
 						{strip}
 							<th>{$key|capitalize}</th>
@@ -18,7 +20,7 @@
 			<tbody>
 			{foreach from=$list item=item}
 				<tr>
-					<td><input type="checkbox" name="{$page}[]" value="{$item.id}"/></td>
+					{if $cb == true}<td><input type="checkbox" name="{$page}[]" value="{$item.id}"/></td>{/if}
 					{foreach from=$item item=object key=key}
 					{strip}
 					    <td class="{$key}">{$object}</td>
@@ -28,6 +30,10 @@
 			{/foreach}
 			</tbody>
 		</table>
+	{if $extra}
+		{eval var=$extra}
+	{/if}
 	</form>
 {$pager}
 </div>
+{debug}

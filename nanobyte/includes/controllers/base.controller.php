@@ -20,35 +20,6 @@ class BaseController{
 		$users = Core::NewUsers();
 		$smarty->assign('users', $users);
 	}
-	public static function GetMenu($smarty){
-		if (!isset($_SESSION['hash'])){
-			$links = array(
-				array('home'),
-				array('user','login')
-				);
-		}elseif(Core::AuthUser(unserialize($_SESSION['user']),'admin')){
-			$links = array(
-				array('home'),
-				array('user'),
-				array('admin'),
-				array('user','logout')
-				);
-		}else{
-			$links = array(
-				array('home'),
-				array('user'),
-				array('user','logout')
-				);
-		}
-		foreach ($links as $link){
-			if (count($link) == 1){
-				$menu[$link[0]] = Core::Url($link[0]);
-			}else{
-				$menu[$link[1]] = Core::Url($link[0].'/'.$link[1]);
-			}
-		}
-		$smarty->assign('menu',$menu);
-	}
 	
 	public static function strleft($s1, $s2) {
 		return substr($s1, 0, strpos($s1, $s2)); 

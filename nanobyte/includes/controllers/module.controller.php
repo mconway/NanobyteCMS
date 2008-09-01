@@ -20,7 +20,7 @@
 		$list = array();
 		foreach ($modsList as $module){
 			$module->status == 1 ? $s = 'Disable' : $s = 'Enable';
-			$options['image'] = true;
+			$options['image'] = '16';
 			$list[] = array(
 				//'author'=>$module->conf->author, 
 				//'aurl'=> $module->conf->author->attributes()->url,

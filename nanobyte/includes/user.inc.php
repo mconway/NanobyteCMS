@@ -10,23 +10,37 @@ class User{
 	private $password;
 	function __construct($id){
 		$DB = DBCreator::GetDbObject();
-		$user = $DB->prepare("select * from ".DB_PREFIX."_user where `uid`=:id");
-		$user->bindParam(':id', $id);
-		$user->execute();
-		$urow = $user->fetch(PDO::FETCH_ASSOC);
-		$this->uid = $urow['uid'];
-		$this->name = $urow['username'];
-		$this->email = $urow['email'];
-		$this->joined = $urow['joined'];
-		$this->password = $urow['password'];
-		$this->salt = substr($urow['password'], 3);
-		
-		$perms = $DB->prepare("select name, permissions from ".DB_PREFIX."_groups where `gid`=:id");
-		$perms->bindParam(':id',$urow['gid']);
-		$perms->execute();
-		$grow = $perms->fetch(PDO::FETCH_ASSOC);
-		$this->permissions = array_flip(explode(',' , $grow['permissions']));
-		$this->group = $grow['name'];
+		if($id==0){
+			$this->uid = 0;
+			$this->name = 'Guest';
+			
+			$perms = $DB->prepare("select name, permissions from ".DB_PREFIX."_groups where `gid`=:id");
+			$perms->bindValue(':id',3);
+			$perms->execute();
+			$grow = $perms->fetch(PDO::FETCH_ASSOC);
+			$this->permissions = array_flip(explode(',' , $grow['permissions']));
+			$this->group = $grow['name'];
+		}else{
+			
+			$user = $DB->prepare("select * from ".DB_PREFIX."_user where `uid`=:id");
+			$user->bindParam(':id', $id);
+			$user->execute();
+			$urow = $user->fetch(PDO::FETCH_ASSOC);
+			$this->uid = $urow['uid'];
+			$this->name = $urow['username'];
+			$this->email = $urow['email'];
+			$this->joined = $urow['joined'];
+			$this->password = $urow['password'];
+			$this->salt = substr($urow['password'], 3);
+			
+			$perms = $DB->prepare("select name, permissions from ".DB_PREFIX."_groups where `gid`=:id");
+			$perms->bindParam(':id',$urow['gid']);
+			$perms->execute();
+			$grow = $perms->fetch(PDO::FETCH_ASSOC);
+			$this->permissions = array_flip(explode(',' , $grow['permissions']));
+			$this->group = $grow['name'];
+		}
+
 	}
 
 	public static function CreateUser($uarray){

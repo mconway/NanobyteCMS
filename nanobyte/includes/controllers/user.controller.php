@@ -5,24 +5,27 @@ class UserController extends BaseController{
 		//create list
 		$userList = Admin::GetUserList(); //array of objects
 		$theList = array();
-		$options['image'] = true;
+		$options['image'] = '16';
 		foreach ($userList as $user){
 			$theList[] = array(
 				'id'=>$user->uid, 
 				'name'=>Core::l($user->name, 'user/'.$user->uid), 
 				'email'=>$user->email, 
 				'group'=>$user->group,
-				'joined'=>date('Y-M-D',$user->joined),
 				'actions'=>Core::l('info','user/details/'.$user->uid,$options).' | '.Core::l('edit','admin/users/edit/'.$user->uid,$options)
 				);
 		}
 		$perms = new Perms();
 		$perms->GetNames();
 		//create the actions options
-		$actions = array('' => '--With Selected--', 'delete' => 'Delete');
+		$actions = array('delete' => 'Delete');
 		$actions['Add to Group:'] = $perms->names;
-		$extra = '{html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
+		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
+		$options['image'] = '24';
+		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/users/add',$options));
 		// bind the params to smarty
+		$smarty->assign('sublinks',$links);
+		$smarty->assign('cb',true);
 		$smarty->assign('self','admin/users');
 		$smarty->assign('actions',$actions);
 		$smarty->assign('extra', $extra);

@@ -60,8 +60,8 @@
  			//$page = implode('/', $url);
  			$url = SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path;
  		}
-		if($options['image']==true){
-			$text = '<img src="templates/images/'.strtolower($text).'.png" title="'.$text.'" alt="'.$text.'"/>';
+		if($options['image']){
+			$text = '<img src="templates/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
 		}
 		$link = '<a href="'.$url.'">'.$text.'</a>';
 		return $link;

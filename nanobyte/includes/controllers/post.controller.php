@@ -56,7 +56,7 @@ class PostController{
 		//create the list
 		$list = Post::Read(); //array of objects
 		$theList = array();
-		$options['image'] = true;
+		$options['image'] = '16';
 		foreach ($list as $post){
 			$theList[] = array(
 				'id'=>$post->pid, 
@@ -70,9 +70,13 @@ class PostController{
 		}
 		//create the actions options
 		//$actions['General Actions'] = array('newPost'=>'Create New Post');
-		$actions= array('' => '--With Selected--', 'delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish');
-		$extra = '{html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
+		$actions= array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish');
+		$extra = 'Iwth Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
+		$options['image'] = '24';
+		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/posts/add',$options));
 		// bind the params to smarty
+		$smarty->assign('sublinks',$links);
+		$smarty->assign('cb',true);
 		$smarty->assign('self','admin/posts');
 		$smarty->assign('actions',$actions);
 		$smarty->assign('extra', $extra);
@@ -152,27 +156,22 @@ class PostController{
 		$smarty->assign('form', $form->toArray()); 
 	}
 	public static function DeletePostRequest(){
-		if(isset($_SESSION['hash'])){
-		$user = unserialize($_SESSION['user']);
-		if ($_SESSION['hash'] == $user->sessionHash($user->name)){
-		 	if (Core::AuthUser($user, 'admin')){
-		 		if(isset($_POST['posts'])){
-		 			$delPost = $_POST['posts'];
-		 		}
-		 		if(isset($delPost)){
-			 		foreach($delPost as $delete){
-		 				$deleted = Admin::DeleteObject('posts', 'pid', $delete);
-	 					if ($deleted === true){
-							Core::SetMessage('Post '.$delete.' has been deleted!', 'info');
-						} else {
-							Core::SetMessage('Unable to delete post '.$delete.' , an error has occurred.', 'error');
-						}
-		 			}	
-		 		}else
-		 			Core::SetMessage('You must choose a post(s) to delete!', 'error');
-		 		}
-			}
-		}
+ 		if(isset($_POST['posts'])){
+ 			$delPost = $_POST['posts'];
+ 		}
+ 		if(isset($delPost)){
+	 		foreach($delPost as $delete){
+ 				$deleted = Admin::DeleteObject('posts', 'pid', $delete);
+					if ($deleted === true){
+					Core::SetMessage('Post '.$delete.' has been deleted!', 'info');
+				} else {
+					Core::SetMessage('Unable to delete post '.$delete.' , an error has occurred.', 'error');
+				}
+ 			}	
+ 		}else{
+ 			Core::SetMessage('You must choose a post(s) to delete!', 'error');
+ 		}
 	}
+
 }
 ?>

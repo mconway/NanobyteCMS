@@ -2,8 +2,8 @@
 	<h2>{$page|capitalize}</h2>
 	<form {$form.attributes}>
 		<div class="formcontainer">
-			<div>
 			{foreach from=$form.sections item=section}
+			<div class="section">
 			<div class="formheader">{$section.header}</div>
 				{foreach from=$section.elements item=element}
 					<div class="elementcontainer">
@@ -22,8 +22,8 @@
 						{/if}
 					</div>
 				{/foreach}
-			{/foreach}
 			</div>
+			{/foreach}
 		</div>
 		<p>{$form.requirednote}</p>
 	</form>
