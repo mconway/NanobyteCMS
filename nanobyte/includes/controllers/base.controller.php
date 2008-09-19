@@ -72,7 +72,7 @@ class BaseController{
 			$error = 'The file you attempted to upload is not allowed. Valid file types are:'.FILE_TYPES;
 		}
 		// Now check the filesize, if it is too large then inform the user.
-		if(filesize($_FILES['userfile']['tmp_name']) > FILE_SIZE){
+		if(filesize($file['tmp_name']) > FILE_SIZE){
 			$error = 'The file you attempted to upload is too large.';
 		}
 		// Check if we can upload to the specified path, if not, inform the user.
@@ -102,5 +102,70 @@ class BaseController{
 		$smarty->assign('css', $css);
 		$js = self::AddJs();
 		$smarty->assign('js', $js);
+	}
+	public static function HandleImage($image,$resize=null){
+		$filename = $image['name'];
+		$error = BaseController::VerifyFile($image);
+		if ($error == false){
+			if (Core::FileUpload($image) == true){
+				Core::SetMessage('Your file upload was successful, view the file <a href="' . UPLOAD_PATH . $filename . '" title="Your File">here</a>','info');
+			}else{
+				Core::SetMessage('There was an error during the file upload.  Please try again.','error');
+			}
+		}else{
+			Core::SetMessage($error, 'error');
+		}
+		if ($resize){
+			$images = self::ResizeImage($image, $resize);
+			return '<a href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
+		}else{
+			return '<img src="'.UPLOAD_PATH.$filename.'" width="80" height="80"/>';
+		}
+		
+	}
+	public static function ResizeImage($image, $thumb_x){
+		$imagepath = UPLOAD_PATH.$image['name'];
+		//open original (uploaded) image, based on type.
+		switch($image['type']) {
+			case 'image/jpeg':
+			case 'image/pjpeg':
+				$orig = imagecreatefromjpeg($imagepath);
+				$name = str_replace('.jpg', '', strtolower($image['name']));
+				break;
+			case 'image/png':
+				$orig = imagecreatefrompng($imagepath);
+				$name = str_replace('.png', '', strtolower($image['name']));
+				break;
+			case 'image/gif':
+				$orig = imagecreatefromgif($imagepath);
+				$name = str_replace('.gif', '', strtolower($image['name']));
+				break;
+			case 'image/bmp':
+				$orig = imagecreatefromwbmp($imagepath);
+				$name = str_replace('.bmp', '', strtolower($image['name']));
+				break;
+			default:
+				Core::SetMessage('Unknown File Format or MIME Type. The Your file is: '.$image['type'],'error');
+		}
+		$base = UPLOAD_PATH . $name;
+		if ($orig){
+			//fetch the size of the original and overlay images,and calculate the size of the new image and thumb.
+			$orig_x = imagesx($orig);
+			$orig_y = imagesy($orig);
+			$thumb_y = round(($orig_y * $thumb_x) / $orig_x);
+			
+			// create the thumb image, and scale the original into it.
+			$thumb = imagecreatetruecolor($thumb_x, $thumb_y);
+			imagecopyresampled($thumb, $orig, 0, 0, 0, 0, $thumb_x, $thumb_y, $orig_x, $orig_y);
+
+			//write the 2 images to disk.
+			imagepng($thumb, $base . '-thumb.png');
+			
+		}else{
+			Core::SetMessage('Unable to Open '.$image['name'].' for modification','error');
+		}
+		$uri['orig'] = $imagepath;
+		$uri['thumb'] = $base . '-thumb.png';
+	    return $uri;
 	}
 }

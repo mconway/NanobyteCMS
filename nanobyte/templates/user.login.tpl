@@ -5,6 +5,5 @@
 		<input type="password" name="pass" size="15"/>
 		<input type="submit" name="login" value="Login"/>
 	</form>
-	<a href="user/register">Register</a>
 </div>
 {/if}

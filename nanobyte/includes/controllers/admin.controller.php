@@ -87,14 +87,10 @@ class AdminController extends BaseController{
 		}
 		//send the form to smarty
 		$smarty->assign('form', $form->toArray()); 
-	//	Core::GetConf();
 
-	//	if (CLEANURL === 'true'){
-	//		$smarty->assign('checked','checked');
-	//	}
 	}
 	public static function GetAdminMenu(){
-		$array = array('users','posts','modules','menus','stats','perms','settings');
+		$array = array('users','posts','modules','blocks','menus','stats','perms','settings','logs');
 		foreach ($array as $link){
 			$links[$link] = Core::Url('admin/'.$link);
 		}
@@ -123,7 +119,7 @@ class AdminController extends BaseController{
 			$list[] = array(
 				'id'=>$group['gid'],
 				'group name'=>$group['name'],
-				'access'=>$group['permissions']	
+				'comments'=>$group['comments']	
 			);
 		}
 		//create the actions options
@@ -132,6 +128,7 @@ class AdminController extends BaseController{
 		$options['image'] = '24';
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/perms/add',$options), 'edit'=>Core::l('edit','admin/perms/edit',$options));
 		// bind the params to smarty
+		$smarty->assign('cb',true);
 		$smarty->assign('sublinks',$links);
 		$smarty->assign('self','admin/perms');
 		$smarty->assign('actions',$actions);
@@ -160,6 +157,52 @@ class AdminController extends BaseController{
 		$perms->data = $_POST;
 		unset($perms->data['submit']);
 		$perms->commit();
+	}
+	public static function AddGroup(){
+		global $smarty;
+		
+		//create the form object 
+		$form = new HTML_QuickForm('newgroup','post','admin/perms/add');
+		
+		//create form elements
+		$form->addElement('header','','Add New Permissions Group');
+		$form->addElement('text', 'name', 'Group Name', array('size'=>25, 'maxlength'=>60));
+		
+		$form->addElement('submit', 'submit', 'Submit');
+		//apply form prefilters
+		
+		$form->applyFilter('__ALL__', 'trim');
+		$form->applyFilter('__ALL__', 'strip_tags');
+		
+		//If the form has already been submitted - validate the data
+		if($form->validate()){
+			$perms = new Perms();
+			$form->process(array($perms,'AddGroup'));
+			Core::SetMessage('Your group has been created successfully.','info');
+			BaseController::Redirect('admin/perms');
+			exit;
+		}
+		
+		//send the form to smarty
+		$smarty->assign('form', $form->toArray()); 
+
+	}
+	public static function DeleteGroup(){
+		if(isset($_POST['perms'])){
+ 			$del = $_POST['perms'];
+	 		foreach($del as $delete){
+ 				$deleted = Admin::DeleteObject('groups', 'gid', $delete);
+				if ($deleted === true){
+					Core::SetMessage('Group ID '.$delete.' has been deleted!', 'info');
+				}else{
+					Core::SetMessage('Unable to delete Group ID'.$delete.' , an error has occurred.', 'error');
+				}
+			}
+ 		}else{
+ 			Core::SetMessage('You must choose one or more groups to delete!', 'error');
+ 		}
+		BaseController::Redirect('admin/perms');
+		exit;
 	}
 }
 

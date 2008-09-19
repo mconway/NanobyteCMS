@@ -17,18 +17,7 @@ class PostController{
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
 		//upload files if needed
 		if(!empty($data['image']['name'])){
-			$filename = $data['image']['name'];
-			$error = BaseController::VerifyFile($data['image']);
-			if ($error == false){
-				if (Core::FileUpload($data['image']) == true){
-					Core::SetMessage('Your file upload was successful, view the file <a href="' . UPLOAD_PATH . $filename . '" title="Your File">here</a>','info');
-				}else{
-					Core::SetMessage('There was an error during the file upload.  Please try again.','error');
-				}
-			}else{
-				Core::SetMessage($error, 'error');
-			}
-			$image = '<img src="'.UPLOAD_PATH.$filename.'" width="80" height="80"/>';
+			$image = BaseController::HandleImage($data['image'],'100');
 		}
 		//Update the Post, Do not create a new one.
 		if ($data['pid']){
@@ -71,7 +60,7 @@ class PostController{
 		//create the actions options
 		//$actions['General Actions'] = array('newPost'=>'Create New Post');
 		$actions= array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish');
-		$extra = 'Iwth Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
+		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
 		$options['image'] = '24';
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/posts/add',$options));
 		// bind the params to smarty

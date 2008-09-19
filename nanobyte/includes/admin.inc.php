@@ -21,10 +21,10 @@
 	}
 	public static function DeleteObject($table, $field, $id){
 		$DB = DBCreator::GetDbObject();
-		$deleteUser = $DB->prepare("delete from ".DB_PREFIX."_$table where `$field`=:id");
-		$deleteUser->bindParam(':id', $id);
-		$deleteUser->execute();
-		if ($deleteUser->rowCount()==1){
+		$delete = $DB->prepare("delete from ".DB_PREFIX."_$table where `$field`=:id");
+		$delete->bindParam(':id', $id);
+		$delete->execute();
+		if ($delete->rowCount()==1){
 			return true;
 		}else{
 			return false;

@@ -48,5 +48,15 @@ class Perms{
 			}
 		}
 	}
+	public function AddGroup($params){
+		$insert = $this->DB->prepare("insert into ".DB_PREFIX."_groups set name=:name");
+		$insert->bindParam(':name',$params['name']);
+		$insert->execute();
+		if ($insert->rowCount() == 1){
+			return true;
+		}else{
+			return false;
+		}
+	}
 	
 }

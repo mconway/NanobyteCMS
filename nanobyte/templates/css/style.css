@@ -11,6 +11,7 @@ a img{
 }
 #header{
 	margin-bottom: 15px;
+	position: relative;
 }
 #banner{
 	background: url('../images/wcms_banner.png');
@@ -37,7 +38,7 @@ a img{
 	padding-right:10px;
 	position:relative;
 	text-align:right;
-	top:15px;
+	top:45px;
 }
 #user{
 	color:#FFFFFF;
@@ -47,7 +48,9 @@ a img{
 	top:46px;
 }
 #loginform{
-	float: right;
+	position: absolute;
+	right: 10px;
+	top: 20px;
 	font-size: 10px;
 }
 #loginform form input{
@@ -95,13 +98,17 @@ float: left;
 	text-align: center;
 }
 #iconmenu a{
-	padding: 15px;
+	display:inline-block;
+	height:48px;
+	padding:0 10px;
 }
+
 /*
 #iconmenu a:hover img{
 	background: lightblue;
 }
 */
+
 #sidebar-right{
 	/*
 	float:right;
@@ -199,4 +206,90 @@ div.label{
 }
 div.formbutton{
 	text-align: center;
+}
+#mainAdmin{
+	padding: 15px 0;
+}
+/*
+Begin Sortables Styles
+*/
+.groupWrapper
+{
+	width: 315px;
+	float: left;
+	margin-right: 5px;
+	min-height: 400px;
+	border: 1px solid gray;
+}
+#sidebar
+{
+	width: 15%;
+	float: right;
+	margin-left: 1%;
+	min-height: 200px;
+	background-color: gray;
+	display: none;
+	/*position: absolute;
+	right: 250px;
+	top: 70px;*/
+}
+#sidebar .groupItem {
+	height: 50px;
+}
+.serializer
+{
+	float: left;
+}
+.groupItem
+{
+	margin-bottom: 20px;
+	background: lightblue;
+}
+.groupItem .itemHeader
+{
+	line-height: 20px;
+	background-color: #31BCC8;
+	border-top: 2px solid #217077;
+	color: #fff;
+	padding: 0 10px;
+	cursor: move;
+	font-weight: bold;
+	font-size: 16px;
+	height: 20px;
+	position: relative;
+}
+.closeEl
+{
+	position: absolute;
+	right: 10px;
+	top: 0px;
+	font-weight: normal;
+	font-size: 11px;
+	text-decoration: none;
+}
+
+.edit
+{
+	position: absolute;
+	right: 40px;
+	top: 0px;
+	font-weight: normal;
+	font-size: 11px;
+	text-decoration: none;
+}
+.sortHelper
+{
+	background-color: lightblue;
+	border: 1px dashed #666;
+	width: 100px !important;
+}
+.groupWrapper p
+{
+	height: 1px;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+}
+#addContent {
+	position: relative;
 }

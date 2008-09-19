@@ -29,10 +29,10 @@ class MenuController{
 			);
 		}
 		//create the actions options
-		$options['image'] = '24';
-		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/perms/add',$options), 'edit'=>Core::l('edit','admin/perms/edit',$options));
+		//$options['image'] = '24';
+		//$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/menus/add',$options));
 		// bind the params to smarty
-		$smarty->assign('sublinks',$links);
+		//$smarty->assign('sublinks',$links);
 		$smarty->assign('self','admin/perms');
 		$smarty->assign('list', $list);
 	}
@@ -44,20 +44,56 @@ class MenuController{
 		$perms->GetNames();
 		$i = 0;
 		$menuItems = new Menu($menu->name);
+		$options['image']='16';
 		foreach($menuItems->menu as $item){
 			$items[$i] = array(
-				'path'=>$item['linkpath'],
-				'title'=>$item['linktext'],
-				//'viewable By'=>$item['viewableby']
+				'path'=>'<input type="text" size="15" value="'.$item['linkpath'].'" name="'.$item['id'].'_linkpath"/>',
+				'title'=>'<input type="text" size="15" value="'.$item['linktext'].'" name="'.$item['id'].'_linktext"/>',
 			);
 			foreach($perms->names as $pname){
 				$checked = strpos($item['viewableby'],$pname) !== false ? 'checked="checked"' : '';
-				$items[$i][$pname] = '<input type="checkbox" name="'.$pname.'[]" value="'.$item['name'].'" '.$checked.'/>';
+				$items[$i][$pname] = '<input type="checkbox" name="'.$item['id'].'_'.$pname.'[]" value="'.$pname.'" '.$checked.'/>';
 			}
+			$items[$i]['actions'] = Core::l('delete','admin/menus/delete/'.$mid.'/'.$item['id'],$options);
 			$i++;
 		}		
 		$options['image'] = '24';
-		$links = array('back'=>Core::l('back','admin/menus',$options),'add'=>Core::l('add','admin/perms/add',$options));
+		$links = array('back'=>Core::l('back','admin/menus',$options),'add'=>Core::l('add','admin/menus/add/'.$mid,$options));
+		$smarty->assign('sublinks',$links);
+		$smarty->assign('list',$items);
+		$smarty->assign('extra', '<input type="submit" value="Submit" name="submit"/>');
+	}
+	public static function WriteMenu($id=null){
+		unset($_POST['submit']);
+		foreach($_POST as $key=>$item){
+			$tmp = explode('_',$key);
+			if ($tmp[1] != 'linkpath' && $tmp[1] != 'linktext' && $tmp[1] != ''){
+				$array[$tmp[0]]['viewableby'][] = $tmp[1];
+			}else{
+				if($item != '' || $item != null){
+					$array[$tmp[0]][$tmp[1]] = $item;
+				}
+			}
+		}
+		$menu = new Menu();
+		$menu->data = $array;
+		$menu->commit($id);
+	}
+	public static function AddMenuItem(){
+		global $smarty;
+		$perms = new Perms();
+		$perms->GetNames();
+		for($i=0; $i<5; $i++){
+			$items[$i] = array(
+				'path'=>'<input type="text" size="15" value="" name="'.$i.'_linkpath"/>',
+				'title'=>'<input type="text" size="15" value="" name="'.$i.'_linktext"/>',
+			);
+			foreach($perms->names as $pname){
+				$items[$i][$pname] = '<input type="checkbox" name="'.$i.'_'.$pname.'[]" value="'.$pname.'" '.$checked.'/>';
+			}
+		}	
+		$options['image'] = '24';
+		$links = array('back'=>Core::l('back','admin/menus',$options));
 		$smarty->assign('sublinks',$links);
 		$smarty->assign('list',$items);
 		$smarty->assign('extra', '<input type="submit" value="Submit" name="submit"/>');

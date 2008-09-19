@@ -1,5 +1,4 @@
 <div id="userlist">
-	<h2>New users</h2>
 	<ul>
 		{section name=mysec loop=$users}
 		{strip}
