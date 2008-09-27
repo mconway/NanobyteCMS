@@ -42,21 +42,26 @@ private $DB;
 		}
 	}
 	
-	public static function Read($published=null,$limit=null){ //Replaces GetPostLst
+	public static function Read($published=null,$limit=15,$start=0){ //Replaces GetPostLst
 		$DB = DBCreator::GetDbObject();
 		if($published){
 			$where = "where `published`=".$published;
 		}
-		if($limit){
-			$limit = " LIMIT ".$limit;
-		}
-		$result = $DB->prepare("select pid from ".DB_PREFIX."_posts ".$where." ORDER BY created DESC".$limit);
+		$result = $DB->prepare("SELECT SQL_CALC_FOUND_ROWS `pid` FROM ".DB_PREFIX."_posts {$where} ORDER BY created DESC LIMIT {$start},{$limit}");
+		//get the row count
+		$cRows = $DB->prepare('SELECT found_rows() AS rows');
 		try{
 			$result->execute();
 			$output = array();
 			while ($row = $result->fetch(PDO::FETCH_ASSOC)){
-				$output[$row['pid']] = new Post($row['pid']); //Create an array of objects
+				$output['content'][$row['pid']] = new Post($row['pid']); //Create an array of objects
 			}
+			$cRows->execute();
+	        $nbItems = $cRows->fetch(PDO::FETCH_OBJ)->rows;
+			if ($nbItems>($start+$limit)) $output['final'] = $start+$limit;
+			else $output['final'] = $nbItems;
+			$output['limit'] = $limit;
+			$output['nbItems'] = $nbItems;
 		}catch (PDOException $e){
 			Core::SetMessage($e->getMessage(), 'error');
 		}

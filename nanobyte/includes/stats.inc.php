@@ -151,9 +151,4 @@ class Stats{
 		
 		return $result;
 	}
-	public function GetStart($page,$limit){
-		if (!$page || $page == ""){$page = 1; } 
-		$start = (($page - 1) * $limit) ;
-		return $start;
-	}
 }

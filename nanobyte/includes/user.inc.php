@@ -115,5 +115,26 @@ class User{
 	private static function GetPassword($user, $pass){
 		return sha1($pass . substr(str_rot13(strtolower($user)), 0, 3));
 	}
+		
+	public static function GetUserList($start=0, $limit=15){
+		//return array for smarty
+		$DB = DBCreator::GetDbObject();
+		$result = $DB->prepare("select uid from ".DB_PREFIX."_user");
+		$result = $DB->prepare("SELECT SQL_CALC_FOUND_ROWS `uid` FROM ".DB_PREFIX."_user ORDER BY joined DESC LIMIT {$start},{$limit}");
+		//get the row count
+		$cRows = $DB->prepare('SELECT found_rows() AS rows');
+		$result->execute();
+		$output = array();
+		$cRows->execute();
+        $nbItems = $cRows->fetch(PDO::FETCH_OBJ)->rows;
+		if ($nbItems>($start+$limit)) $output['final'] = $start+$limit;
+		else $output['final'] = $nbItems;
+		$output['limit'] = $limit;
+		$output['nbItems'] = $nbItems;
+		while ($row = $result->fetch(PDO::FETCH_ASSOC)){
+			$output[$row['uid']] = new User($row['uid']); //Create an array of user objects
+		}
+		return $output;
+	}
 }
 ?>

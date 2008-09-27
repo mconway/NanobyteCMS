@@ -7,8 +7,10 @@ class BaseController{
 		}else{
 			header("location: ".$_SERVER['HTTP_REFERER'], true, 303); 
 		}
+		exit;
 	}
-	public static function DisplayMessages($smarty){
+	public static function DisplayMessages(){
+		global $smarty;
 		if(isset($_SESSION['messages'])){
 			$messages = Core::getMessages();
 			$smarty->assign('messages', $messages);
@@ -16,7 +18,8 @@ class BaseController{
 			return false;
 		}
 	}
-	public static function NewUsers($smarty){
+	public static function NewUsers(){
+		global $smarty;
 		$users = Core::NewUsers();
 		$smarty->assign('users', $users);
 	}
@@ -64,6 +67,13 @@ class BaseController{
 	
 		return $output;
 	}
+	
+	public function GetStart($page,$limit){
+		if (!$page || $page == ""){$page = 1; } 
+		$start = (($page - 1) * $limit) ;
+		return $start;
+	}
+	
 	public static function VerifyFile($file){
 		$filename = $file['name'];
 		$ext = substr($filename, strripos($filename, '.')); // Get the extension from the filename.

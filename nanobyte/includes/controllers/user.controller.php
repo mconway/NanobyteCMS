@@ -3,7 +3,7 @@
 class UserController extends BaseController{
 	public function ListUsers($smarty){
 		//create list
-		$userList = Admin::GetUserList(); //array of objects
+		$userList = User::GetUserList(); //array of objects
 		$theList = array();
 		$options['image'] = '16';
 		foreach ($userList as $user){

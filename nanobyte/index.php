@@ -76,8 +76,8 @@ if($_GET['page']){
 		$smarty->assign('noSess', true);
 	}
 	//Add the Messages, Posts and Includes to smarty and display the results.
-	BaseController::DisplayMessages($smarty); 
-	PostController::DisplayPosts($smarty);
+	BaseController::DisplayMessages(); 
+	PostController::DisplayPosts(1);
 	BaseController::GetHTMLIncludes();
 	$smarty->display('index.tpl');
 }

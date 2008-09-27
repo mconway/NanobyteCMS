@@ -49,8 +49,9 @@ class Perms{
 		}
 	}
 	public function AddGroup($params){
-		$insert = $this->DB->prepare("insert into ".DB_PREFIX."_groups set name=:name");
+		$insert = $this->DB->prepare("insert into ".DB_PREFIX."_groups (name, comments) values (:name, :comm)");
 		$insert->bindParam(':name',$params['name']);
+		$insert->bindParam(':comm',$params['comments']);
 		$insert->execute();
 		if ($insert->rowCount() == 1){
 			return true;

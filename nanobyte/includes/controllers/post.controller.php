@@ -41,34 +41,31 @@ class PostController{
 		//UserController::Redirect('admin/posts');
 	}
 
-	public static function ListPosts($smarty){
+	public static function ListPosts($page){
+		global $smarty;
 		//create the list
-		$list = Post::Read(); //array of objects
+		$start = BaseController::GetStart($page,15);
+		$list = Post::Read(null,15,$start); //array of objects with a limit of 15 per page.
 		$theList = array();
 		$options['image'] = '16';
-		foreach ($list as $post){
+		foreach ($list['content'] as $post){
 			$theList[] = array(
 				'id'=>$post->pid, 
 				'title'=>$post->title, 
-				//'body'=>$post->body, 
 				'created'=>date('Y-M-D',$post->created),
 				'author'=>$post->author,
 				'published'=>$post->published,
 				'actions'=>Core::l('info','posts/'.$post->pid,$options).' | '.Core::l('edit','admin/posts/edit/'.$post->pid,$options)
 				);
 		}
-		//create the actions options
-		//$actions['General Actions'] = array('newPost'=>'Create New Post');
-		$actions= array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish');
-		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
 		$options['image'] = '24';
-		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/posts/add',$options));
-		// bind the params to smarty
-		$smarty->assign('sublinks',$links);
+		//create the actions options and bind the params to smarty
+		$smarty->assign('pager',BaseController::Paginate($list['limit'], $list['nbItems'], 'admin/posts/', $page));
+		$smarty->assign('sublinks',array('header'=>'Actions: ','add'=>Core::l('add','admin/posts/add',$options)));
 		$smarty->assign('cb',true);
 		$smarty->assign('self','admin/posts');
-		$smarty->assign('actions',$actions);
-		$smarty->assign('extra', $extra);
+		$smarty->assign('actions', array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish'));
+		$smarty->assign('extra', 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>');
 		$smarty->assign('list', $theList);
 		return $smarty;
 	}
@@ -77,9 +74,10 @@ class PostController{
 		$post = new Post($id);
 		self::PostForm($post);
 	}
-	public static function DisplayPosts($smarty){
+	public static function DisplayPosts($page){
+		global $smarty;
 		$posts = Post::Read('1');
-		foreach ($posts as $post){
+		foreach ($posts['content'] as $post){
 			$theList[] = array( 
 				'title'=>$post->title, 
 				'body'=>$post->body, 
@@ -87,6 +85,7 @@ class PostController{
 				'author'=>$post->author,
 			);
 		}
+		$smarty->assign('pager',BaseController::Paginate($posts['limit'], $posts['nbItems'], '', $page));
 		$smarty->assign('posts', $theList);
 	}
 	public static function GetPost($id){

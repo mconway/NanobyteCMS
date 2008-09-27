@@ -30,7 +30,7 @@ function admin($args){
 								break;
 							case 'edit':
 								$editMe = new User($args[2]);
-								UserController::EditUser($smarty, $editMe);
+								UserController::EditUser($editMe);
 								$smarty->assign('file', 'form.tpl');
 								break;	
 							case 'add':
@@ -50,7 +50,7 @@ function admin($args){
 						
 						//If file is not set, get the user list and display
 						if (!$file){ 
-							UserController::ListUsers($smarty); 
+							UserController::ListUsers(); 
 							$smarty->assign('file', 'list.tpl'); 
 						}
 						break;
@@ -78,7 +78,7 @@ function admin($args){
 						$file = $smarty->get_template_vars('file'); 
 						//If File is not set, get the post list and display
 						if (!$file){ 
-							PostController::ListPosts($smarty);
+							PostController::ListPosts($args['1']);
 							$smarty->assign('file', 'list.tpl');
 						}
 		 				break;
@@ -93,7 +93,7 @@ function admin($args){
 								break;
 							// Default is to display the module list
 							default: 
-								ModuleController::ListMods($smarty);
+								ModuleController::ListMods();
 								$smarty->assign('file', 'list.tpl');
 								break;
 						}
@@ -145,7 +145,7 @@ function admin($args){
 		 				break;
 					// Stats Sub Page
 		 			case 'stats':
-						AdminController::ListStats($smarty, $args['1']); // Get the stats list
+						AdminController::ListStats($args['1']); // Get the stats list
 						$smarty->assign('file','list.tpl'); // Display the list
 						break;
 					//administer permissions
@@ -181,7 +181,7 @@ function admin($args){
 						if(!class_exists('HTML_QuickForm', false)){
 							Core::SetMessage('HTML QuickForms is not installed!','error');
 						}else{
-							Core::SetMessage('HTMl Quickforms is Installed.','info');
+							Core::SetMessage('HTML Quickforms is Installed.','info');
 						}
 						break;
 					// When no sub page is specified display default
@@ -189,11 +189,11 @@ function admin($args){
 						if (isset($_POST['save'])){
 							PostController::SavePost();
 						}
-						BaseController::NewUsers($smarty);
+						BaseController::NewUsers();
 						$smarty->assign('file', 'admin.main.tpl');
 						break;
 				}
-				BaseController::DisplayMessages($smarty); // Get any messages
+				BaseController::DisplayMessages(); // Get any messages
 				BaseController::GetHTMLIncludes(); // Get CSS and Script Files
 				$smarty->display('admin.tpl'); // Display the Admin Page
 				

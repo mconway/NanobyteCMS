@@ -96,9 +96,10 @@ class AdminController extends BaseController{
 		}
 		return $links;
 	}
-	public static function ListStats($smarty, $page){ //pass start to read()
+	public static function ListStats($page){
+		global $smarty;
 		$stats = new Stats();
-		$start = $stats->GetStart($page,15);
+		$start = BaseController::GetStart($page,15);
 		$statsArray = $stats->Read($start, $_POST['Date_Day'], $_POST['Date_Month'], $_POST['Date_Year']);
 		
 		$smarty->assign('list',$statsArray['items']);
@@ -167,6 +168,7 @@ class AdminController extends BaseController{
 		//create form elements
 		$form->addElement('header','','Add New Permissions Group');
 		$form->addElement('text', 'name', 'Group Name', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'comments', 'Comments', array('size'=>25, 'maxlength'=>60));
 		
 		$form->addElement('submit', 'submit', 'Submit');
 		//apply form prefilters

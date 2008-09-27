@@ -14,7 +14,8 @@
 		return $mod;
 	}
 	
-	public static function ListMods($smarty){
+	public static function ListMods(){
+		global $smarty;
 		//create list
 		$modsList = self::GetAll(); //array of objects
 		$list = array();

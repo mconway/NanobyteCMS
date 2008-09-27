@@ -66,11 +66,11 @@ class MenuController{
 	public static function WriteMenu($id=null){
 		unset($_POST['submit']);
 		foreach($_POST as $key=>$item){
-			$tmp = explode('_',$key);
-			if ($tmp[1] != 'linkpath' && $tmp[1] != 'linktext' && $tmp[1] != ''){
-				$array[$tmp[0]]['viewableby'][] = $tmp[1];
+			$tmp = explode('_',$key); //$key is id_name
+			if ($tmp[1] != 'linkpath' && $tmp[1] != 'linktext' && $tmp[1] != ''){ //check to see if the item is a checkbox or a textbox
+				$array[$tmp[0]]['viewableby'][] = $tmp[1]; //add checkboxes to the viewableby array
 			}else{
-				if($item != '' || $item != null){
+				if($item != '' || $item != null){ //add all else to its own array bucket
 					$array[$tmp[0]][$tmp[1]] = $item;
 				}
 			}

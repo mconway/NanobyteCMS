@@ -13,7 +13,7 @@ switch($args[0]){ // What sub page are we trying to view
 			break;
 		case 'edit': // Edit User Details
 			if (isset($_POST['commit'])){
-				UserController::EditUser($smarty);
+				UserController::EditUser();
 				BaseController::Redirect();
 			}elseif(isset($_POST['delete'])){
 				AdminController::DeleteUserRequest();
@@ -35,7 +35,7 @@ switch($args[0]){ // What sub page are we trying to view
 		case 'register': // Sign up as a new user
 			UserController::RegForm();
 			$smarty->assign('file','form.tpl');
-			BaseController::DisplayMessages($smarty);
+			BaseController::DisplayMessages();
 			BaseController::GetHTMLIncludes();
 			$smarty->display('user.tpl');
 			break;
@@ -52,7 +52,7 @@ switch($args[0]){ // What sub page are we trying to view
 				Core::SetMessage('Not Logged In', 'status');
 				$smarty->assign('noSess', true);
 			}
-			BaseController::DisplayMessages($smarty); // Get Messages
+			BaseController::DisplayMessages(); // Get Messages
 			BaseController::GetHTMLIncludes(); //Get CSS and Scripts
 			$smarty->display('user.tpl'); // Display the Page
 			break;

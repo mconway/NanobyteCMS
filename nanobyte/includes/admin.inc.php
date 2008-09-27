@@ -8,18 +8,7 @@
 
  class Admin{
  
-	public static function GetUserList(){
-		//return array fro smarty
-		$DB = DBCreator::GetDbObject();
-		$result = $DB->prepare("select uid from ".DB_PREFIX."_user");
-		$result->execute();
-		$output = array();
-		while ($row = $result->fetch(PDO::FETCH_ASSOC)){
-			$output[$row['uid']] = new User($row['uid']); //Create an array of user objects
-		}
-		return $output;
-	}
-	public static function DeleteObject($table, $field, $id){
+ 	public static function DeleteObject($table, $field, $id){
 		$DB = DBCreator::GetDbObject();
 		$delete = $DB->prepare("delete from ".DB_PREFIX."_$table where `$field`=:id");
 		$delete->bindParam(':id', $id);

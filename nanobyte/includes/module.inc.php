@@ -16,7 +16,7 @@ class Module{
 		$this->DB = DBCreator::GetDbObject();
 		$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE `module`=:mod";
 		$this->insert = "INSERT INTO ".DB_PREFIX."_modules (`name`, `module`, `status`) values (:name, :mod, :status)";
-		$this->modify = "UPDATE ".DB_PREFIX."_modules set `status`=:status WHERE `module`=:mod";
+		$this->modify = "UPDATE ".DB_PREFIX."_modules set `status`=status XOR 1 WHERE `module`=:mod";
 		$this->name = str_replace('modules/', '', $path);
 		$this->modpath = './modules/'.$this->name.'/';
 		if (file_exists($this->modpath.$this->name.'.xml')){
@@ -37,7 +37,7 @@ class Module{
 	
 	public function Commit(){
 		//set status to 1/0
-		$qUpdate = $this->DB->prepare("UPDATE ".DB_PREFIX."_modules set `status`=status XOR 1 WHERE `module`=:mod");
+		$qUpdate = $this->DB->prepare($this->modify);
 		$qUpdate->bindValue(':mod',$this->modpath);
 		$qUpdate->execute();
 	}
@@ -54,7 +54,7 @@ class Module{
 				$qInsert->bindValue(':status', 0);
 				$qInsert->execute();
 			}catch(PDOException $e){
-				Core::SetMessage('Could not add Module '.$this->conf->title.' to the database. Error: '.$e->getMEssage(), 'error');
+				Core::SetMessage('Could not add Module '.$this->conf->title.' to the database. Error: '.$e->getMessage(), 'error');
 			}
 		}else{
 			return false;
