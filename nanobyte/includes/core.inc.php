@@ -39,7 +39,7 @@
 		}
  	} 
 	public static function StartSession(){
-		//$sess = new SessionManager();
+		$sess = new SessionManager();
 		session_set_cookie_params(3600);
 	    session_start();
 	    self::GetConf();
@@ -53,12 +53,12 @@
  	public static function l($text, $path, $options=null){
 		//return an HTML string
 		 if (CLEANURL === 'true'){
- 			$url = SITE_DOMAIN.'/'.PATH.'/'.$path;
+ 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/'.$path : SITE_DOMAIN.'/'.$path;
  		}else{
  			//$url = explode('/',$path);
  			//$script = array_shift($url);
  			//$page = implode('/', $url);
- 			$url = SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path;
+ 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
 		if($options['image']){
 			$text = '<img src="templates/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
@@ -118,12 +118,12 @@
  	}
  	public static function Url($path){
  		if (CLEANURL === 'true'){
- 			return SITE_DOMAIN.'/'.PATH.'/'.$path;
+ 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'/'.$path : SITE_DOMAIN.'/'.$path;;
  		}else{
  			//$url = explode('/',$path);
  			//$script = array_shift($url);
  			//$page = implode('/', $url);
- 			return SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path;
+ 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
  	}
 	public static function FileUpload($file){

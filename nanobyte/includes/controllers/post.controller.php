@@ -17,8 +17,18 @@ class PostController{
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
 		//upload files if needed
 		if(!empty($data['image']['name'])){
-			$image = BaseController::HandleImage($data['image'],'100');
+			$image = BaseController::HandleImage($data['image'],'80');
 		}
+		$codestr = substr($data['body'],strpos($data['body'],'<code>'),strpos($data['body'],'</code>'));
+		$codestr = str_replace('<code>','',$codestr);
+		$codestr = str_replace('</code>','',$codestr);
+		$geshi = new GeSHi($codestr, 'php');
+		$code = $geshi->parse_code();
+		$pattern = '#(<)(code)((\s+[^>]*)*)(>)(.*?)(</\2\s*>|$)#s';
+
+		$data['body'] = preg_replace($pattern, $code, $data['body']);
+	
+
 		//Update the Post, Do not create a new one.
 		if ($data['pid']){
 			$post = new Post($data['pid']);
@@ -28,6 +38,7 @@ class PostController{
 			$post->published = $data['published'] ? 1 : 0;
 			$post->Commit();
 			Core::SetMessage('Your changes have been saved!','info');
+		
 		}else{ //Create a new Post
 			$data['published'] ? 1 : 0;
 			$data['body'] = $image.$data['body'];
@@ -129,7 +140,7 @@ class PostController{
 		$form->addElement('submit', 'save', 'Save');
 		//apply form prefilters
 		$form->applyFilter('__ALL__', 'trim');
-		$form->applyFilter('__ALL__', 'nl2br');
+		//$form->applyFilter('__ALL__', 'nl2br');
 
 		//add form rules
 		$form->addRule('title', 'A Title is required.', 'required');

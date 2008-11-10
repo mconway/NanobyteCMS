@@ -52,15 +52,19 @@ class User{
 		if ($result->rowCount() == 1){
 			return false;
 		}else{
+			$insert = $DB->prepare("insert into ".DB_PREFIX."_user (username, password, email, joined) values (:u, :p, :e, :t)");
+			$insert->bindParam(':u',$uarray['name']);
+			$insert->bindParam(':p',$pw);
+			$insert->bindParam(':e',$uarray['email']);
+			$insert->bindParam(':t',time());
+				
+			$profileq = $DB->prepare("insert into ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name");
+			$profileq->bindParam(':name',$uarray['name']);
 			try{
-				$insert = $DB->prepare("insert into ".DB_PREFIX."_user (username, password, email, joined) values (:u, :p, :e, :t)");
-				$insert->bindParam(':u',$uarray['name']);
-				$insert->bindParam(':p',$pw);
-				$insert->bindParam(':e',$uarray['email']);
-				$insert->bindParam(':t',time());
 				$insert->execute();
+				$profileq->execute();
 			} catch (PDOException $e) {
-				die('Error creating User: ' . $e->getMessage());
+				Core::SetMessage('Error creating User: ' . $e->getMessage().". Please contact the Webmaster");
 			}
 			return true;
 		}
@@ -77,6 +81,10 @@ class User{
 			$user = new self($row['uid']);
 			$_SESSION['user'] = serialize($user);
 			$_SESSION['hash'] = $user->SessionHash();
+			$logintime = $DB->prepare("update ".DB_PREFIX."_user set `lastlogin`=:login where `uid`=:uid");
+			$logintime->bindParam(':login',time());
+			$logintime->bindParam(':uid',$user->uid);
+			$logintime->execute();
 			return $user;
 		}else{
 			return false;
@@ -135,6 +143,23 @@ class User{
 			$output[$row['uid']] = new User($row['uid']); //Create an array of user objects
 		}
 		return $output;
+	}
+	
+	public function SetAccessTime(){
+		$dbh = DBCreator::GetDbObject();
+		$query = $dbh->prepare("UPDATE ".DB_PREFIX."_user set `online`=:time where `uid`=:uid");
+		$query->bindParam(':time',time());
+		$query->bindParam(':uid',$this->uid);
+		$query->execute();		
+	}
+	
+	public static function GetAccessTime($id){
+		$dbh = DBCreator::GetDbObject();
+		$query = $dbh->prepare("SELECT `online` FROM ".DB_PREFIX."_user where `uid`=:uid");
+		$query->bindParam(':uid',$id);
+		$query->execute();
+		$row = $query->fetch(PDO::FETCH_ASSOC);
+		return $row['online'];
 	}
 }
 ?>

@@ -7,13 +7,25 @@
  */
 function User($args){
 global $smarty; // Get the Smarty object
+global $user;
 switch($args[0]){ // What sub page are we trying to view
 		case 'details': // view user details - THIS IS NOT THE PROFILE PAGE
 			UserController::GetDetails($args['1']);
 			break;
-		case 'edit': // Edit User Details
+		case 'edit':
+			if (Core::AuthUser($user, 'edit user accounts') || $user->uid === $args[1]){
+				UserController::EditUser($args[1]);
+				$smarty->assign('file', 'form.tpl');
+			}else{
+				Core::SetMessage('You do not have access to this page!','error');
+			}
+			BaseController::DisplayMessages();
+			BaseController::GetHTMLIncludes();
+			$smarty->display('index.tpl');
+			break;	
+		case 'commit': // Save User Details
 			if (isset($_POST['commit'])){
-				UserController::EditUser();
+				UserController::EditUser($args[1]);
 				BaseController::Redirect();
 			}elseif(isset($_POST['delete'])){
 				AdminController::DeleteUserRequest();
@@ -39,18 +51,17 @@ switch($args[0]){ // What sub page are we trying to view
 			BaseController::GetHTMLIncludes();
 			$smarty->display('user.tpl');
 			break;
+		case 'profiles':
+			UserController::ShowProfile($args[1]);
+			BaseController::DisplayMessages(); // Get Messages
+			BaseController::GetHTMLIncludes(); //Get CSS and Scripts
+			$smarty->display('user.tpl'); // Display the Page
+			break;
 		default: // If no sub page is specified
-			if (isset($_SESSION['hash'])){
-				$a = unserialize($_SESSION['user']);
-				if ($_SESSION['hash'] == $a->SessionHash()){
-					if (Core::AuthUser($a, 'admin')){
-						Core::SetMessage('Session Hash:'. $_SESSION['hash']);
-						Core::SetMessage($a->uid);
-					}
-				}
-			}else{
-				Core::SetMessage('Not Logged In', 'status');
+			if ($user->uid == 0){ //User is not logged in
 				$smarty->assign('noSess', true);
+			}else{
+				UserController::ShowProfile($user->uid);
 			}
 			BaseController::DisplayMessages(); // Get Messages
 			BaseController::GetHTMLIncludes(); //Get CSS and Scripts

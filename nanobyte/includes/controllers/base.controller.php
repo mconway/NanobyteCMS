@@ -127,7 +127,7 @@ class BaseController{
 		}
 		if ($resize){
 			$images = self::ResizeImage($image, $resize);
-			return '<a href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
+			return '<a class="postImage" href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
 		}else{
 			return '<img src="'.UPLOAD_PATH.$filename.'" width="80" height="80"/>';
 		}

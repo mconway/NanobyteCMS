@@ -13,8 +13,7 @@ class AdminController extends BaseController{
  		if(isset($delUser)){
 	 		foreach($delUser as $delete){
 	 			if ($user->uid != $delete){
-	 				$deleted = Admin::DeleteObject('user', 'uid', $delete);
- 					if ($deleted === true){
+ 					if (Admin::DeleteObject('user', 'uid', $delete) === true && Admin::DeleteObject('user_profiles', 'uid', $delete)){
 						Core::SetMessage('User '.$delete.' has been deleted!', 'info');
 					} else {
 						Core::SetMessage('Unable to delete user '.$delete.' , an error has occurred.', 'error');

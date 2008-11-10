@@ -8,6 +8,7 @@
 //require the Core and Smarty Classes
 require_once './includes/core.inc.php';
 require_once './includes/smarty/libs/Smarty.class.php';
+require_once './includes/geshi/geshi.php';
 
 // We start off with an empty array of enabled mods. This gets populated in Start Session
 $modsEnabled = array(); 
@@ -26,9 +27,14 @@ $smarty->assign('sitename',SITE_NAME);
 $smarty->assign('feedurl', Core::url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
 
-//Create a new User, or use an Already logged in User Object from the Session
+//Create a new User, or use an Already logged in User Object from the Session, then update teh access time
 $user = $_SESSION['user'] ? unserialize($_SESSION['user']) : new User(0);
-
+if($user->uid != 0){
+	$user->SetAccessTime();
+}
+if (!isset($_SESSION['hash'])){
+	$smarty->assign('noSess', true);
+}
 // Get the Site Menu, If the page is 'home', unset it, since this is the index page
 MenuController::GetMenu('main',$user->group);
 if (strpos($_GET['page'], 'home') !== false){
@@ -72,13 +78,18 @@ if($_GET['page']){
 //If there are no args
 }else{
 	//Display the login form if needed (This should probably be changed)
-	if (!isset($_SESSION['hash'])){
-		$smarty->assign('noSess', true);
-	}
+
 	//Add the Messages, Posts and Includes to smarty and display the results.
 	BaseController::DisplayMessages(); 
 	PostController::DisplayPosts(1);
 	BaseController::GetHTMLIncludes();
+	
+	// To be used like this
+	//$parser = new CodeParser;
+	//$output = $parser->parse('<code> hi hi hi </code>');
+	
+	//print_r ($output);
+
 	$smarty->display('index.tpl');
 }
 ?>

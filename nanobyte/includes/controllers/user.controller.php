@@ -1,19 +1,22 @@
 <?php
 
 class UserController extends BaseController{
-	public function ListUsers($smarty){
+	public function ListUsers(){
+		global $smarty;
 		//create list
 		$userList = User::GetUserList(); //array of objects
 		$theList = array();
 		$options['image'] = '16';
-		foreach ($userList as $user){
-			$theList[] = array(
-				'id'=>$user->uid, 
-				'name'=>Core::l($user->name, 'user/'.$user->uid), 
-				'email'=>$user->email, 
-				'group'=>$user->group,
-				'actions'=>Core::l('info','user/details/'.$user->uid,$options).' | '.Core::l('edit','admin/users/edit/'.$user->uid,$options)
+		foreach ($userList as $key=>$user){
+			if ($key!='nbItems' && $key!='final' && $key!='limit'){
+				$theList[] = array(
+					'id'=>$user->uid, 
+					'name'=>Core::l($user->name, 'user/'.$user->uid), 
+					'email'=>$user->email, 
+					'group'=>$user->group,
+					'actions'=>Core::l('info','user/details/'.$user->uid,$options).' | '.Core::l('edit','admin/users/edit/'.$user->uid,$options)
 				);
+			}
 		}
 		$perms = new Perms();
 		$perms->GetNames();
@@ -32,27 +35,34 @@ class UserController extends BaseController{
 		$smarty->assign('list', $theList);
 		return $smarty;
 	}
-	public static function EditUser($smarty,$user=null){
-		if ($user === null){ //if invoked by $user
-			$user = new User($_GET['uid']);
-		}
-		//$profile = new UserProfile($user->uid);
+	public static function EditUser($id){
+		global $smarty;
+		$edituser = new User($id);
+		$profile = new UserProfile($edituser->uid);
 		//create the form object 
-		$form = new HTML_QuickForm('edituser','post','admin/users/edit/'.$user->uid);
+		$form = new HTML_QuickForm('edituser','post','admin/users/commit/'.$edituser->uid);
 		//set form default values
 		$form->setdefaults(array(
-			'uid'=>$user->uid, 
-			'name'=>$user->name, 
-			'joined'=>$user->joined,
-			'email'=>$user->email
+			'name'=>$edituser->name, 
+			'joined'=>$edituser->joined,
+			'email'=>$edituser->email,
+			'avatar'=>$profile->avatar,
+			'location'=>$profile->location,
+			'about'=>$profile->about
 		));
 		//create form elements
-		$form->addElement('header','','User Details');
+		$form->addElement('header','','User Account Details');
 		$form->addElement('text', 'name', 'Username', array('size'=>25, 'maxlength'=>15, 'readonly'=>'readonly'));
 		$form->addElement('text', 'joined', 'Joined', array('size'=>25, 'maxlength'=>15, 'readonly'=>'readonly'));
 		$form->addElement('password', 'password', 'Password', array('size'=>25, 'maxlength'=>10));
 		$form->addElement('password', 'confirm', 'Confirm Password', array('size'=>25, 'maxlength'=>10));
 		$form->addElement('text', 'email', 'Email', array('size'=>25, 'maxlength'=>50));
+
+		$form->addElement('header','','User Profile Information');
+		$form->addElement('file', 'avatar', 'Upload Avatar');
+		$form->addElement('text', 'location', 'Location',array('size'=>25, 'maxlength'=>15));
+		$form->addElement('textarea', 'about', 'About Me',array('rows'=>20,'cols'=>60));
+		
 		$form->addElement('submit', 'commit', 'Save Changes');
 		//apply form prefilters
 		$form->applyFilter('__ALL__', 'trim');
@@ -64,15 +74,30 @@ class UserController extends BaseController{
 		//If the form has already been submitted - validate the data
 		if($form->validate()){
 			$values = $form->exportValues();
+			//print_r($values);
 			if($values['password']){
-				$user->pwchanged = $values['password'];
+				$edituser->pwchanged = $values['password'];
 			} 
-			if($user->email != $values['email']){
-				$user->email = $values['email'];
+			if($edituser->email != $values['email']){
+				$edituser->email = $values['email'];
 			}
-			$form->process(array($user,'commit'));
-			Core::SetMessage('Your Information has been updated!','info');
-			BaseController::Redirect('admin/users');
+			$avatar = $form->getElementValue('avatar');
+			if(!empty($avatar['name'])){
+				$image = BaseController::HandleImage($avatar,'100');
+				$profile->avatar = $image;
+			}
+			$profile->location = $values['location'];
+			$profile->about = $values['about'];
+			
+			//$form->process(array($edituser,'commit'));
+			//$form->process(array($profile,'commit'));
+			if ($edituser->commit() === true || $profile->commit() === true){
+				Core::SetMessage('Your Information has been updated!','info');
+			}else{
+				Core::SetMessage('Your Information was not updated!','error');
+			}
+
+			BaseController::Redirect();
 			exit;
 		}
 		//send the form to smarty
@@ -191,5 +216,22 @@ class UserController extends BaseController{
 			$user->commit();
 		}
 	}
+	public static function ShowProfile($id){
+		global $smarty;
+		$profile = new UserProfile($id);
+		$smarty->assign('name',$profile->name);
+		$smarty->assign('email',$profile->email);
+		$smarty->assign('avatar',$profile->avatar);
+		$smarty->assign('location',$profile->location);
+		$smarty->assign('lastlogin',date('G:i m.d.y T',$profile->lastlogin));
+		$smarty->assign('about',$profile->about);
+		$smarty->assign('file','userprofile.tpl');
+		$smarty->assign('online',$profile->online);
+	}
+	public static function CheckOnline($id){
+		$accesstime = User::GetAccessTime($id);
+		return $accesstime >= time() - 300 ? 'online' : 'offline';
+	}
+	
 }
 ?>

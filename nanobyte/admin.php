@@ -29,13 +29,21 @@ function admin($args){
 								AdminController::DeleteUserRequest();
 								break;
 							case 'edit':
-								$editMe = new User($args[2]);
-								UserController::EditUser($editMe);
+								UserController::EditUser($args[2]);
 								$smarty->assign('file', 'form.tpl');
 								break;	
 							case 'add':
 								UserController::RegForm(true);
 								$smarty->assign('file','form.tpl');
+								break;
+							case 'commit': // Save User Details
+								if (isset($_POST['commit'])){
+									UserController::EditUser($args[2]);
+									BaseController::Redirect();
+								}elseif(isset($_POST['delete'])){
+									AdminController::DeleteUserRequest();
+									BaseController::Redirect();
+								}
 								break;
 							default:
 								if(isset($_POST['users'])){

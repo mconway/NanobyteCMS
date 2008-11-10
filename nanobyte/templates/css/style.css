@@ -3,11 +3,12 @@ body{
 	margin: 0 auto;
 	font-family: Verdana, sans-serif;
 	font-size: 9pt;
-	color: #000;
+	color: #fff;
 	line-height: 1.7em;
+	background-color: #292929;
 }
 a img{
-	border: 0;
+	border: none;
 }
 #header{
 	margin-bottom: 15px;
@@ -16,38 +17,29 @@ a img{
 #banner{
 	background: url('../images/wcms_banner.png');
 	height:65px;
-	/*
-	position: fixed;
-	top: 0;
-	width: 750px;
-	*/
 }
 #sitename{
-	color: #FFFFFF;
 	font-size: 25px;
 	font-weight: bold;
 	text-align: center;
 	position: relative;
 	top: 15px;
-	display: none;
 }
 #siteslogan{
-	color:#FFFFFF;
 	font-family:arial;
 	font-size:15px;
 	padding-right:10px;
 	position:relative;
 	text-align:right;
-	top:45px;
+	top:25px;
 }
 #user{
-	color:#FFFFFF;
 	float:right;
 	padding-right:5px;
 	position:relative;
 	top:46px;
 }
-#loginform{
+#header #loginform{
 	position: absolute;
 	right: 10px;
 	top: 20px;
@@ -65,16 +57,13 @@ a img{
 	color: #fff;
 }
 #messages{
-	/*
-float: left;
-*/
+	background:#4D5050 none repeat scroll 0 0;
+	border:1px solid #FFFFFF;
+	margin:0 50px 15px;
+	padding:5px 0;
 }
 #messages ul{
 	list-style: none;
-	/*
-	margin: 0;
-	padding: 0;
-	*/
 }
 .messages .status {
     background:transparent url(../images/list-status.png) no-repeat scroll -2px 50%;
@@ -89,7 +78,6 @@ float: left;
 	padding-left: 30px;
 }
 #main{
-	margin-right: 190px;
 	float: left;
 	width:660px;
 }
@@ -103,48 +91,61 @@ float: left;
 	padding:0 10px;
 }
 
-/*
-#iconmenu a:hover img{
+/*#iconmenu a:hover img{
 	background: lightblue;
-}
-*/
+}*/
 
 #sidebar-right{
-	/*
-	float:right;
-	*/
 	margin-left:660px;
-	padding:0 8px 20px;
+	padding:0 10px;
+	width:180px;
 	/*
-	position:fixed;
-	*/
-	width:172px;
-	border: 1px dashed gray;
-	height: 500px;
+border: 1px dashed gray;
+*/
+}
+.block-body{
+	background-color: #3c4040;
+	margin-bottom:10px;
+	padding:5px;
 }
 .post{
 	margin-bottom:15px;
 	padding-bottom:20px;
-	padding-right: 5px;
-	border-bottom: 1px dashed gray;
-	/*
-	background-color: #21201e;
-	color: #ffffff;
-	position: relative;
-	overflow: hidden;
-	-moz-opacity: .85;
-	filter: alpha(opacity=75);
-*/
+	margin-right: 5px;
+	background-color: #3c4040;
+	/*-moz-opacity: .85;
+	filter: alpha(opacity=75);*/
+}
+div.contentheader{
+	background: transparent url(../images/contentheader.png) repeat-x scroll;
+	height: 23px;
 }
 .content{
-	margin-bottom:20px;
+	padding: 5px 5px 20px;
+	border-bottom: 1px solid gray;
+	overflow: hidden;
+}
+.content a.postImage { 
+	float: left; 
+	padding: 3px 3px 0 3px;
+	border: 1px solid black;
+	background-color: white;
+	margin-right: 5px;
+} 
+.content a.postImage img { 
+	/* no float */ 
 }
 .links{
 	float: right;
 	padding-right: 10px;
 }
-h2.title{
+h2.title, h2.title a {
 	margin-top: 0;
+	font-family: sans;
+	font-size: 14px;
+	color: #fff;
+	text-indent: 1em;
+	text-decoration: none;
 }
 #footer{
 	text-align:center;
@@ -153,6 +154,7 @@ h2.title{
 /* tables */
 table.tablesorter {
 	font-family:arial;
+	color: #000;
 	background-color: #CDCDCD;
 	margin:10px 0pt 15px;
 	font-size: 8pt;
@@ -195,7 +197,7 @@ table.tablesorter tbody td.actions{
 .formheader{
 	text-align: center;
 	font-weight:bold;
-	background-color: lightgray;
+	background: transparent url(../images/contentheader.png) repeat-x scroll;
 }
 .elementcontainer{
 	padding-top: 15px;
@@ -219,7 +221,6 @@ Begin Sortables Styles
 	float: left;
 	margin-right: 5px;
 	min-height: 400px;
-	border: 1px solid gray;
 }
 #sidebar
 {
@@ -229,9 +230,6 @@ Begin Sortables Styles
 	min-height: 200px;
 	background-color: gray;
 	display: none;
-	/*position: absolute;
-	right: 250px;
-	top: 70px;*/
 }
 #sidebar .groupItem {
 	height: 50px;
@@ -243,13 +241,12 @@ Begin Sortables Styles
 .groupItem
 {
 	margin-bottom: 20px;
-	background: lightblue;
+	background: #3C4040;
 }
 .groupItem .itemHeader
 {
 	line-height: 20px;
-	background-color: #31BCC8;
-	border-top: 2px solid #217077;
+	background: transparent url(../images/contentheader.png) repeat-x scroll 0 0;
 	color: #fff;
 	padding: 0 10px;
 	cursor: move;

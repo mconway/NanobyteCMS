@@ -1,7 +1,9 @@
 <div class="post">
-	<h2 class="title">
-		<a href="{$url}">{$post.title}</a>
-	</h2> 
+	<div class="contentheader">
+		<h2 class="title">
+			<a href="{$url}">{$post.title}</a>
+		</h2> 
+	</div>
 	{if $post.picture}
 	{$post.picture}
 	{/if}  
