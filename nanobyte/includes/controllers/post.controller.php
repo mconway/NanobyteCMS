@@ -129,7 +129,7 @@ class PostController{
 		$form->addElement('text', 'ititle', 'Title', array('size'=>25, 'maxlength'=>15));
 		$form->addElement('text', 'ialt', 'Alt Text', array('size'=>25, 'maxlength'=>15));
 		
-		$form->addElement('header','','');
+		$form->addElement('header','','Publishing Options');
 		$form->addElement('text', 'tags', 'Tags', array('size'=>25, 'maxlength'=>15));
 		$form->addElement('checkbox','published','Publish');
 		

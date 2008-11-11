@@ -161,5 +161,12 @@ class User{
 		$row = $query->fetch(PDO::FETCH_ASSOC);
 		return $row['online'];
 	}
+	public static function GetUsersOnline(){
+		$dbh = DBCreator::GetDbObject();
+		$query = $dbh->prepare("SELECT username FROM ".DB_PREFIX."_user WHERE online > :time");
+		$query->bindValue(':time',time()-300);
+		$query->execute();
+		return $query->fetchAll(PDO::FETCH_COLUMN,0);
+	}
 }
 ?>

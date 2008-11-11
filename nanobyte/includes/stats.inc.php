@@ -16,17 +16,21 @@
  */
  
 class Stats{
-	function __construct(){
+	function __construct($referrer=true){
 		$this->DB = DbCreator::GetDBObject();
-		$this->visitorIp = $_SERVER['REMOTE_ADDR'];
-		$this->visitorBrowser = $this->GetBrowserType();
-		$this->visitorHour = date("h");
-		$this->visitorMinute = date("i");
-		$this->visitorDay = date("d");
-		$this->visitorMonth = date("m");
-		$this->visitorYear = date("Y");
-		$this->visitorReferrer = $_SERVER['HTTP_REFERER'];
-		$this->visitorPage = $this->SelfURL();
+		
+		if($referrer){
+			$this->DB = DbCreator::GetDBObject();
+			$this->visitorIp = $_SERVER['REMOTE_ADDR'];
+			$this->visitorBrowser = $this->GetBrowserType();
+			$this->visitorHour = date("h");
+			$this->visitorMinute = date("i");
+			$this->visitorDay = date("d");
+			$this->visitorMonth = date("m");
+			$this->visitorYear = date("Y");
+			$this->visitorReferrer = $_SERVER['HTTP_REFERER'];
+			$this->visitorPage = $this->SelfURL();
+		}
 	}
 	public function GetBrowserType () {
 		if (!empty($_SERVER['HTTP_USER_AGENT'])) 
@@ -149,6 +153,13 @@ class Stats{
 		$queryTotal->execute();
 		$result['total'] = $queryTotal->rowCount();
 		
+		return $result;
+	}
+	
+	public function GetStats($column, $interval){
+		$query = $this->DB->query("SELECT $column FROM cms_stats WHERE date > DATE_SUB(NOW(), INTERVAL 1 $interval);");
+		$query->execute();
+		$result = $query->fetchAll(PDO::FETCH_COLUMN,0);
 		return $result;
 	}
 }

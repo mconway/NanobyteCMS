@@ -1,9 +1,16 @@
 <div id="{$page}">
 	<h2>{$page|capitalize}</h2>
+	{if $tabbed}
+		<ul id="tabs">
+			{foreach from=$tabbed item=link key=id}
+				<li class="tab"><a href="#section{$id}">{$link}</a></li>
+			{/foreach}
+		</ul>
+	{/if}
 	<form {$form.attributes}>
 		<div class="formcontainer">
-			{foreach from=$form.sections item=section}
-			<div class="section">
+			{foreach from=$form.sections item=section key=id}
+			<div class="section" id="section{$id}">
 			<div class="formheader">{$section.header}</div>
 				{foreach from=$section.elements item=element}
 					<div class="elementcontainer">

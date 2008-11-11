@@ -33,6 +33,8 @@ class AdminController extends BaseController{
 	}
 	public static function ShowConfig(){
 		global $smarty;
+		//create the tabs menu
+		$tablinks = array('DB Settings','Global Settings','File Settings');
 		//create the form object 
 		$form = new HTML_QuickForm('newuser','post','admin/settings');
 		//set form defaults
@@ -85,7 +87,8 @@ class AdminController extends BaseController{
 			exit;
 		}
 		//send the form to smarty
-		$smarty->assign('form', $form->toArray()); 
+		$smarty->assign('form', $form->toArray());
+		$smarty->assign('tabbed',$tablinks);
 
 	}
 	public static function GetAdminMenu(){
@@ -204,6 +207,28 @@ class AdminController extends BaseController{
  		}
 		BaseController::Redirect('admin/perms');
 		exit;
+	}
+	public static function BrowserGraph(){
+		require_once 'includes/contrib/phplot/phplot.php';
+		$stats = new Stats(false);
+		$array = array_count_values($stats->GetStats('browser','WEEK'));
+		$leg = array_keys($array);
+		array_unshift($array, '');
+		$data = array($array,array());
+		$plot = new PHPlot(300,200);
+		$plot->setTransparentColor('white');
+		$plot->SetTextColor('snow');
+		$plot->SetLabelScalePosition(0.32);
+		$plot->SetTitle('Weekly requests by Browser');
+		$plot->SetTitleColor('snow');
+		$plot->SetOutputFile('files/browsergraph.png');
+		$plot->SetIsInline(true);
+		$plot->SetDataType('text-data');
+		$plot->SetDataValues($data);
+		$plot->SetLegend($leg);
+		$plot->SetPlotType('pie');
+		$plot->DrawGraph();
+
 	}
 }
 

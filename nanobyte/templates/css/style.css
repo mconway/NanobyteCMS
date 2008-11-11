@@ -290,3 +290,4 @@ Begin Sortables Styles
 #addContent {
 	position: relative;
 }
+.ui-tabs-hide { display: none; }

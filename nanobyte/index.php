@@ -7,8 +7,8 @@
  
 //require the Core and Smarty Classes
 require_once './includes/core.inc.php';
-require_once './includes/smarty/libs/Smarty.class.php';
-require_once './includes/geshi/geshi.php';
+require_once './includes/contrib/smarty/libs/Smarty.class.php';
+require_once './includes/contrib/geshi/geshi.php';
 
 // We start off with an empty array of enabled mods. This gets populated in Start Session
 $modsEnabled = array(); 
@@ -21,11 +21,18 @@ $smarty = new Smarty();
 BaseController::AddCss('templates/css/style.css'); 
 
 //Add Global JS Files
-
+//BaseController::AddJs('includes/contrib/tiny_mce/tiny_mce.js'); 
+//BaseController::AddJs('templates/js/index.js');
+ 
 //Assign Global Site Variables to Smarty
 $smarty->assign('sitename',SITE_NAME);
 $smarty->assign('feedurl', Core::url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
+
+//Set Blocks
+@include_once('blocks/usersonline.block.php');
+$block = new UsersOnlineBlock();
+$smarty->assign('block1',$block->template);
 
 //Create a new User, or use an Already logged in User Object from the Session, then update teh access time
 $user = $_SESSION['user'] ? unserialize($_SESSION['user']) : new User(0);
