@@ -202,11 +202,7 @@ function admin($args){
 						$smarty->assign('file', 'admin.main.tpl');
 						break;
 				}
-				BaseController::AddJs('templates/js/ui/ui.core.js');
-				BaseController::AddJs('templates/js/ui/ui.sortable.js'); 
-				BaseController::AddJs('templates/js/ui/ui.tabs.js') ;
-				BaseController::AddJs('templates/js/admin.js');
-				BaseController::AddCss('templates/js/themes/flora/flora.tabs.css'); 
+				BaseController::AddJs('templates/'.THEME_PATH.'/js/admin.js');
 				BaseController::DisplayMessages(); // Get any messages
 				BaseController::GetHTMLIncludes(); // Get CSS and Script Files
 				$smarty->display('admin.tpl'); // Display the Admin Page

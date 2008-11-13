@@ -129,7 +129,7 @@ class BaseController{
 			$images = self::ResizeImage($image, $resize);
 			return '<a class="postImage" href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
 		}else{
-			return '<img src="'.UPLOAD_PATH.$filename.'" width="80" height="80"/>';
+			return '<img src="'.UPLOAD_PATH.$filename.'" />';
 		}
 		
 	}
@@ -177,5 +177,13 @@ class BaseController{
 		$uri['orig'] = $imagepath;
 		$uri['thumb'] = $base . '-thumb.png';
 	    return $uri;
+	}
+	public static function GetThemeList(){
+		$dirs = glob('templates/*', GLOB_ONLYDIR);
+		foreach($dirs as $dir){
+			$dir = str_replace('templates/','',$dir);
+			$theme[$dir] = ucfirst($dir); 
+		}
+		return $theme;
 	}
 }

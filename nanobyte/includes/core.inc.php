@@ -20,39 +20,20 @@
 	public static function DecodeConfParams($param){
  		return str_rot13(base64_decode($param));
  	}
- 	public static function GetConf(){
- 		require_once './includes/config.inc.php';
- 		define("DB_USER", Core::DecodeConfParams($dbuser));
-		define("DB_PASS", Core::DecodeConfParams($dbpass));
-		define("DB_HOST", $dbhost);
-		define("DB_NAME", $dbname);
-		define("DB_PREFIX", $dbprefix);
-		define("PATH", $defaultdir);
-		define("SITE_NAME", $sitename);
-		define("SITE_SLOGAN", $siteslogan);
-		define("SITE_DOMAIN", $sitedomain);
-		define("UPLOAD_PATH", $uploadpath);
-		define("FILE_TYPES", $filetypes);
-		define("FILE_SIZE", $filesize);
-		if ($cleanurl === 'true'){
-			define("CLEANURL", $cleanurl);
-		}
- 	} 
+
 	public static function StartSession(){
 		$sess = new SessionManager();
 		session_set_cookie_params(3600);
 	    session_start();
-	    self::GetConf();
 		self::EnabledMods();
 		$stats = new Stats();
 		$stats->commit();
-		BaseController::AddJs('templates/js/jquery.js');
 		set_include_path(get_include_path() . PATH_SEPARATOR . "/home/mconway/pear/php"); 
 		@include 'HTML/QuickForm.php';
 	}
  	public static function l($text, $path, $options=null){
 		//return an HTML string
-		 if (CLEANURL === 'true'){
+		 if (CLEANURL){
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/'.$path : SITE_DOMAIN.'/'.$path;
  		}else{
  			//$url = explode('/',$path);
@@ -61,7 +42,7 @@
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
 		if($options['image']){
-			$text = '<img src="templates/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
+			$text = '<img src="templates/'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
 		}
 		$link = '<a href="'.$url.'">'.$text.'</a>';
 		return $link;
@@ -117,7 +98,7 @@
  		}
  	}
  	public static function Url($path){
- 		if (CLEANURL === 'true'){
+ 		if (CLEANURL){
  			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'/'.$path : SITE_DOMAIN.'/'.$path;;
  		}else{
  			//$url = explode('/',$path);
@@ -135,8 +116,8 @@
 		}
 	}
 	public static function EnabledMods(){
-		global $modsEnabled;
-		$modsList = Module::GetEnabled();
+		//global $modsEnabled;
+		$modsList = Module::GetEnabled('module');
 		foreach($modsList as $mod){
 			$modsEnabled[$mod['name']] = true;
 			$m = new Module($mod['name']);

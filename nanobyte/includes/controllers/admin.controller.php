@@ -34,13 +34,13 @@ class AdminController extends BaseController{
 	public static function ShowConfig(){
 		global $smarty;
 		//create the tabs menu
-		$tablinks = array('DB Settings','Global Settings','File Settings');
+		$tablinks = array('Global Settings','DB Settings','File Settings', 'Theme Settings');
 		//create the form object 
 		$form = new HTML_QuickForm('newuser','post','admin/settings');
 		//set form defaults
 		$form->setdefaults(array(
-			'dbuser'=>DB_USER,
-			'dbpass'=>DB_PASS,
+			'dbuser'=>Core::DecodeConfParams(DB_USER),
+			'dbpass'=>Core::DecodeConfParams(DB_PASS),
 			'dbhost'=>DB_HOST,
 			'dbname'=>DB_NAME,
 			'dbprefix'=>DB_PREFIX,
@@ -51,16 +51,10 @@ class AdminController extends BaseController{
 			'uploadpath'=>UPLOAD_PATH,
 			'filesize'=>FILE_SIZE,
 			'filetypes'=>FILE_TYPES,
-			'cleanurl'=>CLEANURL === 'true' ? true : false
+			'cleanurl'=>CLEANURL,
+			'themepath'=>THEME_PATH
 		));
 		//create form elements
-		$form->addElement('header','','DB Settings');
-		$form->addElement('text', 'dbuser', 'DB Username', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('password', 'dbpass', 'DB Password', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'dbhost', 'DB Host', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'dbname', 'DB Name', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'dbprefix', 'DB Prefix', array('size'=>25, 'maxlength'=>60));
-		
 		$form->addElement('header','','Global Site Settings');
 		$form->addElement('text', 'path', 'Site Path', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitename', 'Site Name', array('size'=>25, 'maxlength'=>60));
@@ -68,13 +62,20 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
 		
+		$form->addElement('header','','DB Settings');
+		$form->addElement('text', 'dbuser', 'DB Username', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('password', 'dbpass', 'DB Password', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'dbhost', 'DB Host', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'dbname', 'DB Name', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'dbprefix', 'DB Prefix', array('size'=>25, 'maxlength'=>60));
+		
 		$form->addElement('header','','File Settings');
 		$form->addElement('text', 'uploadpath', 'Upload Path', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'filesize', 'Max File Size', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'filetypes', 'Allowed File Types', array('size'=>25, 'maxlength'=>60));
 		
-		
-		
+		$form->addElement('header','','Theme Settings');
+		$form->addElement('select', 'themepath', 'Select Theme', BaseController::GetThemeList());
 		$form->addElement('submit', 'submit', 'Submit');
 		//apply form prefilters
 		$form->applyFilter('__ALL__', 'trim');

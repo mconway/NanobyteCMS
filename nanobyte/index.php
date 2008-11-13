@@ -9,6 +9,7 @@
 require_once './includes/core.inc.php';
 require_once './includes/contrib/smarty/libs/Smarty.class.php';
 require_once './includes/contrib/geshi/geshi.php';
+require_once './includes/config.inc.php';
 
 // We start off with an empty array of enabled mods. This gets populated in Start Session
 $modsEnabled = array(); 
@@ -16,13 +17,21 @@ $modsEnabled = array();
 //Start the session and create any objects we need
 Core::StartSession();
 $smarty = new Smarty();
+$smarty->template_dir = './templates/'.THEME_PATH;
 
 // Add the main CSS styles for inclusion
-BaseController::AddCss('templates/css/style.css'); 
+BaseController::AddCss('templates/'.THEME_PATH.'/css/style.css'); 
+BaseController::AddCss('includes/js/themes/flora/flora.tabs.css'); 
+BaseController::AddCss('includes/js/themes/flora/flora.dialog.css'); 
 
 //Add Global JS Files
-//BaseController::AddJs('includes/contrib/tiny_mce/tiny_mce.js'); 
-//BaseController::AddJs('templates/js/index.js');
+BaseController::AddJs('includes/js/jquery.js');
+BaseController::AddJs('includes/js/ui/ui.core.js');
+BaseController::AddJs('includes/js/ui/ui.sortable.js'); 
+BaseController::AddJs('includes/js/ui/ui.tabs.js');
+BaseController::AddJs('includes/js/ui/ui.dialog.js');
+BaseController::AddJs('includes/contrib/nicedit/nicEdit.js'); 
+BaseController::AddJs('templates/'.THEME_PATH.'/js/index.js');
  
 //Assign Global Site Variables to Smarty
 $smarty->assign('sitename',SITE_NAME);
@@ -30,8 +39,7 @@ $smarty->assign('feedurl', Core::url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
 
 //Set Blocks
-@include_once('blocks/usersonline.block.php');
-$block = new UsersOnlineBlock();
+$block = ModuleController::GetBlocks();
 $smarty->assign('block1',$block->template);
 
 //Create a new User, or use an Already logged in User Object from the Session, then update teh access time

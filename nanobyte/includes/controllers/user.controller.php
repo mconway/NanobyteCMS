@@ -39,12 +39,13 @@ class UserController extends BaseController{
 		global $smarty;
 		$edituser = new User($id);
 		$profile = new UserProfile($edituser->uid);
+		$tablinks = array('User Account', 'User Profile');
 		//create the form object 
 		$form = new HTML_QuickForm('edituser','post','admin/users/commit/'.$edituser->uid);
 		//set form default values
 		$form->setdefaults(array(
 			'name'=>$edituser->name, 
-			'joined'=>$edituser->joined,
+			'joined'=>date('G:i m.d.y T',$edituser->joined),
 			'email'=>$edituser->email,
 			'avatar'=>$profile->avatar,
 			'location'=>$profile->location,
@@ -101,7 +102,8 @@ class UserController extends BaseController{
 			exit;
 		}
 		//send the form to smarty
-		$smarty->assign('form', $form->toArray()); 
+		$smarty->assign('form', $form->toArray());
+		$smarty->assign('tabbed', $tablinks);
 	}
 	public static function RegForm($redirect=null){
 		global $smarty;

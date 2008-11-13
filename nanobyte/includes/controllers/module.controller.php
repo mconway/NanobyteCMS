@@ -49,7 +49,22 @@
 		$module = new Module($mod);
 		$module->Commit();
 		Core::SetMessage(strtoupper($module->name). ' has been '.$action.'d.','info');
-		//UserController::Redirect();
+		if ($action =="enable"){
+			require_once($module->modpath.$module->name.'.php');
+			call_user_func(array('Mod_'.$mod, 'Install'));
+		}
+		UserController::Redirect();
+	}
+	public static function InstallModule($mod){
+		$module = new Module($mod);
+		call_user_func(array('Mod_'.$mod, 'Install'));
 	}
 	
+	public static function GetBlocks(){
+		$enabled = Module::GetEnabledBlocks();
+		foreach($enabled as $block){
+			$blocks[] = call_user_func(array('Mod_'.$block['providedby'], $block['name'].'_Block'));
+		}
+		return $blocks[0];
+	}
  }

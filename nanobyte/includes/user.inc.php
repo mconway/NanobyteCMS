@@ -52,11 +52,12 @@ class User{
 		if ($result->rowCount() == 1){
 			return false;
 		}else{
-			$insert = $DB->prepare("insert into ".DB_PREFIX."_user (username, password, email, joined) values (:u, :p, :e, :t)");
+			$insert = $DB->prepare("insert into ".DB_PREFIX."_user (username, password, email, joined, gid) values (:u, :p, :e, :t, :g)");
 			$insert->bindParam(':u',$uarray['name']);
 			$insert->bindParam(':p',$pw);
 			$insert->bindParam(':e',$uarray['email']);
 			$insert->bindParam(':t',time());
+			$insert->bindParam(':g',2);
 				
 			$profileq = $DB->prepare("insert into ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name");
 			$profileq->bindParam(':name',$uarray['name']);

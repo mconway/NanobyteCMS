@@ -1,9 +1,0 @@
-#usersonline{
-	padding: 10px;
-	margin: 0;
-}
-#usersonline li{
-	list-style: none;
-	background:transparent url(../templates/images/online.png) no-repeat scroll 0 50%;
-	padding-left: 15px;
-}

@@ -35,7 +35,7 @@ class PostController{
 			$post->title = $data['title'];
 			$post->body = $image.$data['body'];
 			$post->modified = time();
-			$post->published = $data['published'] ? 1 : 0;
+			$post->published = $data['published'] ? '1' : '0';
 			$post->Commit();
 			Core::SetMessage('Your changes have been saved!','info');
 		
@@ -107,9 +107,11 @@ class PostController{
 		global $smarty;
 		$func = $post ? 'edit/'.$post->pid : 'add';
 		$header = 'Create a new Post';
+		$tablinks = array('Main','Image Functions','Publishing Options');
 		//Create the form object
 		$form = new HTML_QuickForm('edituser','post','admin/posts/'.$func);
 		//set form default values
+
 		if($post){
 			$form->setdefaults(array(
 				'pid'=>$post->pid, 
@@ -118,6 +120,10 @@ class PostController{
 				'published'=>$post->published == 1 ? true : false
 			));
 			$header = 'Edit Post';
+		}else{
+			$form->setdefaults(array(
+				'published'=>true
+			));
 		}
 		//create form elements
 		$form->addElement('header','',$header);
@@ -153,6 +159,7 @@ class PostController{
 		}
 		//send the form to smarty
 		$smarty->assign('form', $form->toArray()); 
+		$smarty->assign('tabbed',$tablinks);
 	}
 	public static function DeletePostRequest(){
  		if(isset($_POST['posts'])){
