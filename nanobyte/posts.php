@@ -9,7 +9,7 @@ function Posts($args){
 	if(!$args[1]){
 		PostController::View($args[0]);
 	}elseif($args[1]=='comments'){
-			switch($args[3]){
+			switch($args[2]){
 				case 'add':
 					CommentsController::CommentsForm($args[0]);
 					$smarty->assign('file','form.tpl');

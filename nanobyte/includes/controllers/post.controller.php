@@ -17,7 +17,7 @@ class PostController{
 			$smarty->assign('post',$comment);
 			$comments[] = $smarty->fetch('post.tpl');
 		}
-		CommentsController::CommentsForm($args[0]);
+		CommentsController::CommentsForm($pid);
 		$comments[] = $smarty->fetch('form.tpl');
 		$smarty->assign('post', $data);
 		$smarty->assign('comments', $comments);
