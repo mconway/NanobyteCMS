@@ -63,8 +63,19 @@ function admin($args){
 						}
 						break;
 					//Posts Sub Page (administer posts)
-					case 'posts':
+					case 'content':
+						$tabs = array('Posts', 'Comments');
 						switch($args[1]){ // What Action is being performed? GET or POST
+							case 'Posts':
+								$ajax = true;
+								PostController::ListPosts($args[2]);
+								$smarty->display('list.tpl');
+								break;
+							case 'Comments':
+								$ajax = true;
+								CommentsController::ListPosts($args[2]); // should be passing page #
+								$smarty->display('list.tpl');
+								break;
 							case 'delete':
 								PostController::DeletePostRequest();
 								break;
@@ -85,8 +96,9 @@ function admin($args){
 						//Find out if FILE is set
 						$file = $smarty->get_template_vars('file'); 
 						//If File is not set, get the post list and display
-						if (!$file){ 
-							PostController::ListPosts($args['1']);
+						$smarty->assign('tabs',$tabs);
+						$file = $smarty->get_template_vars('file'); 
+						if (!$ajax && !$file){ 
 							$smarty->assign('file', 'list.tpl');
 						}
 		 				break;
@@ -192,6 +204,11 @@ function admin($args){
 							Core::SetMessage('HTML Quickforms is Installed.','info');
 						}
 						break;
+					//Blocks Subpage
+					case 'blocks':
+						AdminController::ListBlocks();
+						$smarty->assign('file','list.tpl');
+						break;
 					// When no sub page is specified display default
 					default:
 						if (isset($_POST['save'])){
@@ -205,8 +222,9 @@ function admin($args){
 				BaseController::AddJs('templates/'.THEME_PATH.'/js/admin.js');
 				BaseController::DisplayMessages(); // Get any messages
 				BaseController::GetHTMLIncludes(); // Get CSS and Script Files
-				$smarty->display('admin.tpl'); // Display the Admin Page
-				
+				if(!$ajax){
+					$smarty->display('admin.tpl'); // Display the Admin Page
+				}				
 			// If the user is not autorized AT ANY TIME - set a message and redirect them to the home page
 			}else{
 				Core::SetMessage('You do not have Permission to access this page!','error');

@@ -4,8 +4,8 @@
 	font-size: 14px;
 	padding: 0;
 	margin: 0;
-	background: #E0F4D7;
-	width: 185px;
+	/*background: #E0F4D7;*/
+	width: 170px;
 }
 #ui-datepicker-div {
 	display: none;
@@ -13,7 +13,7 @@
 	z-index: 10;
 }
 .ui-datepicker-inline {
-	float: left;
+	/*float: left;*/
 	display: block;
 	border: 0;
 }
@@ -44,10 +44,12 @@ img.ui-datepicker-trigger {
 	color: #000;
 }
 *html .ui-datepicker-prompt {
-	width: 185px;
+	width: 175px;
 }
 .ui-datepicker-control, .ui-datepicker-links, .ui-datepicker-header, .ui-datepicker {
-	clear: both;
+	/*
+clear: both;
+*/
 	float: left;
 	width: 100%;
 	color: #FFF;
@@ -63,7 +65,7 @@ img.ui-datepicker-trigger {
 .ui-datepicker-control, .ui-datepicker-links {
 	font-weight: bold;
 	font-size: 80%;
-	letter-spacing: 1px;
+	/*letter-spacing: 1px;*/
 }
 .ui-datepicker-links label {
 	padding: 2px 5px;
@@ -102,7 +104,7 @@ img.ui-datepicker-trigger {
 	background: #83C948;
 	color: #000;
 	border: 0px;
-	font-weight: bold;
+	/*font-weight: bold;*/
 }
 .ui-datepicker {
 	background: #CCC;
@@ -204,7 +206,7 @@ img.ui-datepicker-trigger {
 }
 .ui-datepicker-one-month {
 	float: left;
-	width: 185px;
+	width: 170px;
 }
 .ui-datepicker-new-row {
 	clear: left;

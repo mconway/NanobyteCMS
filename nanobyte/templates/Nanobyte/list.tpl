@@ -1,4 +1,11 @@
 <h2>{$page|capitalize}</h2>
+{if $tabs}
+	<ul id="tabs">
+		{foreach from=$tabs item=link key=id}
+			<li class="tab"><a href="admin/content/{$link}">{$link}</a></li>
+		{/foreach}
+	</ul>
+{/if}
 <div id="{$page}list">
 	<form action="{$self}" method="post">
 	{if $sublinks}

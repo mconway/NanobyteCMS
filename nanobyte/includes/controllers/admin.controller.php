@@ -33,8 +33,10 @@ class AdminController extends BaseController{
 	}
 	public static function ShowConfig(){
 		global $smarty;
+		$perms = new Perms();
+		$perms->GetNames();
 		//create the tabs menu
-		$tablinks = array('Global Settings','DB Settings','File Settings', 'Theme Settings');
+		$tablinks = array('Global Settings','DB Settings','File Settings', 'Theme Settings', 'User Settings');
 		//create the form object 
 		$form = new HTML_QuickForm('newuser','post','admin/settings');
 		//set form defaults
@@ -52,7 +54,8 @@ class AdminController extends BaseController{
 			'filesize'=>FILE_SIZE,
 			'filetypes'=>FILE_TYPES,
 			'cleanurl'=>CLEANURL,
-			'themepath'=>THEME_PATH
+			'themepath'=>THEME_PATH,
+			'defaultgroup'=>DEFAULT_GROUP
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
@@ -76,6 +79,10 @@ class AdminController extends BaseController{
 		
 		$form->addElement('header','','Theme Settings');
 		$form->addElement('select', 'themepath', 'Select Theme', BaseController::GetThemeList());
+		
+		$form->addElement('header', '', 'User Settings');
+		$form->addElement('select', 'defaultgroup', 'Choose Default group for new Users', $perms->names);
+		
 		$form->addElement('submit', 'submit', 'Submit');
 		//apply form prefilters
 		$form->applyFilter('__ALL__', 'trim');
@@ -90,10 +97,10 @@ class AdminController extends BaseController{
 		//send the form to smarty
 		$smarty->assign('form', $form->toArray());
 		$smarty->assign('tabbed',$tablinks);
-
+		
 	}
 	public static function GetAdminMenu(){
-		$array = array('users','posts','modules','blocks','menus','stats','perms','settings','logs');
+		$array = array('users','content','modules','blocks','menus','stats','perms','settings','logs');
 		foreach ($array as $link){
 			$links[$link] = Core::Url('admin/'.$link);
 		}
@@ -229,8 +236,15 @@ class AdminController extends BaseController{
 		$plot->SetLegend($leg);
 		$plot->SetPlotType('pie');
 		$plot->DrawGraph();
-
+	}
+	public static function ListBlocks(){
+		global $smarty;
+		$blocks = Module::GetBlocks();
+		$smarty->assign('list',$blocks);
+		$smarty->assign('self','admin/blocks');
 	}
 }
+
+
 
 ?>

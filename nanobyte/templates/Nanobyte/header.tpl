@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 	<head>
 		<title>{$sitename}::{$title | default: 'Untitled'}</title>
-		<base href="{php}print SITE_DOMAIN.'/'.PATH.'/'{/php}" />
+		<base href="{php}print SITE_DOMAIN.'/'.PATH{/php}" />
 		<link rel="alternate" type="application/rss+xml" title="{$sitename} Feed" href="{$feedurl}" />
 		{foreach from=$css item=inc}
 			<link type="text/css" rel="stylesheet" media="{$inc.media}" href="{$inc.file}" />

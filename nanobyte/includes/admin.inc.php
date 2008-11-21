@@ -24,6 +24,7 @@
 	}
 	public static function WriteConfig($params){
 		$cleanurl = $params['cleanurl'] ? 'true' : 'false';
+		$perms = new Perms($params['defaultgroup']);
 		$conf = <<<EOF
 <?php
 /*
@@ -48,7 +49,8 @@ define("UPLOAD_PATH", '{$params['uploadpath']}');
 define("FILE_TYPES", '{$params['filetypes']}');
 define("FILE_SIZE", '{$params['filesize']}');
 define("CLEANURL", '{$params['cleanurl']}');
-define("THEME_PATH", '{$params['themepath']}')
+define("THEME_PATH", '{$params['themepath']}');
+define("DEFAULT_GROUP", '{$perms->gid}');
 ?>
 EOF;
 		$fh = fopen('./includes/config.inc.php', 'w');

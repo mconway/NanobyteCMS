@@ -1,7 +1,7 @@
 <div class="post">
 	<div class="contentheader">
 		<h2 class="title">
-			<a href="{$url}">{$post.title}</a>
+			{if $post.url}<a href="{$post.url}">{$post.title}</a>{else}{$post.title}{/if}
 		</h2> 
 	</div>
 	{if $post.picture}
@@ -12,6 +12,7 @@
 		{$post.body}
 	</div>
 	<div class="links">
+		{if $post.numcomments}<div class="comments"><a href="{$post.url}">{$post.numcomments}</a></div>{/if}
 		<div class="submitted">Posted {$post.created} by {$post.author|capitalize}</div> 
 		{if $post.modified}
 			<div class="modified">Last Modified on {$post.modified}</div>

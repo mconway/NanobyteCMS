@@ -5,7 +5,7 @@ class Post{
 private $DB;
 	function __construct($id){
 		$this->DB = DBCreator::GetDbObject();
-		$result = $this->DB->prepare("select * from ".DB_PREFIX."_posts where `pid`=:id");
+		$result = $this->DB->prepare("SELECT * FROM ".DB_PREFIX."_posts where pid=:id");
 		$result->bindParam(':id', $id);
 		try{
 			$result->execute();
@@ -16,6 +16,7 @@ private $DB;
 			$this->created = $row['created'];
 			$this->author = $row['author'];
 			$this->published = $row['published'];
+			$this->comments = new Comments($this->pid);
 		}catch(PDOException $e){
 			Core::SetMessage($e->getMessage(), 'error');
 		}

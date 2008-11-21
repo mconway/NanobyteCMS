@@ -81,15 +81,7 @@
 				return false;
 			}
 	}
- 	public static function NewUsers(){
- 		$DB = DBCreator::GetDbObject();
- 		$sql = $DB->prepare('select uid, username, joined from '.DB_PREFIX.'_user order by `joined` desc limit 5');
- 		$sql->execute();
- 		while ($row = $sql->fetch(PDO::FETCH_ASSOC)){
- 			$users[] = $row;
- 		}
- 		return $users;
- 	}
+
  	public static function IsSingle($item){
  		if (count($item) == 1){
  			return true;

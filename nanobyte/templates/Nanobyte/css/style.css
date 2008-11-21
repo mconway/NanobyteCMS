@@ -7,6 +7,17 @@ body{
 	line-height: 1.7em;
 	background-color: #292929;
 }
+a:link{
+	color: white;
+	text-decoration: none;
+}
+a:active{
+	color: red;
+}
+a:visited{
+	color: white;
+	text-decoration: none;
+}
 a img{
 	border: none;
 }
@@ -136,8 +147,13 @@ div.contentheader{
 	/* no float */ 
 }
 .links{
+	padding: 0 10px;
+}
+.links .comments{
+	float: left;
+}
+.links .submitted{
 	float: right;
-	padding-right: 10px;
 }
 h2.title, h2.title a {
 	margin-top: 0;

@@ -57,7 +57,7 @@ class User{
 			$insert->bindParam(':p',$pw);
 			$insert->bindParam(':e',$uarray['email']);
 			$insert->bindParam(':t',time());
-			$insert->bindParam(':g',2);
+			$insert->bindValue(':g',DEFAULT_GROUP);
 				
 			$profileq = $DB->prepare("insert into ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name");
 			$profileq->bindParam(':name',$uarray['name']);
@@ -162,12 +162,6 @@ class User{
 		$row = $query->fetch(PDO::FETCH_ASSOC);
 		return $row['online'];
 	}
-	public static function GetUsersOnline(){
-		$dbh = DBCreator::GetDbObject();
-		$query = $dbh->prepare("SELECT username FROM ".DB_PREFIX."_user WHERE online > :time");
-		$query->bindValue(':time',time()-300);
-		$query->execute();
-		return $query->fetchAll(PDO::FETCH_COLUMN,0);
-	}
+
 }
 ?>

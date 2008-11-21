@@ -1,17 +1,26 @@
 <?php
 
 class PostController{
-	public static function View($args){
+	public static function View($pid){
 		global $smarty;
-		$post = PostController::GetPost($args[0]);
+		$post = self::GetPost($pid);
+		$num = count($post->comments->all);
 		$data = array( 
-					'title'=>$post->title, 
-					'body'=>$post->body, 
-					'created'=>date('M jS',$post->created),
-					'author'=>$post->author,
-				);
+			'url'=>'posts/'.$post->pid, 
+			'title'=>$post->title, 
+			'body'=>$post->body, 
+			'created'=>date('M jS',$post->created),
+			'author'=>$post->author,
+			'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
+		);
+		foreach($post->comments->all as $comment){
+			$smarty->assign('post',$comment);
+			$comments[] = $smarty->fetch('post.tpl');
+		}
+		CommentsController::CommentsForm($args[0]);
+		$comments[] = $smarty->fetch('form.tpl');
 		$smarty->assign('post', $data);
-		$smarty->display('index.tpl'); //this needs to be changed!
+		$smarty->assign('comments', $comments);
 	}
 	public static function SavePost($data){ //accept assoc array of data from Quickform
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
@@ -52,7 +61,7 @@ class PostController{
 		//UserController::Redirect('admin/posts');
 	}
 
-	public static function ListPosts($page){
+	public static function ListPosts($page=1){
 		global $smarty;
 		//create the list
 		$start = BaseController::GetStart($page,15);
@@ -66,15 +75,15 @@ class PostController{
 				'created'=>date('Y-M-D',$post->created),
 				'author'=>$post->author,
 				'published'=>$post->published,
-				'actions'=>Core::l('info','posts/'.$post->pid,$options).' | '.Core::l('edit','admin/posts/edit/'.$post->pid,$options)
+				'actions'=>Core::l('info','posts/'.$post->pid,$options).' | '.Core::l('edit','admin/content/edit/'.$post->pid,$options)
 				);
 		}
 		$options['image'] = '24';
 		//create the actions options and bind the params to smarty
 		$smarty->assign('pager',BaseController::Paginate($list['limit'], $list['nbItems'], 'admin/posts/', $page));
-		$smarty->assign('sublinks',array('header'=>'Actions: ','add'=>Core::l('add','admin/posts/add',$options)));
+		$smarty->assign('sublinks',array('header'=>'Actions: ','add'=>Core::l('add','admin/content/add',$options)));
 		$smarty->assign('cb',true);
-		$smarty->assign('self','admin/posts');
+		$smarty->assign('self','admin/content');
 		$smarty->assign('actions', array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish'));
 		$smarty->assign('extra', 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>');
 		$smarty->assign('list', $theList);
@@ -89,11 +98,14 @@ class PostController{
 		global $smarty;
 		$posts = Post::Read('1');
 		foreach ($posts['content'] as $post){
+			$num = count($post->comments->all);
 			$theList[] = array( 
+				'url'=>'posts/'.$post->pid, 
 				'title'=>$post->title, 
 				'body'=>$post->body, 
 				'created'=>date('M jS',$post->created),
 				'author'=>$post->author,
+				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
 			);
 		}
 		$smarty->assign('pager',BaseController::Paginate($posts['limit'], $posts['nbItems'], '', $page));
@@ -109,7 +121,7 @@ class PostController{
 		$header = 'Create a new Post';
 		$tablinks = array('Main','Image Functions','Publishing Options');
 		//Create the form object
-		$form = new HTML_QuickForm('edituser','post','admin/posts/'.$func);
+		$form = new HTML_QuickForm('edituser','post','admin/content/'.$func);
 		//set form default values
 
 		if($post){
@@ -154,7 +166,7 @@ class PostController{
 		//If the form has already been submitted - validate the data
 		if($form->validate()){
 				$form->process(array('PostController','SavePost'));
-				BaseController::Redirect('admin/posts');
+				BaseController::Redirect('admin/content');
 				exit;
 		}
 		//send the form to smarty

@@ -1,0 +1,9 @@
+<module>
+	<author email="mike.conway@wiredbyte.com" url="http://www.nanobytecms.com/">Mike Conway</author>
+	<title>User Functions</title>
+	<version>.01</version>
+	<status>Dev</status>
+	<site>http://www.nanobytecms.com/</site>
+	<description>This module includes Blocks and Nanoboard widgets for Nanobyte. It is included in the core distrobution of Nanobyte CMS.</description>
+</module>
+

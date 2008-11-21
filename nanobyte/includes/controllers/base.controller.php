@@ -17,13 +17,7 @@ class BaseController{
 		}else{
 			return false;
 		}
-	}
-	public static function NewUsers(){
-		global $smarty;
-		$users = Core::NewUsers();
-		$smarty->assign('users', $users);
-	}
-	
+	}	
 	public static function strleft($s1, $s2) {
 		return substr($s1, 0, strpos($s1, $s2)); 
 	}

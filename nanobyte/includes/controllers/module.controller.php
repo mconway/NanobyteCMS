@@ -61,10 +61,17 @@
 	}
 	
 	public static function GetBlocks(){
-		$enabled = Module::GetEnabledBlocks();
+		global $smarty;
+		$enabled = Module::GetBlocks(true);
 		foreach($enabled as $block){
-			$blocks[] = call_user_func(array('Mod_'.$block['providedby'], $block['name'].'_Block'));
+			$position = explode("_",$block['position']);
+			$blockobj = call_user_func(array('Mod_'.$block['providedby'], $block['name'].'_Block'));
+			if (isset($blocks[$position[0]])){
+				$blocks[$position[0]] .= $smarty->fetch($blockobj->template);
+			}else{
+				$blocks[$position[0]] = $smarty->fetch($blockobj->template);
+			}
 		}
-		return $blocks[0];
+		$smarty->assign('blocks', $blocks);
 	}
  }

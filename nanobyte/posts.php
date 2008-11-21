@@ -6,14 +6,18 @@
  */
 function Posts($args){
 	global $smarty; // Get the smarty Global
-	$post = PostController::GetPost($args[0]); //Get the single post to view
-	$data = array( // Set the post data to display
-				'title'=>$post->title, 
-				'body'=>$post->body, 
-				'created'=>date('M jS',$post->created),
-				'author'=>$post->author,
-			);
-	$smarty->assign('post', $data); //Assign the data to Smarty
+	if(!$args[1]){
+		PostController::View($args[0]);
+	}elseif($args[1]=='comments'){
+			switch($args[3]){
+				case 'add':
+					CommentsController::CommentsForm($args[0]);
+					$smarty->assign('file','form.tpl');
+					break;
+				case 'view':
+					break;
+			}
+	}
 	BaseController::GetHTMLIncludes(); // Get style and JS
 	$smarty->display('index.tpl'); //Display the page
 }

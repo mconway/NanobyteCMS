@@ -39,8 +39,7 @@ $smarty->assign('feedurl', Core::url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
 
 //Set Blocks
-$block = ModuleController::GetBlocks();
-$smarty->assign('block1',$block->template);
+ModuleController::GetBlocks();
 
 //Create a new User, or use an Already logged in User Object from the Session, then update teh access time
 $user = $_SESSION['user'] ? unserialize($_SESSION['user']) : new User(0);
@@ -92,8 +91,6 @@ if($_GET['page']){
 	}
 //If there are no args
 }else{
-	//Display the login form if needed (This should probably be changed)
-
 	//Add the Messages, Posts and Includes to smarty and display the results.
 	BaseController::DisplayMessages(); 
 	PostController::DisplayPosts(1);

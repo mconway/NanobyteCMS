@@ -81,7 +81,6 @@ class Module{
 		}
 	}
 
-	
 	public function GetStatus(){
 		$qSelect = $this->dbh->prepare("SELECT `status` FROM ".DB_PREFIX."_modules WHERE `module`=:mod");
 		$qSelect->bindParam(':mod',$this->modpath);
@@ -103,7 +102,8 @@ class Module{
 		return $qSelect->fetchAll(PDO::FETCH_ASSOC);
 	} 
 	
-	public static function GetEnabledBlocks(){
+	public static function GetBlocks($enabled = null){
+		$where = $enabled ? "WHERE `status`=1" : "";
 		$dbh = DBCreator::GetDbObject();
 		$qSelect = $dbh->prepare("SELECT * FROM ".DB_PREFIX."_blocks WHERE `status`=1 ORDER BY position DESC");
 		$qSelect->execute();

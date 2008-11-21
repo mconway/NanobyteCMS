@@ -1470,7 +1470,7 @@ $.extend(Datepicker.prototype, {
 				}
 				html += '</tbody></table></div>';
 			}
-		html += (showStatus ? '<div style="clear: both;"></div><div id="ui-datepicker-status-' + inst.id + 
+		html += (showStatus ? '<div id="ui-datepicker-status-' + inst.id + 
 			'" class="ui-datepicker-status">' + initStatus + '</div>' : '') +
 			(!closeAtTop && !inst.inline ? controls : '') +
 			'<div style="clear: both;"></div>' + 
