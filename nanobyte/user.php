@@ -8,6 +8,7 @@
 function User($args){
 global $smarty; // Get the Smarty object
 global $user;
+global $ajax;
 switch($args[0]){ // What sub page are we trying to view
 		case 'details': // view user details - THIS IS NOT THE PROFILE PAGE
 			UserController::GetDetails($args['1']);
@@ -15,7 +16,7 @@ switch($args[0]){ // What sub page are we trying to view
 		case 'edit':
 			if (Core::AuthUser($user, 'edit user accounts') || $user->uid === $args[1]){
 				UserController::EditUser($args[1]);
-				$smarty->assign('file', 'form.tpl');
+				$content = $smarty->fetch('form.tpl');
 			}else{
 				Core::SetMessage('You do not have access to this page!','error');
 			}
@@ -35,9 +36,9 @@ switch($args[0]){ // What sub page are we trying to view
 		case 'login': // Log in a user
 			if (isset($_POST['login'])){
 				UserController::Login($_POST['user'], $_POST['pass']);
-				BaseController::Redirect();
+				BaseController::Redirect(null,$ajax);
 			}else{
-				BaseController::Redirect('user');
+				BaseController::Redirect('user',$ajax);
 			}
 			break;
 		case 'logout': //Logout and destroy a user session
@@ -46,10 +47,10 @@ switch($args[0]){ // What sub page are we trying to view
 			break;
 		case 'register': // Sign up as a new user
 			UserController::RegForm();
-			$smarty->assign('file','form.tpl');
-			BaseController::DisplayMessages();
-			BaseController::GetHTMLIncludes();
-			$smarty->display('user.tpl');
+			$content = $smarty->fetch('form.tpl');
+			//BaseController::DisplayMessages();
+			//BaseController::GetHTMLIncludes();
+			//$smarty->display('user.tpl');
 			break;
 		case 'profiles':
 			UserController::ShowProfile($args[1]);
@@ -63,10 +64,12 @@ switch($args[0]){ // What sub page are we trying to view
 			}else{
 				UserController::ShowProfile($user->uid);
 			}
-			BaseController::DisplayMessages(); // Get Messages
-			BaseController::GetHTMLIncludes(); //Get CSS and Scripts
-			$smarty->display('user.tpl'); // Display the Page
 			break;
+	}
+	BaseController::DisplayMessages(); // Get Messages
+	BaseController::GetHTMLIncludes(); //Get CSS and Scripts
+	if(!$ajax){
+		$smarty->display('user.tpl'); // Display the Page
 	}
 }
 

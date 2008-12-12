@@ -1,30 +1,32 @@
 <?php
 
 class UserController extends BaseController{
-	public function ListUsers(){
+	
+	public static function GetList(){
 		global $smarty;
-		//create list
-		$userList = User::GetUserList(); //array of objects
-		$theList = array();
-		$options['image'] = '16';
-		foreach ($userList as $key=>$user){
-			if ($key!='nbItems' && $key!='final' && $key!='limit'){
-				$theList[] = array(
-					'id'=>$user->uid, 
-					'name'=>Core::l($user->name, 'user/'.$user->uid), 
-					'email'=>$user->email, 
-					'group'=>$user->group,
-					'actions'=>Core::l('info','user/details/'.$user->uid,$options).' | '.Core::l('edit','admin/users/edit/'.$user->uid,$options)
-				);
-			}
-		}
+		global $user;
+		
 		$perms = new Perms();
 		$perms->GetNames();
+		//create list
+		$user->Read(); //array of objects
+		$theList = array();
+		$options['image'] = '16';
+		foreach ($user->output['items'] as $key=>$user){
+			array_push($theList, array(
+				'id'=>$user['uid'], 
+				'name'=>Core::l($user['username'], 'user/'.$user['uid']), 
+				'email'=>$user['email'], 
+				'group'=>$perms->names[$user['gid']],
+				'actions'=>Core::l('info','user/details/'.$user['uid'],$options).' | '.Core::l('edit','admin/users/edit/'.$user['uid'],$options)
+			));
+		}
 		//create the actions options
 		$actions = array('delete' => 'Delete');
 		$actions['Add to Group:'] = $perms->names;
 		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
 		$options['image'] = '24';
+		$options['class'] = 'action-link';
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/users/add',$options));
 		// bind the params to smarty
 		$smarty->assign('sublinks',$links);
@@ -35,7 +37,8 @@ class UserController extends BaseController{
 		$smarty->assign('list', $theList);
 		return $smarty;
 	}
-	public static function EditUser($id){
+	
+	public static function Edit($id){
 		global $smarty;
 		$edituser = new User($id);
 		$profile = new UserProfile($edituser->uid);
@@ -105,8 +108,10 @@ class UserController extends BaseController{
 		$smarty->assign('form', $form->toArray());
 		$smarty->assign('tabbed', $tablinks);
 	}
+	
 	public static function RegForm($redirect=null){
 		global $smarty;
+		global $user;
 		//create the form object 
 		$form = new HTML_QuickForm('newuser','post','user/register/');
 		//create form elements
@@ -131,7 +136,7 @@ class UserController extends BaseController{
 		$form->addRule(array('email','cemail'),'The emails you have entered do not match','compare');
 		//If the form has already been submitted - validate the data
 		if($form->validate()){
-			$form->process(array('User','CreateUser'));
+			$form->process(array($user,'Create'));
 			Core::SetMessage('Your user account has been created!','info');
 			BaseController::Redirect();
 			exit;
@@ -139,14 +144,17 @@ class UserController extends BaseController{
 		//send the form to smarty
 		$smarty->assign('form', $form->toArray()); 
 	}
+	
 	public static function Logout(){
-			User::Logout();
+		global $user;
+			$user->Logout();
 			if (!$_SESSION['hash']){
 				Core::SetMessage('You are now logged out', 'status');
 			}else{
 				Core::SetMessage('You are still logged in! Please try again.', 'error');
 			}
 	}
+	
 	public static function CheckUser($user){
 		if ($user == '' || strlen($user) < 4){
 			Core::SetMessage('Usernames must be at least 4 Characters, and cannot contain spaces.','error');
@@ -155,6 +163,7 @@ class UserController extends BaseController{
 			return true;
 		}
 	}
+	
 	public static function CheckPass($pass, $confirm=null){
 		if($pass == '' || strlen($pass) < 6){
 			Core::SetMessage('Passwords must be at least 6 characters and cannot contain spaces.','error');
@@ -166,6 +175,7 @@ class UserController extends BaseController{
 			return true;
 		}
 	}
+	
 	public static function CheckEmail($email, $confirm){
 		if($email != $confirm){
 			Core::SetMessage('Your email addresses did not match!', 'error');
@@ -177,6 +187,7 @@ class UserController extends BaseController{
 			return true;
 		}
 	}
+	
 	public static function DomainExists($email,$record = 'MX') {  
    		list($user,$domain) = split('@',$email);  
     	if (checkdnsrr($domain,$record)){
@@ -184,16 +195,20 @@ class UserController extends BaseController{
     	}else{
     		return false;
     	}
-    }  
-	public static function Login($user, $pass){
-		$user = User::Login($user, $pass);
-		if ($user == false){
-			Core::SetMessage('Username or Password is incorrect','error');
-		}
+    } 
+	
+	public static function Login($username,$pass){
+		global $user;
+		$user->Login($_POST['user'], $pass);
+		//if ($user->success == false){
+		//	Core::SetMessage('Username or Password is incorrect','error');
+		//}
 	}
-	public static function NewUser($user, $pw, $cp, $e, $ce){
-		if (UserController::CheckUser($user) && UserController::CheckPass($pw, $cp) && UserController::CheckEmail($e, $ce)){
-			$newUser = User::CreateUser($user, $pw, $e);
+	
+	public static function NewUser($username, $pw, $cp, $e, $ce){
+		global $user;
+		if (self::CheckUser($username) && self::CheckPass($pw, $cp) && self::CheckEmail($e, $ce)){
+			$newUser = $user->CreateUser($username, $pw, $e);
 			if (!$newUser){
 				Core::SetMessage ('This username Already Exists', 'error');
 				return false;
@@ -207,10 +222,12 @@ class UserController extends BaseController{
 			return false;
 		}
 	}
+	
 	public static function GetDetails($id){
 		$user = new User($id);
 		print $user->uid .'|'. $user->name .'|'.$user->email.'|'.$user->joined.'|'.$user->roles;
 	}
+	
 	public static function AddPerm($perm){
 		foreach($_POST['users'] as $u){
 			$user = new User($u);
@@ -218,6 +235,7 @@ class UserController extends BaseController{
 			$user->commit();
 		}
 	}
+	
 	public static function ShowProfile($id){
 		global $smarty;
 		$profile = new UserProfile($id);
@@ -230,8 +248,10 @@ class UserController extends BaseController{
 		$smarty->assign('file','userprofile.tpl');
 		$smarty->assign('online',$profile->online);
 	}
+	
 	public static function CheckOnline($id){
-		$accesstime = User::GetAccessTime($id);
+		global $user;
+		$accesstime = $user->GetAccessTime($id);
 		return $accesstime >= time() - 300 ? 'online' : 'offline';
 	}
 	

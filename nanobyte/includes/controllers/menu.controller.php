@@ -8,34 +8,38 @@ class MenuController{
 	public static function GetMenu($name, $permission){
 		global $smarty;
 		$premenu = new Menu($name);
+		$menu = array();
 		foreach ($premenu->menu as $preitem){
 			if(strpos($preitem['viewableby'],$permission)!==false){
-				$menu[] = Core::l($preitem['linktext'],$preitem['linkpath']);
+				$options = array('id'=>$preitem['styleid'],'class'=>$preitem['class']);
+				array_push($menu,Core::l($preitem['linktext'],$preitem['linkpath'],$options));
 			}
 		}
 		$smarty->assign('menu',$menu);
 	}
+	
 	public static function ListMenus(){
 		global $smarty;
 		$menus = new Menu();
 		$menus->GetAll();
 		$options['image'] = '16';
+		$list = array();
 		//create list
 		foreach($menus->all as $menu){
-			$list[] = array(
+			array_push($list, array(
 				'id'=>$menu['mid'],
 				'menu name'=>$menu['name'],
 				'actions'=>Core::l('edit','admin/menus/edit/'.$menu['mid'],$options)
-			);
+			));
 		}
 		//create the actions options
 		//$options['image'] = '24';
 		//$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/menus/add',$options));
 		// bind the params to smarty
 		//$smarty->assign('sublinks',$links);
-		$smarty->assign('self','admin/perms');
-		$smarty->assign('list', $list);
+		$smarty->assign(array('self'=>'admin/perms','list'=>$list));
 	}
+	
 	public static function ListMenuItems($mid){
 		global $smarty;
 		$menu = new Menu();
@@ -49,6 +53,8 @@ class MenuController{
 			$items[$i] = array(
 				'path'=>'<input type="text" size="15" value="'.$item['linkpath'].'" name="'.$item['id'].'_linkpath"/>',
 				'title'=>'<input type="text" size="15" value="'.$item['linktext'].'" name="'.$item['id'].'_linktext"/>',
+				'class'=>'<input type="text" size="10" value="'.$item['class'].'" name="'.$item['id'].'_class"/>',
+				'id'=>'<input type="text" size="10" value="'.$item['styleid'].'" name="'.$item['id'].'_styleid"/>',
 			);
 			foreach($perms->names as $pname){
 				$checked = strpos($item['viewableby'],$pname) !== false ? 'checked="checked"' : '';
@@ -59,10 +65,9 @@ class MenuController{
 		}		
 		$options['image'] = '24';
 		$links = array('back'=>Core::l('back','admin/menus',$options),'add'=>Core::l('add','admin/menus/add/'.$mid,$options));
-		$smarty->assign('sublinks',$links);
-		$smarty->assign('list',$items);
-		$smarty->assign('extra', '<input type="submit" value="Submit" name="submit"/>');
+		$smarty->assign(array('sublinks'=>$links,'list'=>$items,'extra'=>'<input type="submit" value="Submit" name="submit"/>'));
 	}
+	
 	public static function WriteMenu($id=null){
 		unset($_POST['submit']);
 		foreach($_POST as $key=>$item){
@@ -79,6 +84,7 @@ class MenuController{
 		$menu->data = $array;
 		$menu->commit($id);
 	}
+	
 	public static function AddMenuItem(){
 		global $smarty;
 		$perms = new Perms();
@@ -94,9 +100,7 @@ class MenuController{
 		}	
 		$options['image'] = '24';
 		$links = array('back'=>Core::l('back','admin/menus',$options));
-		$smarty->assign('sublinks',$links);
-		$smarty->assign('list',$items);
-		$smarty->assign('extra', '<input type="submit" value="Submit" name="submit"/>');
+		$smarty->assign(array('sublinks'=>$links,'list'=>$items,'extra'=>'<input type="submit" value="Submit" name="submit"/>'));
 	}
 }
 

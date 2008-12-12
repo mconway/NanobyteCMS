@@ -1,12 +1,12 @@
 <?php
 
-class PostController{
+class ContentController{
 	public static function View($pid){
 		global $smarty;
-		$post = self::GetPost($pid);
+		$post = self::GetContent($pid);
 		$num = count($post->comments->all);
 		$data = array( 
-			'url'=>'posts/'.$post->pid, 
+			'url'=>'content/'.$post->pid, 
 			'title'=>$post->title, 
 			'body'=>$post->body, 
 			'created'=>date('M jS',$post->created),
@@ -15,14 +15,15 @@ class PostController{
 		);
 		foreach($post->comments->all as $comment){
 			$smarty->assign('post',$comment);
-			$comments[] = $smarty->fetch('post.tpl');
+			array_push($comments,$smarty->fetch('post.tpl'));
 		}
 		CommentsController::CommentsForm($pid);
-		$comments[] = $smarty->fetch('form.tpl');
+		array_push($comments,$smarty->fetch('form.tpl'));
 		$smarty->assign('post', $data);
 		$smarty->assign('comments', $comments);
 	}
-	public static function SavePost($data){ //accept assoc array of data from Quickform
+	
+	public static function Save($data){ 
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
 		//upload files if needed
 		if(!empty($data['image']['name'])){
@@ -37,108 +38,119 @@ class PostController{
 
 		$data['body'] = preg_replace($pattern, $code, $data['body']);
 	
-
 		//Update the Post, Do not create a new one.
 		if ($data['pid']){
-			$post = new Post($data['pid']);
-			$post->title = $data['title'];
-			$post->body = $image.$data['body'];
-			$post->modified = time();
-			$post->published = $data['published'] ? '1' : '0';
-			$post->Commit();
+			$content = new Content($data['pid']);
+			$content->title = $data['title'];
+			$content->body = $image.$data['body'];
+			$content->modified = time();
+			$content->published = $data['published'] ? '1' : '0';
+			$content->type = $data['type'];
+			$content->Commit();
 			Core::SetMessage('Your changes have been saved!','info');
 		
 		}else{ //Create a new Post
+			$content = new Content();
 			$data['published'] ? 1 : 0;
 			$data['body'] = $image.$data['body'];
-			$saved = Post::CreatePost($data);
+			$saved = $content->Create($data);
 			if ($saved == true){
-				Core::SetMessage('Your post has been successfully saved','info');
+				Core::SetMessage('Your content has been successfully saved','info');
 			}else{
-				Core::SetMessage('Unable to save post. Please try again later.','error');
+				Core::SetMessage('Unable to save content. Please try again later.','error');
 			}
 		}
 		//UserController::Redirect('admin/posts');
 	}
 
-	public static function ListPosts($page=1){
+	public static function GetList($type, $page=1){
 		global $smarty;
+		$content = new Content();
 		//create the list
 		$start = BaseController::GetStart($page,15);
-		$list = Post::Read(null,15,$start); //array of objects with a limit of 15 per page.
+		$content->Read($type, null,15,$start); //array of objects with a limit of 15 per page.
 		$theList = array();
 		$options['image'] = '16';
-		foreach ($list['content'] as $post){
-			$theList[] = array(
-				'id'=>$post->pid, 
-				'title'=>$post->title, 
-				'created'=>date('Y-M-D',$post->created),
-				'author'=>$post->author,
-				'published'=>$post->published,
-				'actions'=>Core::l('info','posts/'.$post->pid,$options).' | '.Core::l('edit','admin/content/edit/'.$post->pid,$options)
-				);
+		foreach ($content->items['content'] as $post){
+			array_push($theList, array(
+				'id'=>$post['pid'], 
+				'title'=>$post['title'], 
+				'created'=>date('Y-M-D',$post['created']),
+				'author'=>$post['author'],
+				'published'=>$post['published'],
+				'actions'=>Core::l('info','Content/'.$post['pid'],$options).' | '.Core::l('edit','admin/content/edit/'.$post['pid'],$options)
+				));
 		}
+
 		$options['image'] = '24';
+		$options['class'] = 'action-link';
 		//create the actions options and bind the params to smarty
-		$smarty->assign('pager',BaseController::Paginate($list['limit'], $list['nbItems'], 'admin/posts/', $page));
+		$smarty->assign('pager',BaseController::Paginate($content->items['limit'], $content->items['nbItems'], 'admin/content/', $page));
 		$smarty->assign('sublinks',array('header'=>'Actions: ','add'=>Core::l('add','admin/content/add',$options)));
 		$smarty->assign('cb',true);
 		$smarty->assign('self','admin/content');
 		$smarty->assign('actions', array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish'));
 		$smarty->assign('extra', 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>');
 		$smarty->assign('list', $theList);
-		return $smarty;
 	}
 	
-	public static function EditPost($id){
-		$post = new Post($id);
-		self::PostForm($post);
+	public static function Edit($id){
+		$content = new Content($id);
+		self::Form($content);
 	}
-	public static function DisplayPosts($page){
+	
+	public static function Display($type,$page){
 		global $smarty;
-		$posts = Post::Read('1');
-		foreach ($posts['content'] as $post){
+		$theList = array();
+		$content = new Content();
+		$content->Read($type,'1');
+		foreach ($content->items['content'] as $p){
+			$post = new Content($p['pid']);
 			$num = count($post->comments->all);
-			$theList[] = array( 
+			array_push($theList, array( 
 				'url'=>'posts/'.$post->pid, 
 				'title'=>$post->title, 
 				'body'=>$post->body, 
 				'created'=>date('M jS',$post->created),
 				'author'=>$post->author,
 				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
-			);
+			));
 		}
-		$smarty->assign('pager',BaseController::Paginate($posts['limit'], $posts['nbItems'], '', $page));
+		//$smarty->assign('pager',BaseController::Paginate($posts['limit'], $posts['nbItems'], '', $page));
 		$smarty->assign('posts', $theList);
 	}
-	public static function GetPost($id){
-		$post = new Post($id);
-		return $post;
+	
+	public static function GetContent($id){
+		$content = new Content($id);
+		return $content;
 	}
-	public static function PostForm($post=null){
+	
+	public static function Form($content=null){
 		global $smarty;
-		$func = $post ? 'edit/'.$post->pid : 'add';
-		$header = 'Create a new Post';
+		global $user;
+		$func = $content ? 'edit/'.$content->pid : 'add';
 		$tablinks = array('Main','Image Functions','Publishing Options');
 		//Create the form object
 		$form = new HTML_QuickForm('edituser','post','admin/content/'.$func);
 		//set form default values
 
-		if($post){
+		if($content){
 			$form->setdefaults(array(
-				'pid'=>$post->pid, 
-				'title'=>$post->title, 
-				'body'=> preg_replace('/<br \/>/','',$post->body),
-				'published'=>$post->published == 1 ? true : false
+				'pid'=>$content->pid, 
+				'title'=>$content->title, 
+				'body'=> preg_replace('/<br \/>/','',$content->body),
+				'published'=>$content->published == 1 ? true : false
 			));
-			$header = 'Edit Post';
+			$header = 'Edit Content';
 		}else{
 			$form->setdefaults(array(
 				'published'=>true
 			));
+			$content = new Content();
+			$content->GetTypes();
 		}
 		//create form elements
-		$form->addElement('header','',$header);
+		$form->addElement('header','','Create Content');
 		$form->addElement('text', 'title', 'Title', array('size'=>80, 'maxlength'=>80));
 		$form->addElement('textarea','body','Body',array('rows'=>20,'cols'=>60));
 		
@@ -149,12 +161,13 @@ class PostController{
 		
 		$form->addElement('header','','Publishing Options');
 		$form->addElement('text', 'tags', 'Tags', array('size'=>25, 'maxlength'=>15));
+		$form->addElement('select', 'type', 'Content Type', $content->types);
 		$form->addElement('checkbox','published','Publish');
 		
 		$form->addElement('hidden','pid');
-		$form->addElement('hidden','author', unserialize($_SESSION['user'])->name);
+		$form->addElement('hidden','author', $user->name);
 		$form->addElement('hidden','created',time());
-		
+				
 		$form->addElement('submit', 'save', 'Save');
 		//apply form prefilters
 		$form->applyFilter('__ALL__', 'trim');
@@ -165,7 +178,7 @@ class PostController{
 		$form->addRule('body', 'Body text is required.', 'required');
 		//If the form has already been submitted - validate the data
 		if($form->validate()){
-				$form->process(array('PostController','SavePost'));
+				$form->process(array('ContentController','Save'));
 				BaseController::Redirect('admin/content');
 				exit;
 		}
@@ -173,21 +186,22 @@ class PostController{
 		$smarty->assign('form', $form->toArray()); 
 		$smarty->assign('tabbed',$tablinks);
 	}
-	public static function DeletePostRequest(){
+	
+	public static function Delete(){
  		if(isset($_POST['posts'])){
- 			$delPost = $_POST['posts'];
+ 			$del = $_POST['posts'];
  		}
- 		if(isset($delPost)){
-	 		foreach($delPost as $delete){
- 				$deleted = Admin::DeleteObject('posts', 'pid', $delete);
+ 		if(isset($del)){
+	 		foreach($del as $delete){
+ 				$deleted = Admin::DeleteObject('content', 'pid', $delete);
 					if ($deleted === true){
-					Core::SetMessage('Post '.$delete.' has been deleted!', 'info');
+					Core::SetMessage('Content '.$delete.' has been deleted!', 'info');
 				} else {
-					Core::SetMessage('Unable to delete post '.$delete.' , an error has occurred.', 'error');
+					Core::SetMessage('Unable to delete content '.$delete.' , an error has occurred.', 'error');
 				}
  			}	
  		}else{
- 			Core::SetMessage('You must choose a post(s) to delete!', 'error');
+ 			Core::SetMessage('You must choose at least 1 item to delete!', 'error');
  		}
 	}
 

@@ -2,7 +2,7 @@
 {if $tabs}
 	<ul id="tabs">
 		{foreach from=$tabs item=link key=id}
-			<li class="tab"><a href="admin/content/{$link}">{$link}</a></li>
+			<li class="tab"><a href="admin/content/{$id}">{$link}</a></li>
 		{/foreach}
 	</ul>
 {/if}

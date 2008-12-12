@@ -1,18 +1,13 @@
 {include file="header.tpl" title="Administration"}
-	{if $auth == 1}
-	<div id="iconmenu">
-		{* Loop uls for the menu, then make each with a unique ID *}
-		{foreach from=$links key=key item=link}
-		<a href="{$link}"><img src="./templates/Nanobyte/images/{$key}.png" title="{$key|capitalize}" alt="{$key}" /></a>
-		{/foreach}
-	</div>
+<div id="iconmenu">
+	{* Loop uls for the menu, then make each with a unique ID *}
+	{foreach from=$links key=key item=link}
+	<a href="{$link}"><img src="./templates/Nanobyte/images/{$key}.png" title="{$key|capitalize}" alt="{$key}" /></a>
+	{/foreach}
+</div>
+<div id="container">
 	<div id="content">
-		{if $file}
-			{include file="$file"}
-		{/if}
+		{$content}
 	</div>
-	{/if}
-	{if $test}
-	{$test}
-	{/if}
+</div>
 {include file="footer.tpl"}

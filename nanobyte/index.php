@@ -21,28 +21,32 @@ $smarty->template_dir = './templates/'.THEME_PATH;
 
 // Add the main CSS styles for inclusion
 BaseController::AddCss('templates/'.THEME_PATH.'/css/style.css'); 
+BaseController::AddCss('templates/'.THEME_PATH.'/css/thickbox.css'); 
 BaseController::AddCss('includes/js/themes/flora/flora.tabs.css'); 
-BaseController::AddCss('includes/js/themes/flora/flora.dialog.css'); 
 
 //Add Global JS Files
 BaseController::AddJs('includes/js/jquery.js');
+BaseController::AddJs('includes/js/livequery.js');
 BaseController::AddJs('includes/js/ui/ui.core.js');
 BaseController::AddJs('includes/js/ui/ui.sortable.js'); 
 BaseController::AddJs('includes/js/ui/ui.tabs.js');
+BaseController::AddJs('includes/js/ui/ui.draggable.js');
 BaseController::AddJs('includes/js/ui/ui.dialog.js');
-BaseController::AddJs('includes/contrib/nicedit/nicEdit.js'); 
+BaseController::AddJs('includes/contrib/nicedit/nicEdit.js');
+BaseController::AddJs('templates/'.THEME_PATH.'/js/thickbox.js');
 BaseController::AddJs('templates/'.THEME_PATH.'/js/index.js');
- 
+//BaseController::AddJs('http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js');
+
 //Assign Global Site Variables to Smarty
 $smarty->assign('sitename',SITE_NAME);
 $smarty->assign('feedurl', Core::url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
 
-//Set Blocks
+//Get Blocks
 ModuleController::GetBlocks();
 
 //Create a new User, or use an Already logged in User Object from the Session, then update teh access time
-$user = $_SESSION['user'] ? unserialize($_SESSION['user']) : new User(0);
+$user = $_SESSION['user'] ? new User($_SESSION['user']) : new User(0);
 if($user->uid != 0){
 	$user->SetAccessTime();
 }
@@ -68,6 +72,9 @@ if($_GET['page']){
 	}
 	//The first bucket in the $args array is going to be the actual page we want to view
 	$script = array_shift($args); 
+	
+	//Determine if we are using AJAX
+	$ajax = in_array('ajax',$args) ? true : false;
 	//$class = $script.'Controller'; //for php 5.3.0
 	//If there is a file for the requested page - include it
 	if (file_exists('./'.$script.'.php')){ 
@@ -93,12 +100,8 @@ if($_GET['page']){
 }else{
 	//Add the Messages, Posts and Includes to smarty and display the results.
 	BaseController::DisplayMessages(); 
-	PostController::DisplayPosts(1);
+	ContentController::Display(0,1);
 	BaseController::GetHTMLIncludes();
-	
-	// To be used like this
-	//$parser = new CodeParser;
-	//$output = $parser->parse('<code> hi hi hi </code>');
 	
 	//print_r ($output);
 

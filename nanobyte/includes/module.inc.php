@@ -12,6 +12,7 @@
 class Module{
 	private $dbh;
 	public $modpath;
+	
 	function __construct($path){
 		$this->dbh = DBCreator::GetDbObject();
 		$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE `module`=:mod";
@@ -61,6 +62,7 @@ class Module{
 			return false;
 		}
 	}
+	
 	public static function RegBlock($params){
 		$dbh = DBCreator::GetDbObject();
 		$qselect = $dbh->prepare("SELECT name FROM ".DB_PREFIX."_blocks WHERE name=:name");
@@ -105,7 +107,7 @@ class Module{
 	public static function GetBlocks($enabled = null){
 		$where = $enabled ? "WHERE `status`=1" : "";
 		$dbh = DBCreator::GetDbObject();
-		$qSelect = $dbh->prepare("SELECT * FROM ".DB_PREFIX."_blocks WHERE `status`=1 ORDER BY position DESC");
+		$qSelect = $dbh->prepare("SELECT * FROM ".DB_PREFIX."_blocks WHERE `status`=1 ORDER BY position ASC");
 		$qSelect->execute();
 		return $qSelect->fetchAll(PDO::FETCH_ASSOC);
 	}

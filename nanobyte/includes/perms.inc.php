@@ -1,44 +1,43 @@
 <?php
 
 class Perms{
-	private $DB;
-	function __construct($name=null){
-		$this->DB = DBCreator::GetDbObject();
-		if ($name){
-			$query = $this->DB->prepare("select gid, permissions from ".DB_PREFIX."_groups where `name`=:name");
-			$query->bindParam('name',$name);
-			$query->execute();
+	private $dbh;
+	function __construct($id=null){
+		$this->dbh = DBCreator::GetDbObject();
+		if ($id){
+			$query = $this->dbh->prepare("select name, permissions from ".DB_PREFIX."_groups where `gid`=:id");
+			$query->execute(array(':id'=>$id));
 			$info = $query->fetch(PDO::FETCH_ASSOC);
-			$this->gid = $info['gid'];
-			$this->name = $name;
+			$this->gid = $id;
+			$this->name = $info['name'];
 			$this->permissions = $info['permissions'];
 		}
 	}
 	
 	public function GetAll(){
-		$groups = $this->DB->prepare("select * from ".DB_PREFIX."_groups");
+		$groups = $this->dbh->prepare("select * from ".DB_PREFIX."_groups");
 		$groups->execute();
 		$all = $groups->fetchAll(PDO::FETCH_ASSOC);
 		$this->all = $all;
 	}
 	
 	public function GetNames(){
-		$namesQ = $this->DB->prepare("select name from ".DB_PREFIX."_groups");
+		$namesQ = $this->dbh->prepare("select gid, name from ".DB_PREFIX."_groups");
 		$namesQ->execute();
 		$all = $namesQ->fetchAll(PDO::FETCH_ASSOC);
 		foreach($all as $name){
-				$this->names[$name['name']] = $name['name'];
+				$this->names[$name['gid']] = $name['name'];
 		}
 	}
 	public function GetPermissionsList(){
-		$permsQ = $this->DB->prepare("select category, description from ".DB_PREFIX."_perms");
+		$permsQ = $this->dbh->prepare("select category, description from ".DB_PREFIX."_perms");
 		$permsQ->execute();
 		return $permsQ->fetchAll(PDO::FETCH_ASSOC);
 	}
 	public function Commit(){
 		foreach($this->data as $key=>$role){
 			$perm = implode(',',$role);
-			$query = $this->DB->prepare("update ".DB_PREFIX."_groups set `permissions`=:perm where `name`=:name");
+			$query = $this->dbh->prepare("update ".DB_PREFIX."_groups set `permissions`=:perm where `name`=:name");
 			$query->bindParam(':perm', $perm);
 			$query->bindParam('name', $key);
 			try{
@@ -49,7 +48,7 @@ class Perms{
 		}
 	}
 	public function AddGroup($params){
-		$insert = $this->DB->prepare("insert into ".DB_PREFIX."_groups (name, comments) values (:name, :comm)");
+		$insert = $this->dbh->prepare("insert into ".DB_PREFIX."_groups (name, comments) values (:name, :comm)");
 		$insert->bindParam(':name',$params['name']);
 		$insert->bindParam(':comm',$params['comments']);
 		$insert->execute();

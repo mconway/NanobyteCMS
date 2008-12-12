@@ -33,7 +33,6 @@
  *To edit this file with the Web Form, log in as admin, go to the Admin page | Settings
  *
  *@author Mike Conway
- *@copyright Mike Conway - Wiredbyte
  *@since Jun 3, 2008
 */
 define("DB_USER", '{$params['dbuser']}');
@@ -51,6 +50,8 @@ define("FILE_SIZE", '{$params['filesize']}');
 define("CLEANURL", '{$params['cleanurl']}');
 define("THEME_PATH", '{$params['themepath']}');
 define("DEFAULT_GROUP", '{$perms->gid}');
+define("SESS_TTL", '{$params['sessttl']}');
+define("PEAR_PATH", '{$params['pearpath']}');
 ?>
 EOF;
 		$fh = fopen('./includes/config.inc.php', 'w');

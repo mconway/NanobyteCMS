@@ -7,7 +7,7 @@
 function Posts($args){
 	global $smarty; // Get the smarty Global
 	if(!$args[1]){
-		PostController::View($args[0]);
+		ContentController::View($args[0]);
 	}elseif($args[1]=='comments'){
 			switch($args[2]){
 				case 'add':

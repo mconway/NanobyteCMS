@@ -7,20 +7,19 @@
  */
  
 function admin($args){
-	
 	//Get the Smarty Object
 	global $smarty;
-	
+	global $user;
+	//check to see if this is an AJAX request
+	global $ajax;
 	//Check to see if the user is logged in
 	if(isset($_SESSION['hash'])){
-		 $user = unserialize($_SESSION['user']);
 		 if ($_SESSION['hash'] == $user->SessionHash()){
 		 	// Check user permissions
 		 	if (Core::AuthUser($user, 'access admin pages')){
-		 		$smarty->assign('auth', 1); //Set auth to TRUE
 		 		$smarty->assign('page', $args[0]); //Set Page Name
 		 		$smarty->assign('links', AdminController::GetAdminMenu());  // Get the Admin Menu
-		 		switch($args[0]){  // What sub page are we trying to view
+				switch($args[0]){  // What sub page are we trying to view
 		 		//Users Sub Page (Administer Users)
 					case 'users':
 						//What action is being performed. This is the args array passed from index.php
@@ -29,16 +28,16 @@ function admin($args){
 								AdminController::DeleteUserRequest();
 								break;
 							case 'edit':
-								UserController::EditUser($args[2]);
-								$smarty->assign('file', 'form.tpl');
+								UserController::Edit($args[2]);
+								$content = $smarty->fetch('form.tpl');
 								break;	
 							case 'add':
 								UserController::RegForm(true);
-								$smarty->assign('file','form.tpl');
+								$content = $smarty->fetch('form.tpl');
 								break;
 							case 'commit': // Save User Details
 								if (isset($_POST['commit'])){
-									UserController::EditUser($args[2]);
+									UserController::Edit($args[2]);
 									BaseController::Redirect();
 								}elseif(isset($_POST['delete'])){
 									AdminController::DeleteUserRequest();
@@ -52,59 +51,55 @@ function admin($args){
 								}
 								break;
 						}
-						
-						//Find out if FILE has been set already in smarty
-						$file = $smarty->get_template_vars('file'); 
-						
 						//If file is not set, get the user list and display
-						if (!$file){ 
-							UserController::ListUsers(); 
-							$smarty->assign('file', 'list.tpl'); 
+						if (!$content){ 
+							UserController::GetList(); 
+							$content = $smarty->fetch('list.tpl'); 
 						}
 						break;
 					//Posts Sub Page (administer posts)
 					case 'content':
-						$tabs = array('Posts', 'Comments');
-						switch($args[1]){ // What Action is being performed? GET or POST
-							case 'Posts':
-								$ajax = true;
-								PostController::ListPosts($args[2]);
-								$smarty->display('list.tpl');
-								break;
-							case 'Comments':
-								$ajax = true;
-								CommentsController::ListPosts($args[2]); // should be passing page #
-								$smarty->display('list.tpl');
-								break;
-							case 'delete':
-								PostController::DeletePostRequest();
-								break;
-							case 'add':
-								PostController::PostForm();
-								$smarty->assign('file', 'form.tpl');
-								break;
-							case 'edit':
-								if(!$args[2]){
-									Core::SetMessage('You did not specify a post to edit!','error');
-									BaseController::Redirect('admin/posts');
-								}else{
-									PostController::EditPost($args[2]);
-									$smarty->assign('file', 'form.tpl');
-								}
-								break;	
+						$contents = new Content();
+						$contents->GetTypes();
+						$tabs = $contents->types;
+						$tabs['comments'] = 'Comments';
+						if(is_numeric($args[1])){
+							ContentController::GetList($args[1],$args[2]);
+						}else{
+							switch($args[1]){
+								case 'comments':
+									CommentsController::GetList($args[2]); // should be passing page #
+									break;
+								case 'delete':
+									ContentController::Delete();
+									break;
+								case 'add':
+									ContentController::Form();
+									$content = $smarty->fetch('form.tpl');
+									break;
+								case 'edit':
+									if(!$args[2]){
+										Core::SetMessage('You did not specify content to edit!','error');
+										BaseController::Redirect('admin/posts');
+									}else{
+										ContentController::Edit($args[2]);
+										$content = $smarty->fetch('form.tpl');
+									}
+									break;	
+							}
 						}
-						//Find out if FILE is set
-						$file = $smarty->get_template_vars('file'); 
 						//If File is not set, get the post list and display
 						$smarty->assign('tabs',$tabs);
-						$file = $smarty->get_template_vars('file'); 
-						if (!$ajax && !$file){ 
-							$smarty->assign('file', 'list.tpl');
+						if (!$content){ 
+							$content =  $smarty->fetch('list.tpl');
 						}
 		 				break;
 					// Modules Sub Page
 		 			case 'modules':
+					case 'blocks':
 						//What action is being performed.
+						$tabs = array('modules'=>'Modules', 'blocks'=>'Blocks');
+						$smarty->assign('tabs',$tabs);
 						switch($args[1]){ 
 							//We call the same function for Disable and Enable.
 							case 'enable':  
@@ -112,9 +107,10 @@ function admin($args){
 								ModuleController::UpdateStatus($args[2], $args[1]);
 								break;
 							// Default is to display the module list
-							default: 
-								ModuleController::ListMods();
-								$smarty->assign('file', 'list.tpl');
+							default:
+								$func = 'List'.$args[0];
+								ModuleController::$func();
+								$content = $smarty->fetch('list.tpl');
 								break;
 						}
 						break;
@@ -148,25 +144,25 @@ function admin($args){
 										MenuController::WriteMenu();
 									}
 									MenuController::ListMenuItems($args[2]);
-									$smarty->assign('file','list.tpl');
+									$content = $smarty->fetch('list.tpl');
 								}else{
 									Core::SetMessage('You must specify a menu!', 'error');
 								}
 								break;
 							default:
 								MenuController::ListMenus();
-								$smarty->assign('file','list.tpl');
+								$content = $smarty->fetch('list.tpl');
 						}
 						break;
 					// Settings Sub Page
 		 			case 'settings':
 		 				AdminController::ShowConfig();
-						$smarty->assign('file','form.tpl');
+						$content =  $smarty->fetch('form.tpl');
 		 				break;
 					// Stats Sub Page
 		 			case 'stats':
 						AdminController::ListStats($args['1']); // Get the stats list
-						$smarty->assign('file','list.tpl'); // Display the list
+						$content = $smarty->fetch('list.tpl'); // Display the list
 						break;
 					//administer permissions
 					case 'perms':
@@ -174,7 +170,7 @@ function admin($args){
 						switch($args[1]){
 							case 'add':
 								AdminController::AddGroup();
-								$smarty->assign('file','form.tpl');
+								$content = $smarty->fetch('form.tpl');
 								break;
 							case 'delete':
 								AdminController::DeleteGroup();
@@ -184,12 +180,12 @@ function admin($args){
 							 		AdminController::WriteGroups($perms);
 								}
 								AdminController::EditGroups($perms);
-								$smarty->assign('file','list.tpl');
+								$content = $smarty->fetch('list.tpl');
 								break;
 							default: 
 								$perms->GetAll();
 								AdminController::ListPerms($perms);
-								$smarty->assign('file','list.tpl');
+								$content = $smarty->fetch('list.tpl');
 								break;
 						}
 						break;
@@ -204,27 +200,26 @@ function admin($args){
 							Core::SetMessage('HTML Quickforms is Installed.','info');
 						}
 						break;
-					//Blocks Subpage
-					case 'blocks':
-						AdminController::ListBlocks();
-						$smarty->assign('file','list.tpl');
-						break;
+			
 					// When no sub page is specified display default
 					default:
 						if (isset($_POST['save'])){
 							PostController::SavePost();
 						}
-						BaseController::NewUsers();
+						//BaseController::NewUsers();
 						AdminController::BrowserGraph();
-						$smarty->assign('file', 'admin.main.tpl');
+						$content = $smarty->fetch('admin.main.tpl');
 						break;
 				}
 				BaseController::AddJs('templates/'.THEME_PATH.'/js/admin.js');
 				BaseController::DisplayMessages(); // Get any messages
 				BaseController::GetHTMLIncludes(); // Get CSS and Script Files
 				if(!$ajax){
+					$smarty->assign('content',$content);
 					$smarty->display('admin.tpl'); // Display the Admin Page
-				}				
+				}else{
+					print $content;
+				}			
 			// If the user is not autorized AT ANY TIME - set a message and redirect them to the home page
 			}else{
 				Core::SetMessage('You do not have Permission to access this page!','error');

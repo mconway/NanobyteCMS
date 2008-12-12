@@ -14,7 +14,7 @@
 		return $mod;
 	}
 	
-	public static function ListMods(){
+	public static function ListModules(){
 		global $smarty;
 		//create list
 		$modsList = self::GetAll(); //array of objects
@@ -55,6 +55,7 @@
 		}
 		UserController::Redirect();
 	}
+	
 	public static function InstallModule($mod){
 		$module = new Module($mod);
 		call_user_func(array('Mod_'.$mod, 'Install'));
@@ -73,5 +74,12 @@
 			}
 		}
 		$smarty->assign('blocks', $blocks);
+	}
+	
+	public static function ListBlocks(){
+		global $smarty;
+		$blocks = Module::GetBlocks();
+		$smarty->assign('list',$blocks);
+		$smarty->assign('self','admin/blocks');
 	}
  }

@@ -23,28 +23,26 @@
 
 	public static function StartSession(){
 		$sess = new SessionManager();
-		session_set_cookie_params(3600);
+		session_set_cookie_params(SESS_TTL);
 	    session_start();
 		self::EnabledMods();
 		$stats = new Stats();
 		$stats->commit();
-		set_include_path(get_include_path() . PATH_SEPARATOR . "/home/mconway/pear/php"); 
+		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
 		@include 'HTML/QuickForm.php';
+		
 	}
  	public static function l($text, $path, $options=null){
 		//return an HTML string
 		 if (CLEANURL){
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/'.$path : SITE_DOMAIN.'/'.$path;
  		}else{
- 			//$url = explode('/',$path);
- 			//$script = array_shift($url);
- 			//$page = implode('/', $url);
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
 		if($options['image']){
 			$text = '<img src="templates/'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
 		}
-		$link = '<a href="'.$url.'">'.$text.'</a>';
+		$link = "<a href='{$url}' class='{$options['class']}' id='{$options['id']}'>{$text}</a>";
 		return $link;
 	}
 	public static function SetMessage($message=null, $type='status'){
@@ -117,5 +115,6 @@
 		}
 	}
  }
+ //ini_set('zlib.output_compression', 'On');
  spl_autoload_register(array("Core","autoload"));
 ?>

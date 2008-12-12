@@ -1,8 +1,48 @@
-/**
+/*
  * @author Michael
  */
 $(document).ready(
 	function () {
+		$('#iconmenu a').click(function(){
+			$('#loading').dialog("open");
+			$.ajax({
+		  		url: $(this).attr('href')+'/ajax',
+		  		cache: false,
+				dataType: "html",
+		  		success: function(html){
+		    		$("#content").html(html);
+		 		},
+				complete: function(){
+					$('#loading').dialog("close");
+				} 
+			});
+			return false;
+		});
+		$('.action-link').livequery(function(){
+			$(this).click(function(){
+				$('#loading').dialog("open");
+				$.ajax({
+			  		url: $(this).attr('href')+'/ajax',
+			  		cache: false,
+					dataType: "html",
+			  		success: function(html){
+			    		$("#content").html(html);
+			 		},
+					complete: function(){
+						$('#loading').dialog("close");
+					} 
+				});
+				return false;
+			});
+		});
+		$("#tabs").livequery(function(){
+			$(this).tabs({
+				ajaxOptions: { 
+					type: 'POST',
+					data: 'actions=/ajax'
+				} 
+			});
+		});
 		$('a.closeEl').bind('click', function(){
 			if ($(this).parents(".itemHeader").siblings(".itemContent").css('display') == 'none') {
 				$(this).parents(".itemHeader").siblings(".itemContent").slideDown(300);

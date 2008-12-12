@@ -5,6 +5,7 @@ class AdminController extends BaseController{
 			//make construct check for perms, hash and then make object.
 	}
 	public function DeleteUserRequest(){
+		global $user;
  		if (isset($_GET['uid'])){
  			$delUser[] = $_GET['uid'];
  		}elseif(isset($_POST['users'])){
@@ -55,11 +56,13 @@ class AdminController extends BaseController{
 			'filetypes'=>FILE_TYPES,
 			'cleanurl'=>CLEANURL,
 			'themepath'=>THEME_PATH,
-			'defaultgroup'=>DEFAULT_GROUP
+			'defaultgroup'=>DEFAULT_GROUP,
+			'sessttl'=>SESS_TTL
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
 		$form->addElement('text', 'path', 'Site Path', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'pearpath', 'Pear Include Path', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitename', 'Site Name', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'siteslogan', 'Site Slogan', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
@@ -82,6 +85,7 @@ class AdminController extends BaseController{
 		
 		$form->addElement('header', '', 'User Settings');
 		$form->addElement('select', 'defaultgroup', 'Choose Default group for new Users', $perms->names);
+		$form->addElement('text', 'sessttl', 'Time before users\' sessions expire (in seconds)',array('size'=>10, 'maxlength'=>10));
 		
 		$form->addElement('submit', 'submit', 'Submit');
 		//apply form prefilters
@@ -100,7 +104,7 @@ class AdminController extends BaseController{
 		
 	}
 	public static function GetAdminMenu(){
-		$array = array('users','content','modules','blocks','menus','stats','perms','settings','logs');
+		$array = array('admin','users','content','modules','menus','stats','perms','settings');
 		foreach ($array as $link){
 			$links[$link] = Core::Url('admin/'.$link);
 		}
@@ -137,6 +141,7 @@ class AdminController extends BaseController{
 		$actions = array('delete' => 'Delete');
 		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
 		$options['image'] = '24';
+		$options['class'] = 'action-link';
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/perms/add',$options), 'edit'=>Core::l('edit','admin/perms/edit',$options));
 		// bind the params to smarty
 		$smarty->assign('cb',true);
@@ -237,12 +242,7 @@ class AdminController extends BaseController{
 		$plot->SetPlotType('pie');
 		$plot->DrawGraph();
 	}
-	public static function ListBlocks(){
-		global $smarty;
-		$blocks = Module::GetBlocks();
-		$smarty->assign('list',$blocks);
-		$smarty->assign('self','admin/blocks');
-	}
+
 }
 
 

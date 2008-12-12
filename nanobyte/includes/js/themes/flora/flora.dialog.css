@@ -2,13 +2,13 @@
 
 .flora .ui-dialog,
 .flora.ui-dialog {
-	background-color: #e6f7d4;
+	background-color: #4D5050;
 }
 
 .flora .ui-dialog .ui-dialog-titlebar,
 .flora.ui-dialog .ui-dialog-titlebar {
-	border-bottom: 1px solid #d8d2aa;
-	background: #ff9900 url(i/dialog-title.gif) repeat-x;
+	border-bottom: 1px solid #fff;
+	background: #aaa repeat-x;
 	padding: 0px;
 	height: 28px;
 	_height: 29px;
@@ -28,11 +28,11 @@
 .flora.ui-dialog .ui-dialog-titlebar-close {
 	width: 16px;
 	height: 16px;
-	background: url(i/dialog-titlebar-close.png) no-repeat;
 	position:absolute;
 	top: 6px;
 	right: 7px;
 	cursor: default;
+	display: none;
 }
 
 .flora .ui-dialog .ui-dialog-titlebar-close span,
@@ -40,10 +40,12 @@
 	display: none;
 }
 
+/*
 .flora .ui-dialog .ui-dialog-titlebar-close-hover,
 .flora.ui-dialog .ui-dialog-titlebar-close-hover {
 	background: url(i/dialog-titlebar-close-hover.png) no-repeat;
 }
+*/
 
 .flora .ui-dialog .ui-dialog-title,
 .flora.ui-dialog .ui-dialog-title {

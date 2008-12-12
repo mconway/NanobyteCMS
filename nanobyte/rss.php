@@ -15,14 +15,15 @@ function RSS(){
 	<link>{$const['SITE_DOMAIN']}</link>
 	<copyright>WiredCMS 2008 Michael Conway - Wiredbyte</copyright>
 EOF;
-	$posts = Post::Read('1', 10); // Get the Last 10 posts
-	foreach ($posts as $post){ // Set the pubdate and create an <item></item> for each post
-		$pubDate = strftime( "%a, %d %b %Y %T %Z" , $post->created);
+	$content = new Content();
+	$posts = $content->Read(0, '1', 10); // Get the Last 10 posts
+	foreach ($content->items['content'] as $post){ // Set the pubdate and create an <item></item> for each post
+		$pubDate = strftime( "%a, %d %b %Y %T %Z" , $post['created']);
 		print <<<EOF
 		<item>
-	        <title>{$post->title}</title>
-	        <description><![CDATA[{$post->body}]]></description>
-	        <link>{$const['SITE_DOMAIN']}/{$const['PATH']}/posts/{$post->pid}</link>
+	        <title>{$post['title']}</title>
+	        <description><![CDATA[{$post['body']}]]></description>
+	        <link>{$const['SITE_DOMAIN']}/{$const['PATH']}/posts/{$post['pid']}</link>
 	        <pubDate>{$pubDate}</pubDate>
 	     </item>  
 		 

@@ -5,7 +5,7 @@
 		<base href="{php}print SITE_DOMAIN.'/'.PATH{/php}" />
 		<link rel="alternate" type="application/rss+xml" title="{$sitename} Feed" href="{$feedurl}" />
 		{foreach from=$css item=inc}
-			<link type="text/css" rel="stylesheet" media="{$inc.media}" href="{$inc.file}" />
+			<link type="text/css" rel="stylesheet" href="{$inc}" />
 		{/foreach}
 		{foreach from=$js item=script}
 			<script type="text/javascript" src="{$script}"></script>
@@ -32,3 +32,4 @@
 		</div>
 	{/if}
 	<div id="main">
+		<div id="loading" class="loading"><img id="loadingImg" src="templates/Nanobyte/images/loading.gif"/></div>

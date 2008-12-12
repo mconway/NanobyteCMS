@@ -1,14 +1,19 @@
 <?php
 
 class BaseController{
-	public static function Redirect($page=null){
-		if ($page){ 
+	public static function Redirect($page=null,$ajax=false){
+		if ($page && !$ajax){ 
 			header("location: " . Core::Url($page), true, 303);
-		}else{
+		}elseif ($page && $ajax){ 
+			header("location: " . Core::Url($page).'/ajax', true, 303);
+		}elseif(!isset($page) && !$ajax){
 			header("location: ".$_SERVER['HTTP_REFERER'], true, 303); 
+		}elseif(!isset($page) && $ajax){
+			header("location: ".$_SERVER['HTTP_REFERER'].'/ajax', true, 303); 
 		}
 		exit;
 	}
+	
 	public static function DisplayMessages(){
 		global $smarty;
 		if(isset($_SESSION['messages'])){
@@ -17,12 +22,13 @@ class BaseController{
 		}else{
 			return false;
 		}
-	}	
+	}
+	
 	public static function strleft($s1, $s2) {
 		return substr($s1, 0, strpos($s1, $s2)); 
 	}
 
-	public static function paginate($limit,$total,$filePath,$currentPage) {
+	public static function paginate($limit=15,$total,$filePath,$currentPage) {
 		$allPages = ceil($total/$limit);
 		$pagination = "";
 		$output = '';
@@ -89,10 +95,11 @@ class BaseController{
 	public static function AddCss($file=null, $media='all'){
 		static $cssFiles = array();
 		if($file != null){
-			$cssFiles[] = array('media'=>$media, 'file'=>$file);
+			$cssFiles[] = $file;
 		}
 		return $cssFiles;
 	}
+	
  	public static function AddJs($file=null){
  		static $jsFiles;
 		if($file != null){
@@ -100,13 +107,17 @@ class BaseController{
 		}
 		return $jsFiles;
  	}
+	
 	public static function GetHTMLIncludes(){
 		global $smarty;
-		$css = self::AddCss();
-		$smarty->assign('css', $css);
-		$js = self::AddJs();
-		$smarty->assign('js', $js);
+		//if(ENABLE_COMPRESSION === true){
+			//self::CompressFiles(self::AddJs());
+			$smarty->assign(array('js'=>self::CompressFiles(self::AddJs(),'js'),'css'=>self::CompressFiles(self::AddCss(),'css')));
+		//}else{
+		//	$smarty->assign(array('js'=>self::AddJs(),'css'=>self::AddCss()));
+		//}
 	}
+	
 	public static function HandleImage($image,$resize=null){
 		$filename = $image['name'];
 		$error = BaseController::VerifyFile($image);
@@ -127,6 +138,7 @@ class BaseController{
 		}
 		
 	}
+	
 	public static function ResizeImage($image, $thumb_x){
 		$imagepath = UPLOAD_PATH.$image['name'];
 		//open original (uploaded) image, based on type.
@@ -172,6 +184,7 @@ class BaseController{
 		$uri['thumb'] = $base . '-thumb.png';
 	    return $uri;
 	}
+	
 	public static function GetThemeList(){
 		$dirs = glob('templates/*', GLOB_ONLYDIR);
 		foreach($dirs as $dir){
@@ -179,5 +192,28 @@ class BaseController{
 			$theme[$dir] = ucfirst($dir); 
 		}
 		return $theme;
+	}
+	
+	public static function CompressFiles($fileArray,$type){
+		if($type != 'css'){
+			$ob = "<?php 
+			ob_start (\"ob_gzhandler\");
+			?>\n";
+		}else{
+			$ob = "<?php
+			ob_start(\"ob_gzhandler\");
+			header(\"Content-type: text/css; charset: UTF-8\");
+			header(\"Cache-Control: must-revalidate\");
+			?>";
+		}
+		$filename = './templates/'.THEME_PATH.'/'.$type.'/compressed.php';
+		$fh = fopen($filename, 'w');
+		fwrite($fh, $ob);
+		foreach($fileArray as $file){
+			$contents = file_get_contents($file);
+			fwrite($fh, $contents);
+		}
+		fclose($fh);
+		return $filename;
 	}
 }

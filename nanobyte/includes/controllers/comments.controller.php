@@ -1,6 +1,6 @@
 <?php
-class CommentsController extends PostController{
-	public static function ListPosts($page=1){
+class CommentsController extends ContentController{
+	public static function GetList($page=1){
 		global $smarty;
 		//create the list
 		$start = BaseController::GetStart($page,15);
@@ -25,7 +25,7 @@ class CommentsController extends PostController{
 		$smarty->assign('extra', 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>');
 		$smarty->assign('list', $theList);
 	}
-	public function CommentsForm($pid){
+	public static function CommentsForm($pid){
 		global $smarty;
 		//Create the form object
 		$form = new HTML_QuickForm('commentform','commentform','posts/'.$pid.'/comments/add');
