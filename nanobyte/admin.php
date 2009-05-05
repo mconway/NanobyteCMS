@@ -18,15 +18,16 @@ function admin($args){
 		 	// Check user permissions
 		 	if (Core::AuthUser($user, 'access admin pages')){
 		 		$smarty->assign('page', $args[0]); //Set Page Name
-		 		$smarty->assign('links', AdminController::GetAdminMenu());  // Get the Admin Menu
+		 		$smarty->assign('links', MenuController::GetMenu('admin',$user->group));  // Get the Admin Menu
+		 		$jsonObj = new Json();
 				switch($args[0]){  // What sub page are we trying to view
 		 		//Users Sub Page (Administer Users)
 					case 'users':
 						//What action is being performed. This is the args array passed from index.php
+						$tabs = array(Core::l('Users','admin/users/list'),Core::l('Groups','admin/groups/list'));
+						$smarty->assign('tabs',$tabs);
+						if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
 						switch($args[1]){
-							case 'delete':
-								AdminController::DeleteUserRequest();
-								break;
 							case 'edit':
 								UserController::Edit($args[2]);
 								$content = $smarty->fetch('form.tpl');
@@ -44,26 +45,70 @@ function admin($args){
 									BaseController::Redirect();
 								}
 								break;
-							default:
-								if(isset($_POST['users'])){
-									UserController::AddPerm($args[1]);
-									Core::SetMessage('Group "'.ucfirst($args[1]).'" has been added to the selected users!','info');
+							case 'select':
+								switch($args[2]){
+									case 'delete':
+										AdminController::DeleteUserRequest();
+										break;
+									default: 
+										if(isset($_POST['users'])){
+											UserController::AddPerm($args[2]);
+											Core::SetMessage('Group "'.ucfirst($args[2]).'" has been added to the selected users!','info');
+										}else{
+											Core::SetMessage('You must select a user!','error');
+										}
+										break;
 								}
 								break;
+							case 'list':
+								UserController::GetList(); 
+								$content = $smarty->fetch('list.tpl'); 
+								break;
 						}
-						//If file is not set, get the user list and display
-						if (!$content){ 
-							UserController::GetList(); 
-							$content = $smarty->fetch('list.tpl'); 
+						break;
+					//administer permissions
+					case 'groups':
+						$perms = new Perms();
+						switch($args[1]){
+							case 'add':
+								AdminController::AddGroup();
+								$content = $smarty->fetch('form.tpl');
+								break;
+							case 'edit':
+								if(isset($_POST['submit'])){
+							 		AdminController::WriteGroups($perms);
+								}
+								AdminController::EditGroups($perms);
+								$content = $smarty->fetch('list.tpl');
+								break;
+							case 'list': 
+								$perms->GetAll();
+								AdminController::ListPerms($perms);
+								$content = $smarty->fetch('list.tpl');
+								break;
+							case 'select':
+								switch($args[2]){
+									case 'delete':
+										AdminController::DeleteGroup();
+										break;
+									default: 
+										break;
+								}
+								break;
 						}
 						break;
 					//Posts Sub Page (administer posts)
 					case 'content':
 						$contents = new Content();
 						$contents->GetTypes();
-						$tabs = $contents->types;
-						$tabs['comments'] = 'Comments';
+						$tabs = array();
+						foreach($contents->types as $key=>$tab){
+						 array_push($tabs, Core::l($tab,'admin/content/'.$key));
+						}
+						array_push($tabs,Core::l('Comments','admin/content/comments'));
+						array_push($tabs,Core::l('Settings','admin/content/settings'));
 						if(is_numeric($args[1])){
+							Core::SetMessage('Numeric!');
 							ContentController::GetList($args[1],$args[2]);
 						}else{
 							switch($args[1]){
@@ -86,10 +131,21 @@ function admin($args){
 										$content = $smarty->fetch('form.tpl');
 									}
 									break;	
+								case 'settings':
+									$content = '';
+									if($args[2]=='addtype'){
+										
+										$smarty->assign('form',ContentController::Form_Settings_AddType());
+										$content .= $smarty->fetch('form.tpl');
+									}
+									$options['id'] = 'addtype';
+									$content .= Core::l('Add Content Type', 'admin/content/settings/addtype', $options);
+									break;
 							}
 						}
 						//If File is not set, get the post list and display
 						$smarty->assign('tabs',$tabs);
+						if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
 						if (!$content){ 
 							$content =  $smarty->fetch('list.tpl');
 						}
@@ -98,8 +154,11 @@ function admin($args){
 		 			case 'modules':
 					case 'blocks':
 						//What action is being performed.
-						$tabs = array('modules'=>'Modules', 'blocks'=>'Blocks');
+						$tabs = array();
+						array_push($tabs, Core::l('Modules','admin/modules/list'));
+						array_push($tabs, Core::l('Blocks','admin/blocks/list'));
 						$smarty->assign('tabs',$tabs);
+						if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
 						switch($args[1]){ 
 							//We call the same function for Disable and Enable.
 							case 'enable':  
@@ -107,7 +166,7 @@ function admin($args){
 								ModuleController::UpdateStatus($args[2], $args[1]);
 								break;
 							// Default is to display the module list
-							default:
+							case 'list':
 								$func = 'List'.$args[0];
 								ModuleController::$func();
 								$content = $smarty->fetch('list.tpl');
@@ -116,32 +175,40 @@ function admin($args){
 						break;
 					//Menus Sub Page
 					case 'menus':
+						$tabs = array(Core::l('Menus','admin/menus/list'));
+						$smarty->assign('tabs',$tabs);
+						$smarty->assign('showID',true);
+						if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
 						switch($args[1]){
 							case 'add':
 								if(isset($_POST['submit'])){
 									MenuController::WriteMenu($args[2]);
-									BaseController::Redirect('admin/menus');
-									exit;
+									//BaseController::Redirect('admin/menus');
+//									exit;
 								}
 								if($args[2]){ //Menu is specified, therefore we are adding an item to it
 									MenuController::AddMenuItem();
+									$content = $smarty->fetch('list.tpl');
 								}else{ //no menu is specified, so lets create a new one
 									MenuController::AddMenu();
+									$content = $smarty->fetch('form.tpl');
 								}
-								$smarty->assign('file','list.tpl');
+								
 								break;
 							case 'delete':
 								if($args[2] && $args[3]){
 									Admin::DeleteObject('menu_links','id',$args[3]);
 									BaseController::Redirect();
 								}elseif($args[2]){
-									//MenuController::DelMenu($args[2]);
+									$menu = new Menu($args[2]);
+									$menu->Delete();
 								}
 								break;
 							case 'edit':
 								if($args[2]){
 									if (isset($_POST['submit'])){
 										MenuController::WriteMenu();
+										Core::SetMessage('Your changes have been saved.','info');
 									}
 									MenuController::ListMenuItems($args[2]);
 									$content = $smarty->fetch('list.tpl');
@@ -149,7 +216,7 @@ function admin($args){
 									Core::SetMessage('You must specify a menu!', 'error');
 								}
 								break;
-							default:
+							case 'list':
 								MenuController::ListMenus();
 								$content = $smarty->fetch('list.tpl');
 						}
@@ -161,31 +228,14 @@ function admin($args){
 		 				break;
 					// Stats Sub Page
 		 			case 'stats':
-						AdminController::ListStats($args['1']); // Get the stats list
-						$content = $smarty->fetch('list.tpl'); // Display the list
-						break;
-					//administer permissions
-					case 'perms':
-						$perms = new Perms();
+						$tabs = array(Core::l('Site Statistics','admin/stats/list'));
+						$smarty->assign('tabs',$tabs);
+						if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
 						switch($args[1]){
-							case 'add':
-								AdminController::AddGroup();
-								$content = $smarty->fetch('form.tpl');
-								break;
-							case 'delete':
-								AdminController::DeleteGroup();
-								break;
-							case 'edit':
-								if(isset($_POST['submit'])){
-							 		AdminController::WriteGroups($perms);
-								}
-								AdminController::EditGroups($perms);
-								$content = $smarty->fetch('list.tpl');
-								break;
-							default: 
-								$perms->GetAll();
-								AdminController::ListPerms($perms);
-								$content = $smarty->fetch('list.tpl');
+							case 'list':
+								unset($args[array_search('ajax',$args)]);
+								AdminController::ListStats($args[2]); // Get the stats list
+								$content = $smarty->fetch('list.tpl'); // Display the list
 								break;
 						}
 						break;
@@ -206,19 +256,21 @@ function admin($args){
 						if (isset($_POST['save'])){
 							PostController::SavePost();
 						}
-						//BaseController::NewUsers();
+						$smarty->assign('users',Mod_Users::NewUsers());
 						AdminController::BrowserGraph();
 						$content = $smarty->fetch('admin.main.tpl');
 						break;
 				}
-				BaseController::AddJs('templates/'.THEME_PATH.'/js/admin.js');
-				BaseController::DisplayMessages(); // Get any messages
-				BaseController::GetHTMLIncludes(); // Get CSS and Script Files
 				if(!$ajax){
+					BaseController::AddJs('templates/'.THEME_PATH.'/js/admin.js');
+					BaseController::DisplayMessages(); // Get any messages
+					BaseController::GetHTMLIncludes(); // Get CSS and Script Files
 					$smarty->assign('content',$content);
 					$smarty->display('admin.tpl'); // Display the Admin Page
 				}else{
-					print $content;
+					$jsonObj->content = $content;
+					$jsonObj->messages = BaseController::DisplayMessages();
+					print json_encode($jsonObj);
 				}			
 			// If the user is not autorized AT ANY TIME - set a message and redirect them to the home page
 			}else{

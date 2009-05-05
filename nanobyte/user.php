@@ -11,7 +11,7 @@ global $user;
 global $ajax;
 switch($args[0]){ // What sub page are we trying to view
 		case 'details': // view user details - THIS IS NOT THE PROFILE PAGE
-			UserController::GetDetails($args['1']);
+			$content = UserController::GetDetails($args['1']);
 			break;
 		case 'edit':
 			if (Core::AuthUser($user, 'edit user accounts') || $user->uid === $args[1]){
@@ -34,16 +34,18 @@ switch($args[0]){ // What sub page are we trying to view
 			}
 			break;
 		case 'login': // Log in a user
-			if (isset($_POST['login'])){
-				UserController::Login($_POST['user'], $_POST['pass']);
-				BaseController::Redirect(null,$ajax);
+			UserController::Login($_POST['user'], $_POST['pass']);
+			if($user->success===true){
+				Core::SetMessage('Authentication Successful!','info');
+				$content = 'reload';
 			}else{
-				BaseController::Redirect('user',$ajax);
+				Core::SetMessage('Username or Password is incorrect','error');
 			}
 			break;
+			
 		case 'logout': //Logout and destroy a user session
 			UserController::Logout();
-			BaseController::Redirect('home');
+			BaseController::Redirect(HOME);
 			break;
 		case 'register': // Sign up as a new user
 			UserController::RegForm();
@@ -65,11 +67,16 @@ switch($args[0]){ // What sub page are we trying to view
 				UserController::ShowProfile($user->uid);
 			}
 			break;
-	}
-	BaseController::DisplayMessages(); // Get Messages
-	BaseController::GetHTMLIncludes(); //Get CSS and Scripts
+	}	
 	if(!$ajax){
+		BaseController::DisplayMessages(); // Get any messages
+		BaseController::GetHTMLIncludes(); // Get CSS and Script Files
+		$smarty->assign('content',$content);
 		$smarty->display('user.tpl'); // Display the Page
+	}else{
+		$jsonArray['content'] = $content;
+		$jsonArray['messages'] = BaseController::DisplayMessages();
+		print json_encode($jsonArray);
 	}
 }
 

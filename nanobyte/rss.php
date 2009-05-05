@@ -15,7 +15,7 @@ function RSS(){
 	<link>{$const['SITE_DOMAIN']}</link>
 	<copyright>WiredCMS 2008 Michael Conway - Wiredbyte</copyright>
 EOF;
-	$content = new Content();
+	$content = new Mod_Content();
 	$posts = $content->Read(0, '1', 10); // Get the Last 10 posts
 	foreach ($content->items['content'] as $post){ // Set the pubdate and create an <item></item> for each post
 		$pubDate = strftime( "%a, %d %b %Y %T %Z" , $post['created']);

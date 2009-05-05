@@ -98,8 +98,9 @@ a img{
 	width:660px;
 }
 #iconmenu{
-	height:50px;
+	height:60px;
 	text-align: center;
+	margin-bottom: 30px;
 }
 #iconmenu a{
 	display:inline-block;
@@ -107,9 +108,9 @@ a img{
 	padding:0 10px;
 }
 
-/*#iconmenu a:hover img{
-	background: lightblue;
-}*/
+#iconmenu a:hover span, #iconmenu a.active{
+	color: #179AFC;
+}
 
 #sidebar-right{
 	margin-left:660px;
@@ -225,7 +226,7 @@ table.tablesorter tbody td.actions{
 }
 div.label{
 	float:left;
-	width:130px;
+	width:150px;
 	font-weight: bold;
 }
 div.formbutton{
@@ -233,6 +234,12 @@ div.formbutton{
 }
 #mainAdmin{
 	padding: 15px 0;
+}
+.imgTitle{
+	clear:both;
+	display:block;
+	font-weight:bold;
+	line-height:0.8em;
 }
 /*
 Begin Sortables Styles
@@ -388,10 +395,12 @@ Begin Sortables Styles
 	left: 4px;
 }
 
+/*
 .dialog .ui-dialog .ui-dialog-content,
 .dialog.ui-dialog .ui-dialog-content {
 	margin: 1.2em;
 }
+*/
 
 .dialog .ui-dialog .ui-dialog-buttonpane,
 .dialog.ui-dialog .ui-dialog-buttonpane {

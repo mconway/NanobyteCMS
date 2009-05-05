@@ -19,6 +19,7 @@ class BaseController{
 		if(isset($_SESSION['messages'])){
 			$messages = Core::getMessages();
 			$smarty->assign('messages', $messages);
+			return $smarty->fetch('messages.tpl');
 		}else{
 			return false;
 		}
@@ -110,12 +111,11 @@ class BaseController{
 	
 	public static function GetHTMLIncludes(){
 		global $smarty;
-		//if(ENABLE_COMPRESSION === true){
-			//self::CompressFiles(self::AddJs());
+		if(COMPRESS){
 			$smarty->assign(array('js'=>self::CompressFiles(self::AddJs(),'js'),'css'=>self::CompressFiles(self::AddCss(),'css')));
-		//}else{
-		//	$smarty->assign(array('js'=>self::AddJs(),'css'=>self::AddCss()));
-		//}
+		}else{
+			$smarty->assign(array('js'=>self::AddJs(),'css'=>self::AddCss()));
+		}
 	}
 	
 	public static function HandleImage($image,$resize=null){
@@ -206,7 +206,7 @@ class BaseController{
 			header(\"Cache-Control: must-revalidate\");
 			?>";
 		}
-		$filename = './templates/'.THEME_PATH.'/'.$type.'/compressed.php';
+		$filename = THEME_PATH.'/'.$type.'/compressed.php';
 		$fh = fopen($filename, 'w');
 		fwrite($fh, $ob);
 		foreach($fileArray as $file){

@@ -42,6 +42,11 @@ class Module{
 		$qUpdate = $this->dbh->prepare($this->modify);
 		$qUpdate->bindValue(':mod',$this->modpath);
 		$qUpdate->execute();
+		if($qUpdate->rowCount() == 1){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	public function Add(){

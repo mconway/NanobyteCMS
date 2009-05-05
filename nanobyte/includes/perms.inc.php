@@ -5,11 +5,12 @@ class Perms{
 	function __construct($id=null){
 		$this->dbh = DBCreator::GetDbObject();
 		if ($id){
-			$query = $this->dbh->prepare("select name, permissions from ".DB_PREFIX."_groups where `gid`=:id");
+			$query = $this->dbh->prepare("select name, comments, permissions from ".DB_PREFIX."_groups where `gid`=:id");
 			$query->execute(array(':id'=>$id));
 			$info = $query->fetch(PDO::FETCH_ASSOC);
 			$this->gid = $id;
 			$this->name = $info['name'];
+			$this->comments = $info['comments'];
 			$this->permissions = $info['permissions'];
 		}
 	}
@@ -53,6 +54,7 @@ class Perms{
 		$insert->bindParam(':comm',$params['comments']);
 		$insert->execute();
 		if ($insert->rowCount() == 1){
+			$this->__construct($this->dbh->lastInsertId());
 			return true;
 		}else{
 			return false;

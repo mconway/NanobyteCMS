@@ -5,10 +5,10 @@
 		<base href="{php}print SITE_DOMAIN.'/'.PATH{/php}" />
 		<link rel="alternate" type="application/rss+xml" title="{$sitename} Feed" href="{$feedurl}" />
 		{foreach from=$css item=inc}
-			<link type="text/css" rel="stylesheet" href="{$inc}" />
+			<link type="text/css" rel="stylesheet" href="{eval var=$inc}" />
 		{/foreach}
 		{foreach from=$js item=script}
-			<script type="text/javascript" src="{$script}"></script>
+			<script type="text/javascript" src="{eval var=$script}"></script>
 		{/foreach}
 	</head>
 	<body>
@@ -25,11 +25,8 @@
 		</div>
 		{if $noSess}<div id="rbbox">{include file="user.login.tpl"}</div>{/if}
 	</div>
-	
-	{if $messages}
-	 	<div id="messages" title="Messages" class="flora">
-			{include file='messages.tpl'}
-		</div>
-	{/if}
+	<div id="messages" title="Messages">
+		{include file='messages.tpl'}
+	</div>
 	<div id="main">
 		<div id="loading" class="loading"><img id="loadingImg" src="templates/Nanobyte/images/loading.gif"/></div>

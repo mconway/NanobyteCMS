@@ -1,37 +1,63 @@
 <?php
 
 class AdminController extends BaseController{
+	
 	function __construct(){
-			//make construct check for perms, hash and then make object.
+		//make construct check for perms, hash and then make object.
 	}
-	public function DeleteUserRequest(){
-		global $user;
- 		if (isset($_GET['uid'])){
- 			$delUser[] = $_GET['uid'];
- 		}elseif(isset($_POST['users'])){
- 			$delUser = $_POST['users'];
- 		}
- 		if(isset($delUser)){
-	 		foreach($delUser as $delete){
-	 			if ($user->uid != $delete){
- 					if (Admin::DeleteObject('user', 'uid', $delete) === true && Admin::DeleteObject('user_profiles', 'uid', $delete)){
-						Core::SetMessage('User '.$delete.' has been deleted!', 'info');
-					} else {
-						Core::SetMessage('Unable to delete user '.$delete.' , an error has occurred.', 'error');
-					}
- 				}else{
- 					Core::SetMessage('You are not allowed to delete yourself!', 'error');
-	 			}
- 			}	
- 		}else{
- 			Core::SetMessage('You must choose a user(s) to delete!', 'error');
- 		}
+	
+	public static function Display(&$argsArray){ //passed by call_user_func
+		list($args,$ajax,$smarty,$user) = $argsArray;
+		// Check user permissions
+	 	if (array_key_exists('hash',$_SESSION) && $_SESSION['hash'] == $user->SessionHash() && Core::AuthUser($user, 'access admin pages')){
+	 		$smarty->assign('page', $args[0]); //Set Page Name
+	 		$smarty->assign('links', MenuController::GetMenu('admin',$user->group));  // Get the Admin Menu
+			$argsArray[4] = new Json();
+			if(!empty($args[0])){
+				if(class_exists($args[0].'Controller')){
+					$class = $args[0].'Controller';
+				}elseif(class_exists('Mod_'.$args[0])){
+					$class = 'Mod_'.$args[0];
+				}else{
+					$alias = Core::CheckAlias($args[0]);
+					$class = $alias."Controller";
+//					Core::SetMessage($alias." ".$class);
+				}
+				call_user_func(array($class, 'Admin'),$argsArray);
+			}else{
+				if (isset($_POST['save'])){
+					PostController::SavePost();
+				}
+				$smarty->assign('users',Mod_Users::NewUsers());
+//				Mod_Stats::BrowserGraph();
+				$argsArray[4]->content = $smarty->fetch('admin.main.tpl');
+			}
+			if(!$ajax){
+				parent::AddJs(THEME_PATH.'/js/admin.js');
+				parent::DisplayMessages(); // Get any messages
+				parent::GetHTMLIncludes(); // Get CSS and Script Files
+				$smarty->assign('content',$argsArray[4]->content);
+				$smarty->display('admin.tpl'); // Display the Admin Page
+			}else{
+				$argsArray[4]->messages = BaseController::DisplayMessages();
+				print json_encode($argsArray[4]);
+			}
+		}
 	}
+	
+	public static function Admin(&$argsArray){
+		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
+		
+ 		self::ShowConfig();
+		$jsonObj->content =  $smarty->fetch('form.tpl');
+	}
+	
 	public static function EditConfig($params){
 		$params['dbuser'] = Admin::EncodeConfParams($params['dbuser']);
 		$params['dbpass'] = Admin::EncodeConfParams($params['dbpass']);
 		Admin::WriteConfig($params);
 	}
+	
 	public static function ShowConfig(){
 		global $smarty;
 		$perms = new Perms();
@@ -57,7 +83,8 @@ class AdminController extends BaseController{
 			'cleanurl'=>CLEANURL,
 			'themepath'=>THEME_PATH,
 			'defaultgroup'=>DEFAULT_GROUP,
-			'sessttl'=>SESS_TTL
+			'sessttl'=>SESS_TTL,
+			'compress'=>COMPRESS
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
@@ -67,6 +94,7 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'siteslogan', 'Site Slogan', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
+		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
 		
 		$form->addElement('header','','DB Settings');
 		$form->addElement('text', 'dbuser', 'DB Username', array('size'=>25, 'maxlength'=>60));
@@ -102,145 +130,6 @@ class AdminController extends BaseController{
 		$smarty->assign('form', $form->toArray());
 		$smarty->assign('tabbed',$tablinks);
 		
-	}
-	public static function GetAdminMenu(){
-		$array = array('admin','users','content','modules','menus','stats','perms','settings');
-		foreach ($array as $link){
-			$links[$link] = Core::Url('admin/'.$link);
-		}
-		return $links;
-	}
-	public static function ListStats($page){
-		global $smarty;
-		$stats = new Stats();
-		$start = BaseController::GetStart($page,15);
-		$statsArray = $stats->Read($start, $_POST['Date_Day'], $_POST['Date_Month'], $_POST['Date_Year']);
-		
-		$smarty->assign('list',$statsArray['items']);
-		$smarty->assign('pager',BaseController::Paginate($statsArray['limit'], $statsArray['nbItems'], 'admin/stats/', $page));
-		$hits = $stats->UniqueHits();	
-		
-		$formTop = '<div><form id="daterange" name="daterange" method="post" action="http://beta.wiredbyte.com/WiredCMS/admin/stats">
-	{html_select_date}
-	<input type="submit" name="Submit" value="Submit" />
-</form></div><div id="hits">Hits Today: '.$hits['day'].' | Hits Total: '.$hits['total'].'</div>';
-	$smarty->assign('extra', $formTop);
-	}
-	
-	public static function ListPerms($perms){
-		global $smarty;
-		//create list
-		foreach($perms->all as $group){
-			$list[] = array(
-				'id'=>$group['gid'],
-				'group name'=>$group['name'],
-				'comments'=>$group['comments']	
-			);
-		}
-		//create the actions options
-		$actions = array('delete' => 'Delete');
-		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>';
-		$options['image'] = '24';
-		$options['class'] = 'action-link';
-		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/perms/add',$options), 'edit'=>Core::l('edit','admin/perms/edit',$options));
-		// bind the params to smarty
-		$smarty->assign('cb',true);
-		$smarty->assign('sublinks',$links);
-		$smarty->assign('self','admin/perms');
-		$smarty->assign('actions',$actions);
-		$smarty->assign('extra', $extra);
-		$smarty->assign('list', $list);
-	}
-	public static function EditGroups($perms){
-		global $smarty;
-		$permList = $perms->GetPermissionsList();
-		$perms->GetAll();
-		$i = 0;
-		foreach($permList as $group){
-			$list[$i] = array();
-			$list[$i]['description'] = $group['description'];
-			foreach($perms->all as $pset){
-				$checked = strpos($pset['permissions'],$group['description']) !== false ? 'checked="checked"' : '';
-				$list[$i][$pset['name']] = '<input type="checkbox" name="'.$pset['name'].'[]" value="'.$group['description'].'" '.$checked.'/>';
-			}
-			$i++;
-		}
-		$smarty->assign('self'. 'admin/perms/edit');
-		$smarty->assign('list',$list);
-		$smarty->assign('extra', '<input type="submit" value="Submit" name="submit"/>');
-	} 
-	public static function WriteGroups($perms){
-		$perms->data = $_POST;
-		unset($perms->data['submit']);
-		$perms->commit();
-	}
-	public static function AddGroup(){
-		global $smarty;
-		
-		//create the form object 
-		$form = new HTML_QuickForm('newgroup','post','admin/perms/add');
-		
-		//create form elements
-		$form->addElement('header','','Add New Permissions Group');
-		$form->addElement('text', 'name', 'Group Name', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'comments', 'Comments', array('size'=>25, 'maxlength'=>60));
-		
-		$form->addElement('submit', 'submit', 'Submit');
-		//apply form prefilters
-		
-		$form->applyFilter('__ALL__', 'trim');
-		$form->applyFilter('__ALL__', 'strip_tags');
-		
-		//If the form has already been submitted - validate the data
-		if($form->validate()){
-			$perms = new Perms();
-			$form->process(array($perms,'AddGroup'));
-			Core::SetMessage('Your group has been created successfully.','info');
-			BaseController::Redirect('admin/perms');
-			exit;
-		}
-		
-		//send the form to smarty
-		$smarty->assign('form', $form->toArray()); 
-
-	}
-	public static function DeleteGroup(){
-		if(isset($_POST['perms'])){
- 			$del = $_POST['perms'];
-	 		foreach($del as $delete){
- 				$deleted = Admin::DeleteObject('groups', 'gid', $delete);
-				if ($deleted === true){
-					Core::SetMessage('Group ID '.$delete.' has been deleted!', 'info');
-				}else{
-					Core::SetMessage('Unable to delete Group ID'.$delete.' , an error has occurred.', 'error');
-				}
-			}
- 		}else{
- 			Core::SetMessage('You must choose one or more groups to delete!', 'error');
- 		}
-		BaseController::Redirect('admin/perms');
-		exit;
-	}
-	public static function BrowserGraph(){
-		require_once 'includes/contrib/phplot/phplot.php';
-		$stats = new Stats(false);
-		$array = array_count_values($stats->GetStats('browser','WEEK'));
-		$leg = array_keys($array);
-		array_unshift($array, '');
-		$data = array($array,array());
-		$plot = new PHPlot(300,200);
-		$plot->setTransparentColor('white');
-		$plot->SetTextColor('snow');
-		$plot->SetLabelScalePosition(0.32);
-		$plot->SetTitle('Weekly requests by Browser');
-		$plot->SetTitleColor('snow');
-		$plot->SetOutputFile('files/browsergraph.png');
-		$plot->SetIsInline(true);
-		$plot->SetDataType('text-data');
-		$plot->SetDataValues($data);
-		$plot->SetLegend($leg);
-		$plot->SetPlotType('pie');
-		$plot->DrawGraph();
 	}
 
 }

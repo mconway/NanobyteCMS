@@ -14,26 +14,29 @@
 		return $mod;
 	}
 	
-	public static function ListModules(){
+	public static function ListModule(){
 		global $smarty;
 		//create list
 		$modsList = self::GetAll(); //array of objects
 		$list = array();
 		foreach ($modsList as $module){
-			$module->status == 1 ? $s = 'Disable' : $s = 'Enable';
+			$s = $module->status == 1 ?  'Disable' : 'Enable';
+			$options = array();
 			$options['image'] = '16';
+			$options['class'] = 'action-link';
+			$options['id'] = $module->name;
 			$list[] = array(
 				//'author'=>$module->conf->author, 
 				//'aurl'=> $module->conf->author->attributes()->url,
 				//'aemail'=>$module->conf->author->attributes()->email,
 				'title'=>$module->conf->title, 
 				'version'=>$module->conf->version.'-'.$module->conf->status, 
-				//'status'=>$module->conf->status,
-				//'site'=>$module->conf->site,
 				'description' => $module->conf->description,
-				'enabled'=>$module->status,
-				'actions'=> Core::l($s,'admin/modules/'.strtolower($s).'/'.$module->name,$options).' | '.Core::l('Info','admin/modules/details/'.$module->name,$options)
+				'enabled'=>"<center><img src='".THEME_PATH."/images/{$module->status}-25.png'/></center>",
+				'actions'=> Core::l($s,'admin/module/'.strtolower($s).'/'.$module->name,$options).' | '
 				);
+				$options['id'] = "";
+				$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,$options);
 		}
 		//create the actions options
 		//$actions['General Actions'] = array();
@@ -45,15 +48,21 @@
 		return $smarty;
 	}
 	
-	public static function UpdateStatus($mod, $action){
-		$module = new Module($mod);
-		$module->Commit();
-		Core::SetMessage(strtoupper($module->name). ' has been '.$action.'d.','info');
-		if ($action =="enable"){
-			require_once($module->modpath.$module->name.'.php');
-			call_user_func(array('Mod_'.$mod, 'Install'));
+	public static function UpdateStatus($args,&$jsonObj){
+		$module = new Module($args[2]);
+		if($module->Commit()){
+			Core::SetMessage(strtoupper($module->name). ' has been '.$args[1].'d.','info');
+			if ($action =="enable"){
+				require_once($module->modpath.$module->name.'.php');
+				call_user_func(array('Mod_'.$args[2], 'Install'));
+			}
+			$jsonObj->callback = 'nanobyte.changeLink';
+			$str = $args[1] == 'enable' ? 'disable' : 'enable';
+			$jsonObj->args = $args[1]."|".$str."|".$module->name;
+		}else{
+			Core::SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
 		}
-		UserController::Redirect();
+//		UserController::Redirect();
 	}
 	
 	public static function InstallModule($mod){
@@ -76,10 +85,45 @@
 		$smarty->assign('blocks', $blocks);
 	}
 	
-	public static function ListBlocks(){
+	public static function ListBlock(){
 		global $smarty;
 		$blocks = Module::GetBlocks();
 		$smarty->assign('list',$blocks);
 		$smarty->assign('self','admin/blocks');
 	}
+	
+	public static function Admin(&$argsArray){
+		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
+		$tabs = array();
+		array_push($tabs, Core::l('Modules','admin/module/list'));
+		array_push($tabs, Core::l('Blocks','admin/block/list'));
+		$smarty->assign('tabs',$tabs);
+		if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
+		switch($args[1]){ 
+			//We call the same function for Disable and Enable.
+			case 'enable':  
+			case 'disable':
+				self::UpdateStatus($args,&$jsonObj);
+				break;
+			// Default is to display the module list
+			case 'list':
+				$func = 'List'.$args[0];
+				self::$func();
+				$content = $smarty->fetch('list.tpl');
+				break;
+			case 'details':
+				$module = new Module($args[2]);
+				$content = <<<EOF
+				Author: {$module->conf->author}<br/>
+				URL: {$module->conf->author->attributes()->url}<br/>
+				Email: {$module->conf->author->attributes()->email}<br/>
+EOF;
+				$jsonObj->callback = 'Dialog';
+				$jsonObj->title = 'Module Information for: '.ucfirst($args[2]);
+				break;
+
+		}
+		$jsonObj->content = $content;
+	}
+ 
  }

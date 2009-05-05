@@ -1,11 +1,3 @@
-<h2>{$page|capitalize}</h2>
-{if $tabs}
-	<ul id="tabs">
-		{foreach from=$tabs item=link key=id}
-			<li class="tab"><a href="admin/content/{$id}">{$link}</a></li>
-		{/foreach}
-	</ul>
-{/if}
 <div id="{$page}list">
 	<form action="{$self}" method="post">
 	{if $sublinks}
@@ -27,7 +19,7 @@
 			<tbody>
 			{foreach from=$list item=item}
 				<tr>
-					{if $cb == true}<td><input type="checkbox" name="{$page}[]" value="{$item.id}"/></td>{/if}
+					{if $cb == true}<td class="id"><input type="checkbox" name="{$page}[]" value="{$item.id}"/></td>{/if}
 					{foreach from=$item item=object key=key}
 					{strip}
 					    <td class="{$key}">{$object}</td>

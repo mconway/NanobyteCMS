@@ -1,5 +1,4 @@
 <div id="{$page}">
-	<h2>{$page|capitalize}</h2>
 	{if $tabbed}
 		<ul id="tabs">
 			{foreach from=$tabbed item=link key=id}
@@ -20,7 +19,7 @@
    						{/if}
 						{$element.label}
 					</div>
-					<div class="element">{$element.html}</div>
+					<div class="element {if $element.required} required {/if}">{$element.html}</div>
 					{if $element.error}
 					<div class="formerror">{$element.error}</div>
 					{/if}

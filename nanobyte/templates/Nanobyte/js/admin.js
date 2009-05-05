@@ -3,43 +3,15 @@
  */
 $(document).ready(
 	function () {
-		$('#iconmenu a').click(function(){
-			$('#loading').dialog("open");
-			$.ajax({
-		  		url: $(this).attr('href')+'/ajax',
-		  		cache: false,
-				dataType: "html",
-		  		success: function(html){
-		    		$("#content").html(html);
-		 		},
-				complete: function(){
-					$('#loading').dialog("close");
-				} 
-			});
-			return false;
-		});
+		$('#iconmenu a').click(ajaxcall);
 		$('.action-link').livequery(function(){
-			$(this).click(function(){
-				$('#loading').dialog("open");
-				$.ajax({
-			  		url: $(this).attr('href')+'/ajax',
-			  		cache: false,
-					dataType: "html",
-			  		success: function(html){
-			    		$("#content").html(html);
-			 		},
-					complete: function(){
-						$('#loading').dialog("close");
-					} 
-				});
-				return false;
-			});
+			$(this).click(ajaxcall);
 		});
 		$("#tabs").livequery(function(){
 			$(this).tabs({
 				ajaxOptions: { 
 					type: 'POST',
-					data: 'actions=/ajax'
+					data: 'actions=/ajax',
 				} 
 			});
 		});
@@ -74,13 +46,47 @@ $(document).ready(
 			revert: true,
 			dropOnEmpty: true
 		});
+		$('#addtype').livequery(function(){
+			$(this).click(function(){
+				$('#loading').dialog('open');
+				$.ajax({
+					url: $(this).attr('href')+'/ajax',
+					type: 'get',
+					dataType: 'json',
+					success: function(html){
+						displayMessage('Add Content Type', html.content,200,400);
+						$('#loading').dialog('close');
+					}
+				});
+				return false;
+			});
+		});
 		function serialize()
 		{
 			var item1 = $('#groupContainer1').sortable("serialize") + '&';
 			var item2 = $('#groupContainer2').sortable("serialize");
 			var serial =  item1 + item2; 
-			//$.post("gamerpanel", { data: serial}); 
 			console.log('Serial:' + serial);
 		};
 	}
 );
+var ajaxcall = function (){
+	$(this).addClass('active').siblings('.active').removeClass('active');
+	$('#loading').dialog("open");
+	$.ajax({
+  		url: $(this).attr('href')+'/ajax',
+  		cache: false,
+		dataType: "json",
+  		success: function(data){
+    		$("#content").html(data.content).prepend(data.tabs);
+			if (data.messages){
+				$('#messages').html(data.messages);
+				$('#messages').dialog('open');
+			}
+ 		},
+		complete: function(){
+			$('#loading').dialog("close");
+		} 
+	});
+	return false;
+}

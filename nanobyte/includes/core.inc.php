@@ -8,15 +8,28 @@
  
  class Core{
 	public static function autoload($c){
- 		if(file_exists("./includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
- 			return true;
-    	} elseif (file_exists("./includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("./includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
-    		return true;
- 		}else {
+		if(substr($c,0,4)!=='Mod_'){
+	 		if(file_exists("./includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
+	 			return true;
+	    	}elseif (file_exists("./includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("./includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
+	    		return true;
+	 		}else{
+	      		$foundClass = false;
+	   		}
+		}
+		if(!$foundClass){
+			if(strpos('Mod_',$c)===false){
+				$c = 'Mod_'.str_ireplace('Controller','',$c);
+			}
+			if(file_exists("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php")) {
+				return true;
+	 		}
+		}else{
       		Core::SetMessage("Could not load class '{$c}'",'error');
       		return false;
    		}
 	}
+	
 	public static function DecodeConfParams($param){
  		return str_rot13(base64_decode($param));
  	}
@@ -32,19 +45,21 @@
 		@include 'HTML/QuickForm.php';
 		
 	}
+	
  	public static function l($text, $path, $options=null){
 		//return an HTML string
 		 if (CLEANURL){
- 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/'.$path : SITE_DOMAIN.'/'.$path;
+ 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;
  		}else{
- 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
+ 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
 		if($options['image']){
-			$text = '<img src="templates/'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
+			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
 		}
 		$link = "<a href='{$url}' class='{$options['class']}' id='{$options['id']}'>{$text}</a>";
 		return $link;
 	}
+	
 	public static function SetMessage($message=null, $type='status'){
 		if (!isset($_SESSION['messages'])){
 			$_SESSION['messages'] = array();
@@ -55,6 +70,7 @@
 		$_SESSION['messages'][$type][] = $message;
 		return $_SESSION['messages'];
 	}
+	
 	public static function GetMessages($type=null, $clear=true){
 		$messages = $_SESSION['messages'];
 		if ($type){
@@ -72,6 +88,7 @@
 		}
 		return array();
 	}
+	
 	public static function AuthUser($user, $perm){
 			if (array_key_exists($perm, $user->permissions)){
 				return true;
@@ -87,16 +104,18 @@
  			return false;
  		}
  	}
+	
  	public static function Url($path){
  		if (CLEANURL){
- 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'/'.$path : SITE_DOMAIN.'/'.$path;;
+ 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;;
  		}else{
  			//$url = explode('/',$path);
  			//$script = array_shift($url);
  			//$page = implode('/', $url);
- 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'/index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
+ 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
  	}
+	
 	public static function FileUpload($file){
 		$filename = $file['name']; // Get the name of the file (including file extension).
 		if(move_uploaded_file($file['tmp_name'],UPLOAD_PATH . $filename)){
@@ -105,6 +124,7 @@
    			return false;
 		}
 	}
+	
 	public static function EnabledMods(){
 		//global $modsEnabled;
 		$modsList = Module::GetEnabled('module');
@@ -112,6 +132,18 @@
 			$modsEnabled[$mod['name']] = true;
 			$m = new Module($mod['name']);
 			require_once($m->modpath.$m->name.'.php');
+		}
+	}
+	
+	public static function CheckAlias($alias){
+		$dbh = DBCreator::GetDBObject();
+		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
+		$query->execute(array(0=>$alias));
+		$result = $query->fetch();
+		if ($query->rowCount() == 1){
+			return $result[0];
+		}else{
+			return false;
 		}
 	}
  }

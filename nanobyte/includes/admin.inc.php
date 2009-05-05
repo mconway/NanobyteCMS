@@ -48,10 +48,12 @@ define("UPLOAD_PATH", '{$params['uploadpath']}');
 define("FILE_TYPES", '{$params['filetypes']}');
 define("FILE_SIZE", '{$params['filesize']}');
 define("CLEANURL", '{$params['cleanurl']}');
-define("THEME_PATH", '{$params['themepath']}');
+define("COMPRESS", '{$params['compress']}');
+define("THEME_PATH", 'templates/{$params['themepath']}');
 define("DEFAULT_GROUP", '{$perms->gid}');
 define("SESS_TTL", '{$params['sessttl']}');
 define("PEAR_PATH", '{$params['pearpath']}');
+define("HOME","");
 ?>
 EOF;
 		$fh = fopen('./includes/config.inc.php', 'w');
