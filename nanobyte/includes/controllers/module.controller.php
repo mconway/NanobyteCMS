@@ -103,7 +103,7 @@
 			//We call the same function for Disable and Enable.
 			case 'enable':  
 			case 'disable':
-				self::UpdateStatus($args,&$jsonObj);
+				self::UpdateStatus($args,$jsonObj);
 				break;
 			// Default is to display the module list
 			case 'list':

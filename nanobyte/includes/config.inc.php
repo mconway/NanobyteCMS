@@ -15,7 +15,7 @@ define("DB_PREFIX", 'cms');
 define("PATH", 'Nanobyte/');
 define("SITE_NAME", 'Nanobyte');
 define("SITE_SLOGAN", 'The Wiredbyte CMS');
-define("SITE_DOMAIN", 'http://home.wiredbyte.com');
+define("SITE_DOMAIN", 'http://www.nanobytecms.com');
 define("UPLOAD_PATH", 'files/');
 define("FILE_TYPES", '.jpg, .gif, .png, .bmp, .jpeg');
 define("FILE_SIZE", '524288');
@@ -25,5 +25,5 @@ define("THEME_PATH", 'templates/NanobyteBlue');
 define("DEFAULT_GROUP", '2');
 define("SESS_TTL", '0');
 define("PEAR_PATH", '');
-define("HOME","");
+define("HOME","content");
 ?>

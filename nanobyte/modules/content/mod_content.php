@@ -93,7 +93,7 @@ class Mod_Content{
 	}
 	
 	public static function Admin(&$argsArray){
-		ContentController::Admin(&$argsArray);
+		ContentController::Admin($argsArray);
 	}
 }
 
@@ -103,6 +103,7 @@ class ContentController extends BaseController{
 		global $smarty;
 		$post = self::GetContent($pid);
 		$num = count($post->comments->all);
+		$comments = array();
 		$data = array( 
 			'url'=>'content/'.$post->pid, 
 			'title'=>$post->title, 
@@ -138,7 +139,7 @@ class ContentController extends BaseController{
 	
 		//Update the Post, Do not create a new one.
 		if ($data['pid']){
-			$content = new Content($data['pid']);
+			$content = new Mod_Content($data['pid']);
 			$content->title = $data['title'];
 			$content->body = $image.$data['body'];
 			$content->modified = time();
@@ -148,7 +149,7 @@ class ContentController extends BaseController{
 			Core::SetMessage('Your changes have been saved!','info');
 		
 		}else{ //Create a new Post
-			$content = new Content();
+			$content = new Mod_Content();
 			$data['published'] ? 1 : 0;
 			$data['body'] = $image.$data['body'];
 			$saved = $content->Create($data);
@@ -163,7 +164,7 @@ class ContentController extends BaseController{
 
 	public static function GetList($type, $page=1){
 		global $smarty;
-		$content = new Content();
+		$content = new Mod_Content();
 		//create the list
 		$start = BaseController::GetStart($page,15);
 		$content->Read($type, null,15,$start); //array of objects with a limit of 15 per page.
@@ -194,47 +195,45 @@ class ContentController extends BaseController{
 	}
 	
 	public static function Edit($id){
-		$content = new Content($id);
+		$content = new Mod_Content($id);
 		self::Form($content);
 	}
 	
 	public static function Display(&$argsArray){
 		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
 		
-		Core::SetMessage('Called Content');
-		global $smarty; // Get the smarty Global
-		global $ajax;
-		if(!$args[1]){
-			ContentController::View($args[0]);
+		if(empty($args)){
+			self::DisplayContent(0,1,$smarty);
+		}elseif(!$args[1]){
+			self::View($args[0]);
 			$content = $smarty->fetch('post.tpl');
 		}elseif($args[1]=='comments'){
-				switch($args[2]){
-					case 'add':
-						CommentsController::CommentsForm($args[0]);
-						$smarty->fetch('form.tpl');
-						break;
-					case 'view':
-						break;
-				}
+			switch($args[2]){
+				case 'add':
+					self::CommentsForm($args[0]);
+					$smarty->fetch('form.tpl');
+					break;
+				case 'view':
+					break;
+			}
 		}
 		if(!$ajax){
-			BaseController::DisplayMessages();
-			BaseController::GetHTMLIncludes(); // Get style and JS
+			parent::DisplayMessages();
+			parent::GetHTMLIncludes(); // Get style and JS
 			$smarty->display('index.tpl'); //Display the page
 		}else{
 			$jsonObj->content = $content;
-			$jsonObj->messages = BaseController::DisplayMessages();
-			print json_encode($jsonArray);
+			$jsonObj->messages = parent::DisplayMessages();
+			print json_encode($jsonObj);
 		}
 	}
 	
-	public static function DisplayContent($type,$page){
-		global $smarty;
+	public static function DisplayContent($type,$page,&$smarty){
 		$theList = array();
-		$content = new Content();
+		$content = new Mod_Content();
 		$content->Read($type,'1',5);
 		foreach ($content->items['content'] as $p){
-			$post = new Content($p['pid']);
+			$post = new Mod_Content($p['pid']);
 			$num = count($post->comments->all);
 			array_push($theList, array( 
 				'url'=>'content/'.$post->pid, 
@@ -250,7 +249,7 @@ class ContentController extends BaseController{
 	}
 	
 	public static function GetContent($id){
-		$content = new Content($id);
+		$content = new Mod_Content($id);
 		return $content;
 	}
 	
@@ -275,7 +274,7 @@ class ContentController extends BaseController{
 			$form->setdefaults(array(
 				'published'=>true
 			));
-			$content = new Content();
+			$content = new Mod_Content();
 			$content->GetTypes();
 		}
 		//create form elements
@@ -325,7 +324,7 @@ class ContentController extends BaseController{
 		$form->addElement('submit', 'submit', 'Submit');
 		
 		if($form->validate()){
-			$content = new Content();
+			$content = new Mod_Content();
 			$form->process(array($content,'AddType'));
 			BaseController::Redirect('admin/content');
 			exit;
@@ -354,7 +353,7 @@ class ContentController extends BaseController{
 	public static function Admin(&$argsArray){
 		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
 		
-		$contents = new Content();
+		$contents = new Mod_Content();
 		$contents->GetTypes();
 		$tabs = array();
 		foreach($contents->types as $key=>$tab){

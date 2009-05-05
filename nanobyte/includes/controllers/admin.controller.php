@@ -12,7 +12,6 @@ class AdminController extends BaseController{
 	 	if (array_key_exists('hash',$_SESSION) && $_SESSION['hash'] == $user->SessionHash() && Core::AuthUser($user, 'access admin pages')){
 	 		$smarty->assign('page', $args[0]); //Set Page Name
 	 		$smarty->assign('links', MenuController::GetMenu('admin',$user->group));  // Get the Admin Menu
-			$argsArray[4] = new Json();
 			if(!empty($args[0])){
 				if(class_exists($args[0].'Controller')){
 					$class = $args[0].'Controller';

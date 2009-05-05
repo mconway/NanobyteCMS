@@ -53,7 +53,7 @@
  		}else{
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
-		if($options['image']){
+		if(array_key_exists('image',$options)){
 			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
 		}
 		$link = "<a href='{$url}' class='{$options['class']}' id='{$options['id']}'>{$text}</a>";

@@ -1,5 +1,5 @@
 <?php
-class Comments extends Content{
+class Comments extends Mod_Content{
 	private $dbh;
 	public function __construct($pid=null){
 		$this->dbh = DBCreator::GetDBObject();

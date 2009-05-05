@@ -16,6 +16,7 @@ $modsEnabled = array();
 
 //Start the session and create any objects we need
 Core::StartSession();
+$jsonObj = new Json();
 $smarty = new Smarty();
 $smarty->template_dir = THEME_PATH;
 $smarty->force_compile = true;
@@ -58,11 +59,11 @@ if (!isset($_SESSION['hash'])){
 // Get the Site Menu, If the page is 'home', unset it, since this is the index page
 $smarty->assign('menu',MenuController::GetMenu('main',$user->group));
 if (strpos($_GET['page'], 'home') !== false){
-	unset($_GET['page']);
+	$_GET['page'] = HOME;
 } 
 
 //Take the page argument and run the functions to display the correct page.
-if($_GET['page']){ 
+if(array_key_exists('page',$_GET)){ 
 	//Creates an array of arguments to pass to specific pages
 	$args = explode('/', $_GET['page']); 
 	//If any actions have been set using POST, add these to the args array
@@ -85,8 +86,8 @@ if($_GET['page']){
 	//$class = $script.'Controller'; //for php 5.3.0
 	
 	//If there is a file for the requested page - include it
-	if($script == 'admin'){
-		call_user_func(array($script.'Controller','Display'),array(&$args,$ajax,&$smarty,&$user));
+	if($script == 'admin'||$script == 'content'){
+		call_user_func(array($script.'Controller','Display'),array(&$args,$ajax,&$smarty,&$user,&$jsonObj));
 	}elseif (file_exists('./'.$script.'.php')){ 
 		include_once('./'.$script.'.php');
 		$script($args);
@@ -119,7 +120,7 @@ if($_GET['page']){
 }else{
 	//Add the Messages, Posts and Includes to smarty and display the results.
 	BaseController::DisplayMessages(); 
-	ContentController::DisplayContent(0,1);
+//	ContentController::DisplayContent(0,1,$smarty);
 	BaseController::GetHTMLIncludes();
 	
 	//print_r ($output);
