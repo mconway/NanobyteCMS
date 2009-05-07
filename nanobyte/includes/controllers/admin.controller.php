@@ -7,18 +7,18 @@ class AdminController extends BaseController{
 	}
 	
 	public static function Display(&$argsArray){ //passed by call_user_func
-		list($args,$ajax,$smarty,$user) = $argsArray;
+		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
 		// Check user permissions
 	 	if (array_key_exists('hash',$_SESSION) && $_SESSION['hash'] == $user->SessionHash() && Core::AuthUser($user, 'access admin pages')){
 	 		$smarty->assign('page', $args[0]); //Set Page Name
 	 		$smarty->assign('links', MenuController::GetMenu('admin',$user->group));  // Get the Admin Menu
 			if(!empty($args[0])){
-				if(class_exists($args[0].'Controller')){
+				if($core->autoload($args[0].'Controller',false)){
 					$class = $args[0].'Controller';
-				}elseif(class_exists('Mod_'.$args[0])){
+				}elseif($core->autoload('Mod_'.$args[0],false)){
 					$class = 'Mod_'.$args[0];
 				}else{
-					$alias = Core::CheckAlias($args[0]);
+					$alias = $core->CheckAlias($args[0]);
 					$class = $alias."Controller";
 //					Core::SetMessage($alias." ".$class);
 				}
@@ -27,9 +27,9 @@ class AdminController extends BaseController{
 				if (isset($_POST['save'])){
 					PostController::SavePost();
 				}
-				$smarty->assign('users',Mod_Users::NewUsers());
+//				$smarty->assign('users',Mod_Users::NewUsers());
 //				Mod_Stats::BrowserGraph();
-				$argsArray[4]->content = $smarty->fetch('admin.main.tpl');
+				$jsonObj->content = $smarty->fetch('admin.main.tpl');
 			}
 			if(!$ajax){
 				parent::AddJs(THEME_PATH.'/js/admin.js');
@@ -38,7 +38,7 @@ class AdminController extends BaseController{
 				$smarty->assign('content',$argsArray[4]->content);
 				$smarty->display('admin.tpl'); // Display the Admin Page
 			}else{
-				$argsArray[4]->messages = BaseController::DisplayMessages();
+				$jsonObj->messages = BaseController::DisplayMessages();
 				print json_encode($argsArray[4]);
 			}
 		}

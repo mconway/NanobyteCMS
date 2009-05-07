@@ -24,18 +24,21 @@ class MenuController extends BaseController{
 		$menus->GetAll();
 		$options['image'] = '16';
 		$options['class'] = 'action-link';
-		$list = array();
+		$list = $menus->all;
 		//create list
-		foreach($menus->all as $menu){
-			array_push($list, array(
-				'id'=>$menu['mid'],
-				'menu name'=>$menu['name'],
-				'actions'=>Core::l('edit','admin/menu/edit/'.$menu['mid'],$options)
-			));
-			if($menu['canDelete']==true){
-				$list[count($list)-1]['actions'] .= "|".Core::l('delete','admin/menu/delete/'.$menu['name'],$options);
-			}
-		}
+//		foreach($menus->all as $menu){
+//			
+//		}
+		
+//		array_push($list, array(
+//			'id'=>$menu['mid'],
+//			'menu name'=>$menu['name'],
+//			'parent id'=>$menu['parent_id'],
+//			'actions'=>Core::l('edit','admin/menu/edit/'.$menu['mid'],$options)
+//		));
+//		if($menu['canDelete']==true){
+//			$list[count($list)-1]['actions'] .= "|".Core::l('delete','admin/menu/delete/'.$menu['name'],$options);
+//		}
 		//create the actions options
 		$options['image'] = '24';
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/menu/add',$options));

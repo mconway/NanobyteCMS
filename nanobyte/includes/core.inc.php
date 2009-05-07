@@ -7,7 +7,14 @@
  */
  
  class Core{
-	public static function autoload($c){
+ 	
+	public function __construct(){
+		$this->StartSession();
+		$this->EnabledMods();
+	}
+	
+	public static function autoload($c,$showMessage=true){
+		global $core;
 		if(substr($c,0,4)!=='Mod_'){
 	 		if(file_exists("./includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
 	 			return true;
@@ -17,36 +24,38 @@
 	      		$foundClass = false;
 	   		}
 		}
-		if(!$foundClass){
-			if(strpos('Mod_',$c)===false){
+		if(array_key_exists(str_ireplace('controller','',str_ireplace('mod_','',$c)),$core->modsEnabled) && !$foundClass){
+			if(substr($c,0,4)!=='Mod_'){
 				$c = 'Mod_'.str_ireplace('Controller','',$c);
 			}
 			if(file_exists("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php")) {
 				return true;
 	 		}
 		}else{
-      		Core::SetMessage("Could not load class '{$c}'",'error');
+      		if($showMessage){
+      			$this->SetMessage("Could not load class '{$c}'",'error');
+			}
       		return false;
    		}
 	}
 	
-	public static function DecodeConfParams($param){
+	public function DecodeConfParams($param){
  		return str_rot13(base64_decode($param));
  	}
 
-	public static function StartSession(){
+	public function StartSession(){
 		$sess = new SessionManager();
 		session_set_cookie_params(SESS_TTL);
 	    session_start();
 		self::EnabledMods();
-		$stats = new Stats();
+		$stats = new Mod_Stats();
 		$stats->commit();
 		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
 		@include 'HTML/QuickForm.php';
 		
 	}
 	
- 	public static function l($text, $path, $options=null){
+ 	public function l($text, $path, $options=array()){
 		//return an HTML string
 		 if (CLEANURL){
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;
@@ -60,7 +69,7 @@
 		return $link;
 	}
 	
-	public static function SetMessage($message=null, $type='status'){
+	public function SetMessage($message=null, $type='status'){
 		if (!isset($_SESSION['messages'])){
 			$_SESSION['messages'] = array();
 		}
@@ -71,7 +80,7 @@
 		return $_SESSION['messages'];
 	}
 	
-	public static function GetMessages($type=null, $clear=true){
+	public function GetMessages($type=null, $clear=true){
 		$messages = $_SESSION['messages'];
 		if ($type){
 			if ($clear){
@@ -89,7 +98,7 @@
 		return array();
 	}
 	
-	public static function AuthUser($user, $perm){
+	public function AuthUser($user, $perm){
 			if (array_key_exists($perm, $user->permissions)){
 				return true;
 			}else{
@@ -97,7 +106,7 @@
 			}
 	}
 
- 	public static function IsSingle($item){
+ 	public function IsSingle($item){
  		if (count($item) == 1){
  			return true;
  		}else{
@@ -105,7 +114,7 @@
  		}
  	}
 	
- 	public static function Url($path){
+ 	public function Url($path){
  		if (CLEANURL){
  			return PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;;
  		}else{
@@ -125,17 +134,16 @@
 		}
 	}
 	
-	public static function EnabledMods(){
-		//global $modsEnabled;
+	public function EnabledMods(){
 		$modsList = Module::GetEnabled('module');
 		foreach($modsList as $mod){
-			$modsEnabled[$mod['name']] = true;
+			$this->modsEnabled[$mod['name']] = true;
 			$m = new Module($mod['name']);
-			require_once($m->modpath.$m->name.'.php');
+			require_once($m->modpath.'Mod_'.$m->name.'.php');
 		}
 	}
 	
-	public static function CheckAlias($alias){
+	public function CheckAlias($alias){
 		$dbh = DBCreator::GetDBObject();
 		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
 		$query->execute(array(0=>$alias));

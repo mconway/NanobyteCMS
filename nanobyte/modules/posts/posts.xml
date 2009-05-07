@@ -1,7 +1,7 @@
 <module>
 	<author email="mike.conway@wiredbyte.com" url="http://www.wiredbyte.com/">Mike Conway</author>
 	<title>Post Functons</title>
-	<version>0.1</version>
+	<version>.01</version>
 	<status>dev</status>
 	<site>http://www.nanobytecms.com/</site>
 	<description>This module adds several blocks for Post related functions such as Recent Posts, and a calndar to pick posts from a certain date.</description>

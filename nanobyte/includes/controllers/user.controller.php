@@ -412,7 +412,7 @@ class UserController extends BaseController{
 				$smarty->display('user.tpl'); // Display the Page
 			}else{
 				$jsonObj->content = $content;
-				$jsonObj->messages = BaseController::DisplayMessages();
+				$jsonObj->messages = parent::DisplayMessages();
 				print json_encode($jsonArray);
 			}
 	}

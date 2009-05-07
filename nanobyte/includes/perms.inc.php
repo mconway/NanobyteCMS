@@ -36,6 +36,7 @@ class Perms{
 		return $permsQ->fetchAll(PDO::FETCH_ASSOC);
 	}
 	public function Commit(){
+		global $core;
 		foreach($this->data as $key=>$role){
 			$perm = implode(',',$role);
 			$query = $this->dbh->prepare("update ".DB_PREFIX."_groups set `permissions`=:perm where `name`=:name");
@@ -44,7 +45,7 @@ class Perms{
 			try{
 				$query->execute();
 			}catch(PDOException $e){
-				Core::SetMessage('Unable to update '.$key.'. Error: '.$e->getMessage());
+				$core->SetMessage('Unable to update '.$key.'. Error: '.$e->getMessage());
 			}
 		}
 	}

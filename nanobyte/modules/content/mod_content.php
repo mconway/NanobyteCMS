@@ -12,7 +12,7 @@ class Mod_Content{
 				$result->execute(array(':id'=>$id));
 				$row = $result->fetch();
 				list($this->pid,$this->title,$this->body,$this->created,$this->author,$this->published,$this->modified) = $row;
-				$this->comments = new Comments($this->pid);
+//				$this->comments = new ModComments($this->pid);
 			}catch(PDOException $e){
 				Core::SetMessage($e->getMessage(), 'error');
 			}
@@ -73,8 +73,18 @@ class Mod_Content{
 	
 	public function RegisterContentType($type){
 		$insert = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_content_types SET name=:name");
-		$insert->execute(array(':name',$type));
+		$insert->execute(array(':name'=>$type));
 		if($insert->rowCount()==1){
+			return true;	
+		}else{
+			return false;
+		}
+	}
+	
+	public function UnregisterContentType($type){
+		$delete = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_content_types WHERE name=:name");
+		$delete->execute(array(':name'=>$type));
+		if($delete->rowCount()==1){
 			return true;	
 		}else{
 			return false;
@@ -92,9 +102,19 @@ class Mod_Content{
 		$menu->Commit();
 	}
 	
+	public static function Uninstall(){
+		$content = new self();
+		$content->UnregisterContentType('Page');
+	}
+	
 	public static function Admin(&$argsArray){
 		ContentController::Admin($argsArray);
 	}
+	
+	public static function Display(&$argsArray){
+		ContentController::Display($argsArray);
+	}
+
 }
 
 class ContentController extends BaseController{
@@ -102,24 +122,24 @@ class ContentController extends BaseController{
 	public static function View($pid){
 		global $smarty;
 		$post = self::GetContent($pid);
-		$num = count($post->comments->all);
-		$comments = array();
+//		$num = count($post->comments->all);
+//		$comments = array();
 		$data = array( 
 			'url'=>'content/'.$post->pid, 
 			'title'=>$post->title, 
 			'body'=>$post->body, 
 			'created'=>date('M jS',$post->created),
 			'author'=>$post->author,
-			'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
+//			'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
 		);
-		foreach($post->comments->all as $comment){
-			$smarty->assign('post',$comment);
-			array_push($comments,$smarty->fetch('post.tpl'));
-		}
-		CommentsController::CommentsForm($pid);
-		array_push($comments,$smarty->fetch('form.tpl'));
+//		foreach($post->comments->all as $comment){
+//			$smarty->assign('post',$comment);
+//			array_push($comments,$smarty->fetch('post.tpl'));
+//		}
+////		CommentsController::CommentsForm($pid);
+//		array_push($comments,$smarty->fetch('form.tpl'));
 		$smarty->assign('post', $data);
-		$smarty->assign('comments', $comments);
+//		$smarty->assign('comments', $comments);
 	}
 	
 	public static function Save($data){ 
@@ -234,14 +254,14 @@ class ContentController extends BaseController{
 		$content->Read($type,'1',5);
 		foreach ($content->items['content'] as $p){
 			$post = new Mod_Content($p['pid']);
-			$num = count($post->comments->all);
+//			$num = count($post->comments->all);
 			array_push($theList, array( 
 				'url'=>'content/'.$post->pid, 
 				'title'=>$post->title, 
 				'body'=>$post->body, 
 				'created'=>date('M jS',$post->created),
 				'author'=>$post->author,
-				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
+//				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
 			));
 		}
 		//$smarty->assign('pager',BaseController::Paginate($posts['limit'], $posts['nbItems'], '', $page));
@@ -359,7 +379,7 @@ class ContentController extends BaseController{
 		foreach($contents->types as $key=>$tab){
 		 array_push($tabs, Core::l($tab,'admin/content/'.$key));
 		}
-		array_push($tabs,Core::l('Comments','admin/content/comments'));
+//		array_push($tabs,Core::l('Comments','admin/content/comments'));
 		array_push($tabs,Core::l('Settings','admin/content/settings'));
 		if(is_numeric($args[1])){
 			Core::SetMessage('Numeric!');
@@ -373,6 +393,8 @@ class ContentController extends BaseController{
 					self::Delete();
 					break;
 				case 'add':
+					$jsonObj->callback = 'Dialog';
+					$jsonObj->title = 'Add Content';
 					self::Form();
 					$content = $smarty->fetch('form.tpl');
 					break;
@@ -381,6 +403,8 @@ class ContentController extends BaseController{
 						Core::SetMessage('You did not specify content to edit!','error');
 						BaseController::Redirect('admin/posts');
 					}else{
+						$jsonObj->callback = 'Dialog';
+						$jsonObj->title = 'Edit Content';
 						self::Edit($args[2]);
 						$content = $smarty->fetch('form.tpl');
 					}

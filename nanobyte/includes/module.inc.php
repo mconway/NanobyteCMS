@@ -14,6 +14,7 @@ class Module{
 	public $modpath;
 	
 	function __construct($path){
+		global $core;
 		$this->dbh = DBCreator::GetDbObject();
 		$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE `module`=:mod";
 		$this->insert = "INSERT INTO ".DB_PREFIX."_modules (`name`, `module`, `status`) values (:name, :mod, :status)";
@@ -32,7 +33,7 @@ class Module{
 				//do something with the attributes
 			//}
 		}else{
-			Core::SetMessage('Configuration file '.$this->modpath.$this->name.'.xml is unreadable or does not exist!', 'error');
+			$core->SetMessage('Configuration file '.$this->modpath.$this->name.'.xml is unreadable or does not exist!', 'error');
 		}
 		
 	}
@@ -50,6 +51,7 @@ class Module{
 	}
 	
 	public function Add(){
+		global $core;
 		$qSelect = $this->dbh->prepare($this->select);
 		$qSelect->bindParam(':mod', $this->modpath);
 		$qSelect->execute();
@@ -61,7 +63,7 @@ class Module{
 				$qInsert->bindValue(':status', 0);
 				$qInsert->execute();
 			}catch(PDOException $e){
-				Core::SetMessage('Could not add Module '.$this->conf->title.' to the database. Error: '.$e->getMessage(), 'error');
+				$core->SetMessage('Could not add Module '.$this->conf->title.' to the database. Error: '.$e->getMessage(), 'error');
 			}
 		}else{
 			return false;
@@ -69,6 +71,7 @@ class Module{
 	}
 	
 	public static function RegBlock($params){
+		global $core;
 		$dbh = DBCreator::GetDbObject();
 		$qselect = $dbh->prepare("SELECT name FROM ".DB_PREFIX."_blocks WHERE name=:name");
 		$qselect->bindParam(':name',$params['name']);
@@ -83,7 +86,7 @@ class Module{
 				$qInsert->bindValue(':opt', $params['options']);
 				$qInsert->execute();
 			}catch(PDOException $e){
-				Core::SetMessage('Could not add Block '.$params['name'].' to the database. Error: '.$e->getMessage(), 'error');
+				$core->SetMessage('Could not add Block '.$params['name'].' to the database. Error: '.$e->getMessage(), 'error');
 			}
 		}
 	}

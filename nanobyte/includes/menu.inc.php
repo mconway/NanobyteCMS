@@ -19,9 +19,23 @@ class Menu{
 	}
 	
 	public function GetAll(){
-		$query = $this->dbh->prepare("select mid, name, canDelete from ".DB_PREFIX."_menus");
+		$query = $this->dbh->prepare("select mid, name, canDelete, parent_id from ".DB_PREFIX."_menus");
 		$query->execute();
-		$this->all = $query->fetchAll(PDO::FETCH_ASSOC);
+		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		$this->all = array('0'=>array('name'=>'Nanobyte Root', 'id'=>0, 'parent id'=>'N/A', 'can delete'=>0));
+		foreach($results as $row){
+			if(!array_key_exists($row['parent_id'],$this->all)){
+				$this->all[$row['parent_id']] = array();
+			}
+			if(!array_key_exists('children',$this->all[$row['parent_id']])){
+				$this->all[$row['parent_id']]['children'][$row['mid']] = array(
+					'name'=>$row['name'], 
+					'id'=>$row['mid'], 
+					'parent id'=>$row['parent_id'], 
+					'can delete'=>$row['canDelete']
+				);
+			}
+		}
 	}
 	
 	public function GetMenuName($mid){
@@ -33,6 +47,7 @@ class Menu{
 	}
 	
 	public function Commit($update=null){
+		global $core;
 		if($update){
 			$query = $this->dbh->prepare("insert into ".DB_PREFIX."_menu_links (menu, linkpath, linktext, viewableby, class, styleid) values (:menu,:path,:text,:view,:class,:sid)");
 		}else{
@@ -52,28 +67,30 @@ class Menu{
 			try{
 				$query->execute($array);
 			}catch(PDOException $e){
-				Core::SetMessage('Unable to update item #'.$key.'. Error: '.$e->getMessage());
+				$core->SetMessage('Unable to update item #'.$key.'. Error: '.$e->getMessage());
 			}
 		}
 	}
 
 	public function Create(){
+		global $core;
 		$query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_menus SET name=:name,canDelete=1");
 		$query->execute(array(':name'=>$_POST['name']));
 		if($query->rowCount()==1){
-			Core::SetMessage('The menu was created successfully!','info');
+			$core->SetMessage('The menu was created successfully!','info');
 		}else{
-			Core::SetMessage('There was an error creating this menu','error');
+			$core->SetMessage('There was an error creating this menu','error');
 		}
 	}
 	
 	public function Delete(){
+		global $core;
 		$query = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_menus WHERE name=:name");
 		$query->execute(array(':name'=>$this->name));
 		if($query->rowCount()==1){
-			Core::SetMessage('The menu was deleted successfully!','info');
+			$core->SetMessage('The menu was deleted successfully!','info');
 		}else{
-			Core::SetMessage('There was an error deleting this menu','error');
+			$core->SetMessage('There was an error deleting this menu','error');
 		}
 	}
 }

@@ -11,20 +11,17 @@ require_once './includes/contrib/smarty/libs/Smarty.class.php';
 require_once './includes/contrib/geshi/geshi.php';
 require_once './includes/config.inc.php';
 
-// We start off with an empty array of enabled mods. This gets populated in Start Session
-$modsEnabled = array(); 
+// Make teh Core Object (Ghetto Bootstrap)
+$core = new Core();
 
 //Start the session and create any objects we need
-Core::StartSession();
+
 $jsonObj = new Json();
 $smarty = new Smarty();
 $smarty->template_dir = THEME_PATH;
 $smarty->force_compile = true;
 
 // Add the main CSS styles for inclusion
-BaseController::AddCss(THEME_PATH.'/css/style.css'); 
-BaseController::AddCss(THEME_PATH.'/css/thickbox.css'); 
-BaseController::AddCss(THEME_PATH.'/css/cupertino/jquery-ui.css'); 
 BaseController::AddCss('includes/js/jquery.jcarousel.css');
 BaseController::AddCss('includes/js/tango/skin.css');
 
@@ -36,13 +33,14 @@ BaseController::AddJs('includes/js/jquery.jcarousel.js');
 BaseController::AddJs('includes/js/pause.js');
 BaseController::AddJs('includes/js/nanobyte.js');
 BaseController::AddJs('includes/contrib/nicedit/nicEdit.js');
-BaseController::AddJs(THEME_PATH.'/js/thickbox.js');
-BaseController::AddJs(THEME_PATH.'/js/index.js');
 //BaseController::AddJs('http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js');
+
+//Include Theme Specified CSS and JS
+BaseController::GetThemeIncludes();
 
 //Assign Global Site Variables to Smarty
 $smarty->assign('sitename',SITE_NAME);
-$smarty->assign('feedurl', Core::url('rss'));
+$smarty->assign('feedurl', $core->url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
 
 //Get Blocks
@@ -56,27 +54,28 @@ if($user->uid != 0){
 if (!isset($_SESSION['hash'])){
 	$smarty->assign('noSess', true);
 }
-// Get the Site Menu, If the page is 'home', unset it, since this is the index page
+// Get the Site Menu
 $smarty->assign('menu',MenuController::GetMenu('main',$user->group));
-if (strpos($_GET['page'], 'home') !== false){
+
+// If the page is 'home' or blank, set it to the HOME defined constant
+if (!array_key_exists('page',$_GET) || strpos($_GET['page'], 'home') !== false){
 	$_GET['page'] = HOME;
 } 
-
 //Take the page argument and run the functions to display the correct page.
 if(array_key_exists('page',$_GET)){ 
 	//Creates an array of arguments to pass to specific pages
 	$args = explode('/', $_GET['page']); 
 	//If any actions have been set using POST, add these to the args array
-	if(isset($_POST['actions'])){ 
+	if(array_key_exists('actions',$_POST)){ 
 		$action = explode('/',$_POST['actions']);
-		foreach ($action as $act){
-			$args[] = $act;
+		foreach ($action as $a){
+			$args[] = $a;
 		}
 	}
 	//The first bucket in the $args array is going to be the actual page we want to view
 	$script = array_shift($args); 
 	
-	//Determine if we are using AJAX
+	//Determine if we are using AJAX, then remove it from the array and resort it
 	$ajax = in_array('ajax',$args) ? true : false;
 	if($ajax==true){
 		unset($args[array_search('ajax',$args)]);
@@ -84,28 +83,17 @@ if(array_key_exists('page',$_GET)){
 	}
 	
 	//$class = $script.'Controller'; //for php 5.3.0
-	
 	//If there is a file for the requested page - include it
-	if($script == 'admin'||$script == 'content'){
-		call_user_func(array($script.'Controller','Display'),array(&$args,$ajax,&$smarty,&$user,&$jsonObj));
-	}elseif (file_exists('./'.$script.'.php')){ 
-		include_once('./'.$script.'.php');
-		$script($args);
+	if($core->autoload($script.'Controller',false)){
+		$class = $script.'Controller';
 	//If a file doesnt exist, check to see if it is an enabled module - and include it
-	}elseif(array_key_exists($script, $modsEnabled)){ 
-		call_user_func(array('Mod_'.$script, 'Display'));
-		BaseController::GetHTMLIncludes();
-		$smarty->assign('file', '../modules/'.$script.'/modules.'.$script.'.tpl'); //user smarty file association
-		$smarty->display('index.tpl');
-		
+//	}elseif(array_key_exists($script, $modsEnabled)){ 
+//		$class = 'Mod_'.$script;
 	//If it's not a file or enabled mod - display a 404 error
 	}else{
-		$alias = Core::CheckAlias($script);
+		$alias = $core->CheckAlias($script);
 		if ($alias){
-			//$controller = $alias.'Controller';
-			//call_user_func(array($controller,
-			include_once('./'.$alias.'.php');
-			$alias($args);
+			$class = $alias.'Controller';
 		}else{
 			header("HTTP/1.1 404 Not Found");
 			$error = new Error(404,$script);
@@ -113,18 +101,20 @@ if(array_key_exists('page',$_GET)){
 			$smarty->assign('explanation',$error->explanation);
 			$smarty->assign('server_url',$error->server_url);
 			BaseController::GetHTMLIncludes();
-			$smarty->display('error.tpl');
+			$jsonObj->content = $smarty->fetch('error.tpl'); //this needs a controller
+			if($ajax){
+				print json_encoded($jsonObj);
+			}else{
+				print $jsonObj->content;
+			}
 		}
 	}
+	call_user_func(array($class,'Display'),array(&$args,$ajax,&$smarty,&$user,&$jsonObj,&$core));
 //If there are no args
 }else{
 	//Add the Messages, Posts and Includes to smarty and display the results.
 	BaseController::DisplayMessages(); 
-//	ContentController::DisplayContent(0,1,$smarty);
 	BaseController::GetHTMLIncludes();
-	
-	//print_r ($output);
-
 	$smarty->display('index.tpl');
 }
 ?>

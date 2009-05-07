@@ -1,9 +1,0 @@
-<module>
-	<author email="mike@leftrightdesigns.com" url="http://www.leftrightdesigns.com/">Mike Branski</author>
-	<title>Test Module</title>
-	<version>1.3</version>
-	<status>stable</status>
-	<site>http://www.leftrightdesigns.com/modules/blog</site>
-	<description>This module allows you to create blog entries using a WYSIWYG editor.</description>
-</module>
-

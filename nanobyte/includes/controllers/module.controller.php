@@ -51,16 +51,19 @@
 	public static function UpdateStatus($args,&$jsonObj){
 		$module = new Module($args[2]);
 		if($module->Commit()){
-			Core::SetMessage(strtoupper($module->name). ' has been '.$args[1].'d.','info');
-			if ($action =="enable"){
-				require_once($module->modpath.$module->name.'.php');
-				call_user_func(array('Mod_'.$args[2], 'Install'));
+			$core->EnabledMods();
+			$core->SetMessage(strtoupper($module->name). ' has been '.$args[1].'d.','info');
+			if ($args[1] == "enable"){
+				require_once($module->modpath."Mod_".$module->name.'.php');
+				call_user_func(array('Mod_'.$module->name, 'Install'));
+			}else{
+				call_user_func(array('Mod_'.$module->name, 'Uninstall'));
 			}
 			$jsonObj->callback = 'nanobyte.changeLink';
 			$str = $args[1] == 'enable' ? 'disable' : 'enable';
 			$jsonObj->args = $args[1]."|".$str."|".$module->name;
 		}else{
-			Core::SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
+			$core->SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
 		}
 //		UserController::Redirect();
 	}

@@ -39,4 +39,4 @@
 	</form>
 {$pager}
 </div>
-{*debug*}
+{debug}

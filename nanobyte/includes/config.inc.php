@@ -7,20 +7,20 @@
  *@author Mike Conway
  *@since Jun 3, 2008
 */
-define("DB_USER", '');
-define("DB_PASS", '');
+define("DB_USER", 'ZWJiZw==');
+define("DB_PASS", 'cXBtNndl');
 define("DB_HOST", 'localhost');
 define("DB_NAME", 'nanobyte');
 define("DB_PREFIX", 'cms');
 define("PATH", 'Nanobyte/');
 define("SITE_NAME", 'Nanobyte');
 define("SITE_SLOGAN", 'The Wiredbyte CMS');
-define("SITE_DOMAIN", 'http://www.nanobytecms.com');
+define("SITE_DOMAIN", 'http://home.wiredbyte.com');
 define("UPLOAD_PATH", 'files/');
 define("FILE_TYPES", '.jpg, .gif, .png, .bmp, .jpeg');
 define("FILE_SIZE", '524288');
 define("CLEANURL", '1');
-define("COMPRESS", '');
+define("COMPRESS", '0');
 define("THEME_PATH", 'templates/NanobyteBlue');
 define("DEFAULT_GROUP", '2');
 define("SESS_TTL", '0');

@@ -18,6 +18,7 @@ Class UserProfile{
 		$this->online = UserController::CheckOnline($id);
 	}
 	public function Commit(){
+		global $core;
 		//better to make empty profile on user creation
 		$sql = $this->dbh->prepare("update ".DB_PREFIX."_user_profiles set `avatar`=:av, `location`=:loc, `about`=:about where `uid`=:uid");
 		$sql->bindParam(':av', $this->avatar);
@@ -32,7 +33,7 @@ Class UserProfile{
 				return false;
 			}
 		}catch(PDOException $e){
-			Core::SetMessage('Error updating user profile: ' . $e->getMessage(), 'error');
+			$core->SetMessage('Error updating user profile: ' . $e->getMessage(), 'error');
 		}
 		
 

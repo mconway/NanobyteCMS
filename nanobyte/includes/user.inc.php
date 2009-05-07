@@ -34,11 +34,12 @@ class User{
 	}
 
 	public function Create($array){
+		global $core;
 		$pw = $this->GetPassword($array['name'],$array['password']);
 		$result = $this->dbh->prepare("select username from ".DB_PREFIX."_user where `username`=:u");
 		$result->execute(array(':u'=>$array['name']));
 		if ($result->rowCount() == 1){
-			Core::SetMessage('Error creating User: The username you have chosen already exists.');
+			$core->SetMessage('Error creating User: The username you have chosen already exists.');
 		}else{
 			$insert = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user (username, password, email, joined, gid) VALUES (:u, :p, :e, :t, :g); INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name;");	
 //			$profileq = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name");
@@ -50,7 +51,7 @@ class User{
 				}
 //				$profileq->execute(array(':name'=>$array['name']));
 			} catch (PDOException $e) {
-				Core::SetMessage('Error creating User: ' . $e->getMessage().". Please contact the Webmaster");
+				$core->SetMessage('Error creating User: ' . $e->getMessage().". Please contact the Webmaster");
 			}
 //			var_dump($this->dbh->lastInsertId());
 			return true;
