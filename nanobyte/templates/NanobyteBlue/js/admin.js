@@ -8,6 +8,11 @@ $(document).ready(
 		$('.action-link').livequery(function(){
 			$(this).click(nanobyte.ajaxcall);
 		});
+		$('.action-link-tab').live('click',function(){
+			$(this).parents('.tabs:first').tabs('add',$(this).attr('href'),$(this).attr('title'));
+//			nanobyte.formatContents(false);
+			return false;
+		});
 		$('.groupWrapper').livequery(function(){
 			$(this).sortable({
 				items: '.groupItem',

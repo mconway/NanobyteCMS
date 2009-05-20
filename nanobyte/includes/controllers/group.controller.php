@@ -8,21 +8,21 @@
 			switch($args[1]){
 				case 'add':
 					$jsonObj->callback = 'Dialog';
-					self::Add(&$smarty,&$jsonObj);
+					self::Add($smarty,$jsonObj);
 					$content = $smarty->fetch('form.tpl');
 					break;
 				case 'edit':
 					if(isset($_POST['submit'])){
 				 		self::Write($perms);
 					}else{					
-						self::Edit($perms,&$smarty);
+						self::Edit($perms,$smarty);
 						$content = $smarty->fetch('list.tpl');
 						$jsonObj->callback = 'Dialog';
 					}
 					break;
 				case 'list': 
 					$perms->GetAll();
-					self::ListGroups($perms,&$smarty);
+					self::ListGroups($perms,$smarty);
 					$content = $smarty->fetch('list.tpl');
 					break;
 				case 'select':

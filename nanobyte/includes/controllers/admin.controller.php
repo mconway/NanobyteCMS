@@ -10,7 +10,7 @@ class AdminController extends BaseController{
 		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
 		// Check user permissions
 	 	if (array_key_exists('hash',$_SESSION) && $_SESSION['hash'] == $user->SessionHash() && Core::AuthUser($user, 'access admin pages')){
-	 		$smarty->assign('page', $args[0]); //Set Page Name
+	 		$smarty->assign('page', array_key_exists(0,$args) ? $args[0] : 'Administration'); //Set Page Name
 	 		$smarty->assign('links', MenuController::GetMenu('admin',$user->group));  // Get the Admin Menu
 			if(!empty($args[0])){
 				if($core->autoload($args[0].'Controller',false)){
@@ -41,6 +41,9 @@ class AdminController extends BaseController{
 				$jsonObj->messages = BaseController::DisplayMessages();
 				print json_encode($argsArray[4]);
 			}
+		}else{
+			Core::SetMessage('You do not have access to view this page!','error');
+			parent::Redirect('home',$ajax);
 		}
 	}
 	
@@ -58,17 +61,23 @@ class AdminController extends BaseController{
 	}
 	
 	public static function ShowConfig(){
-		global $smarty;
+		global $smarty, $core;
 		$perms = new Perms();
 		$perms->GetNames();
 		//create the tabs menu
-		$tablinks = array('Global Settings','DB Settings','File Settings', 'Theme Settings', 'User Settings');
+		$tablinks = array('Global Settings','DB Settings','File Settings', 'Theme Settings', 'User Settings', 'License');
 		//create the form object 
 		$form = new HTML_QuickForm('newuser','post','admin/settings');
+		
+		//get the site license
+		$fh = fopen('license', 'r');
+		$license = fread($fh, filesize('license'));
+		fclose($fh);
+		
 		//set form defaults
 		$form->setdefaults(array(
-			'dbuser'=>Core::DecodeConfParams(DB_USER),
-			'dbpass'=>Core::DecodeConfParams(DB_PASS),
+			'dbuser'=>$core->DecodeConfParams(DB_USER),
+			'dbpass'=>$core->DecodeConfParams(DB_PASS),
 			'dbhost'=>DB_HOST,
 			'dbname'=>DB_NAME,
 			'dbprefix'=>DB_PREFIX,
@@ -80,10 +89,12 @@ class AdminController extends BaseController{
 			'filesize'=>FILE_SIZE,
 			'filetypes'=>FILE_TYPES,
 			'cleanurl'=>CLEANURL,
-			'themepath'=>THEME_PATH,
+			'themepath'=>str_replace('templates/','',THEME_PATH),
 			'defaultgroup'=>DEFAULT_GROUP,
 			'sessttl'=>SESS_TTL,
-			'compress'=>COMPRESS
+			'compress'=>COMPRESS,
+			'home'=>HOME,
+			'license'=>$license
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
@@ -92,6 +103,7 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'sitename', 'Site Name', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'siteslogan', 'Site Slogan', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'home', 'Default Home Page', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
 		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
 		
@@ -113,6 +125,9 @@ class AdminController extends BaseController{
 		$form->addElement('header', '', 'User Settings');
 		$form->addElement('select', 'defaultgroup', 'Choose Default group for new Users', $perms->names);
 		$form->addElement('text', 'sessttl', 'Time before users\' sessions expire (in seconds)',array('size'=>10, 'maxlength'=>10));
+		
+		$form->addElement('header','','License');
+		$form->addElement('textarea','license','',array('rows'=>20,'cols'=>70,'readonly','disabled'));
 		
 		$form->addElement('submit', 'submit', 'Submit');
 		//apply form prefilters

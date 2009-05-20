@@ -1,8 +1,7 @@
 {include file="header.tpl" title="Home"}
 {if $file}
     {include file="$file"}
-{else}
-	{if $posts}
+{elseif $posts}
 	<div class="content-block" id="news">
 		<div class="contentheader">
 			<h2 class="title">Latest News</h2>
@@ -44,11 +43,13 @@
 			</ul>
 		</div>
 	</div>
-	{elseif $post}
-		{include file="post.tpl"}
-		{foreach from=$comments item=comment}
-			{$comment}
-		{/foreach}
-	{/if}
+{elseif $post}
+	{include file="post.tpl"}
+	{foreach from=$comments item=comment}
+		{$comment}
+	{/foreach}
+{else}
+	<div id="content">{$content}</div>
 {/if}
 {include file="footer.tpl"}
+{*debug*}

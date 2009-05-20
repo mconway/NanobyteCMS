@@ -10,7 +10,7 @@ class UserController extends BaseController{
 		$list = array();
 		$options = array(
 			'image' => '16',
-			'class' => 'action-link'
+			'class' => 'action-link-tab'
 		);
 		foreach ($user->output['items'] as $key=>$u){
 			array_push($list, array(
@@ -29,7 +29,7 @@ class UserController extends BaseController{
 		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submit" value="Go!"/>';
 		$options = array(
 			'image' => '24',
-			'class' => 'action-link'
+			'class' => 'action-link-tab'
 		);
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/user/add',$options));
 		// bind the params to smarty
@@ -48,7 +48,7 @@ class UserController extends BaseController{
 	public static function Edit($id){
 		global $smarty;
 		$edituser = new User($id);
-		$profile = new UserProfile($edituser->uid);
+//		$profile = new UserProfile($edituser->uid);
 		$tablinks = array('User Account', 'User Profile');
 		//create the form object 
 		$form = new HTML_QuickForm('edituser','post','admin/users/commit/'.$edituser->uid);
@@ -57,9 +57,9 @@ class UserController extends BaseController{
 			'name'=>$edituser->name, 
 			'joined'=>date('G:i m.d.y T',$edituser->joined),
 			'email'=>$edituser->email,
-			'avatar'=>$profile->avatar,
-			'location'=>$profile->location,
-			'about'=>$profile->about
+//			'avatar'=>$profile->avatar,
+//			'location'=>$profile->location,
+//			'about'=>$profile->about
 		));
 		//create form elements
 		$form->addElement('header','','User Account Details');
@@ -246,28 +246,9 @@ class UserController extends BaseController{
 		}
 	}
 	
-	public static function ShowProfile($id){
-		global $smarty;
-		$profile = new UserProfile($id);
-		$smarty->assign('name',$profile->name);
-		$smarty->assign('email',$profile->email);
-		$smarty->assign('avatar',$profile->avatar);
-		$smarty->assign('location',$profile->location);
-		$smarty->assign('lastlogin',date('G:i m.d.y T',$profile->lastlogin));
-		$smarty->assign('about',$profile->about);
-		$smarty->assign('file','userprofile.tpl');
-		$smarty->assign('online',$profile->online);
-	}
-	
-	public static function CheckOnline($id){
-		global $user;
-		$accesstime = $user->GetAccessTime($id);
-		return $accesstime >= time() - 300 ? 'online' : 'offline';
-	}
-	
 	public static function Admin(&$argsArray){
 		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
-		
+		$content = '';
 		switch($args[1]){
 			case 'edit':
 				$jsonObj->title = 'Edit User';
@@ -278,7 +259,7 @@ class UserController extends BaseController{
 			case 'add':
 				$jsonObj->callback = 'Dialog';
 				$jsonObj->title = 'Add new User';
-				self::RegForm(&$argsArray,true);
+				self::RegForm($argsArray,true);
 				$content = $smarty->fetch('form.tpl');
 
 				break;
@@ -291,7 +272,7 @@ class UserController extends BaseController{
 			case 'select':
 				switch($args[2]){
 					case 'delete':
-						self::DeleteUserRequest(&$user,&$jsonObj);
+						self::DeleteUserRequest($user,$jsonObj);
 						break;
 					default: 
 						if(isset($_POST['user'])){
@@ -306,7 +287,7 @@ class UserController extends BaseController{
 				}
 				break;
 			case 'list':
-				self::ListUsers(&$smarty, &$user);
+				self::ListUsers($smarty, $user);
 				$content = $smarty->fetch('list.tpl'); 
 				break;
 			case 'details':
@@ -388,20 +369,20 @@ class UserController extends BaseController{
 					parent::Redirect(HOME);
 					break;
 				case 'register': // Sign up as a new user
-					self::RegForm(&$argsArray);
+					self::RegForm($argsArray);
 					$content = $smarty->fetch('form.tpl');
 					break;
-				case 'profiles':
-					self::ShowProfile($args[1]);
-					parent::DisplayMessages(); // Get Messages
-					parent::GetHTMLIncludes(); //Get CSS and Scripts
-					$smarty->display('user.tpl'); // Display the Page
-					break;
+//				case 'profiles':
+//					self::ShowProfile($args[1]);
+//					parent::DisplayMessages(); // Get Messages
+//					parent::GetHTMLIncludes(); //Get CSS and Scripts
+//					$smarty->display('user.tpl'); // Display the Page
+//					break;
 				default: // If no sub page is specified
 					if ($user->uid == 0){ //User is not logged in
 						$smarty->assign('noSess', true);
 					}else{
-						self::ShowProfile($user->uid);
+//						self::ShowProfile($user->uid);
 					}
 					break;
 			}	
@@ -413,7 +394,7 @@ class UserController extends BaseController{
 			}else{
 				$jsonObj->content = $content;
 				$jsonObj->messages = parent::DisplayMessages();
-				print json_encode($jsonArray);
+				print json_encode($jsonObj);
 			}
 	}
 

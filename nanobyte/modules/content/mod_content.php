@@ -186,32 +186,39 @@ class ContentController extends BaseController{
 		global $smarty;
 		$content = new Mod_Content();
 		//create the list
-		$start = BaseController::GetStart($page,15);
-		$content->Read($type, null,15,$start); //array of objects with a limit of 15 per page.
-		$theList = array();
+		$start = BaseController::GetStart($page,10);
+		$content->Read($type, null,10,$start); //array of objects with a limit of 15 per page.
+		$list = array();
 		$options['image'] = '16';
-		$options['class'] = 'action-link';
+		$options['class'] = 'action-link-tab';
 		foreach ($content->items['content'] as $post){
-			array_push($theList, array(
+			$options['title'] = "Viewing-".$post['title'];
+			$actions = Core::l('info','content/'.$post['pid'],$options).' | ';
+			$options['title'] = "Edit-".$post['title'];
+			$actions .=
+			array_push($list, array(
 				'id'=>$post['pid'], 
 				'title'=>$post['title'], 
 				'created'=>date('Y-M-D',$post['created']),
 				'author'=>$post['author'],
 				'published'=>$post['published'],
-				'actions'=>Core::l('info','Content/'.$post['pid'],$options).' | '.Core::l('edit','admin/content/edit/'.$post['pid'],$options)
+				'actions'=>Core::l('info','content/'.$post['pid'],$options).' | '.Core::l('edit','admin/content/edit/'.$post['pid'],$options)
 				));
 		}
 
 		$options['image'] = '24';
-		$options['class'] = 'action-link';
+		$options['class'] = 'action-link-tab';
 		//create the actions options and bind the params to smarty
-		$smarty->assign('pager',BaseController::Paginate($content->items['limit'], $content->items['nbItems'], 'admin/content/', $page));
-		$smarty->assign('sublinks',array('header'=>'Actions: ','add'=>Core::l('add','admin/content/add',$options)));
-		$smarty->assign('cb',true);
-		$smarty->assign('self','admin/content');
-		$smarty->assign('actions', array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish'));
-		$smarty->assign('extra', 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>');
-		$smarty->assign('list', $theList);
+		$smartyVars = array(
+			'pager'=>BaseController::Paginate($content->items['limit'], $content->items['nbItems'], 'admin/content/'.$type.'/', $page),
+			'sublinks'=>array('header'=>'Actions: ','add'=>Core::l('add','admin/content/add',$options)),
+			'cb'=>true,
+			'formAction'=>'admin/content',
+			'actions'=>array('delete' => 'Delete', 'publish'=>'Publish', 'unpublish'=>'Unpublish'),
+			'extra'=>'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submitaction" value="Go!"/>',
+			'list'=>$list
+		);
+		$smarty->assign($smartyVars);
 	}
 	
 	public static function Edit($id){
@@ -377,12 +384,10 @@ class ContentController extends BaseController{
 		$contents->GetTypes();
 		$tabs = array();
 		foreach($contents->types as $key=>$tab){
-		 array_push($tabs, Core::l($tab,'admin/content/'.$key));
+			array_push($tabs, Core::l($tab,'admin/content/'.$key));
 		}
-//		array_push($tabs,Core::l('Comments','admin/content/comments'));
 		array_push($tabs,Core::l('Settings','admin/content/settings'));
 		if(is_numeric($args[1])){
-			Core::SetMessage('Numeric!');
 			self::GetList($args[1],$args[2]);
 		}else{
 			switch($args[1]){

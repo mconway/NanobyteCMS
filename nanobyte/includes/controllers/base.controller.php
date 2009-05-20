@@ -196,30 +196,27 @@ class BaseController{
 	
 	public static function CompressFiles($fileArray,$type){
 		$cache 	  = true;
-		$cachedir = UPLOAD_PATH . '/cache';
-	
+		$cachedir = UPLOAD_PATH . 'cache';
 	// Determine last modification date of the files
 		$lastmodified = 0;
 		while(list(,$element) = each($fileArray)){
 			$path = realpath($element);
-		
-			if(($type == 'js' && substr($path, -3) != '.js') || ($type == 'css' && substr($path, -4) != '.css')){
-				header ("HTTP/1.0 403 Forbidden");
-				exit;	
-			}
-			
+//			if(($type == 'js' && substr($path, -3) != '.js') || ($type == 'css' && substr($path, -4) != '.css')){
+//				header ("HTTP/1.0 403 Forbidden");
+//				exit;	
+//			}
 			$lastmodified = max($lastmodified, filemtime($path));
 		}
 	
 	// Send Etag hash
 		$hash = $lastmodified . '-' . md5(implode(',',$fileArray));
-		header ("Etag: \"" . $hash . "\"");
+//		header ("Etag: \"" . $hash . "\"");
 	
-		if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) == '"' . $hash . '"') {
-			// Return visit and no modifications, so do not send anything
-			header ("HTTP/1.0 304 Not Modified");
-			header ('Content-Length: 0');
-		}else{
+//		if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) == '"' . $hash . '"') {
+//			// Return visit and no modifications, so do not send anything
+//			header ("HTTP/1.0 304 Not Modified");
+//			header ('Content-Length: 0');
+//		}else{
 			// First time visit or files were modified
 			if($cache) 
 			{
@@ -243,58 +240,63 @@ class BaseController{
 				}
 				
 				// Try the cache first to see if the combined files were already generated
-				$cachefile = 'cache-' . $hash . '.' . $type . ($encoding != 'none' ? '.' . $encoding : '');
-				
-				if (file_exists($cachedir . '/' . $cachefile)) {
-					if ($fp = fopen($cachedir . '/' . $cachefile, 'rb')) {
-	
-						if ($encoding != 'none') {
-							header ("Content-Encoding: " . $encoding);
-						}
-					
-						header ("Content-Type: text/" . $type);
-						header ("Content-Length: " . filesize($cachedir . '/' . $cachefile));
-			
-						fpassthru($fp);
-						fclose($fp);
-						exit;
-					}
-				}
+//				$cachefile = 'cache-' . $hash . '.' . $type . ($encoding != 'none' ? '.' . $encoding : '');
+				$cachefile = 'cache-' . $hash . '.' . $type;
+//				if (file_exists($cachedir . '/' . $cachefile)) {
+//					if ($fp = fopen($cachedir . '/' . $cachefile, 'rb')) {
+//	
+//						if ($encoding != 'none') {
+//							header ("Content-Encoding: " . $encoding);
+//						}
+//					
+//						header ("Content-Type: text/" . $type);
+//						header ("Content-Length: " . filesize($cachedir . '/' . $cachefile));
+//			
+//						fpassthru($fp);
+//						fclose($fp);
+//						exit;
+//					}
+//				}
 			}
 		
 			// Get contents of the files
 			$contents = '';
-			reset($elements);
+			reset($fileArray);
 			while (list(,$element) = each($fileArray)) {
-				$path = realpath($base . '/' . $element);
+				$path = realpath($element);
+//				var_dump($path);
 				$contents .= "\n\n" . file_get_contents($path);
 			}
-		
-			// Send Content-Type
-			header ("Content-Type: text/" . $type);
 			
-			if (isset($encoding) && $encoding != 'none') 
-			{
-				// Send compressed contents
-				$contents = gzencode($contents, 9, $gzip ? FORCE_GZIP : FORCE_DEFLATE);
-				header ("Content-Encoding: " . $encoding);
-				header ('Content-Length: ' . strlen($contents));
-				echo $contents;
-			} 
-			else 
-			{
-				// Send regular contents
-				header ('Content-Length: ' . strlen($contents));
-				echo $contents;
-			}
+			// Send Content-Type
+//			header ("Content-Type: text/" . $type);
+//			
+//			if (isset($encoding) && $encoding != 'none') 
+//			{
+//				// Send compressed contents
+//				$contents = gzencode($contents, 9, $gzip ? FORCE_GZIP : FORCE_DEFLATE);
+				$contents = gzcompress($contents, 9);
+//				header ("Content-Encoding: " . $encoding);
+//				header ('Content-Length: ' . strlen($contents));
+//				echo $contents;
+//			} 
+//			else 
+//			{
+//				// Send regular contents
+//				header ('Content-Length: ' . strlen($contents));
+//				echo $contents;
+//			}
 	
 			// Store cache
+			
 			if ($cache) {
 				if ($fp = fopen($cachedir . '/' . $cachefile, 'wb')) {
 					fwrite($fp, $contents);
 					fclose($fp);
 				}
-			}
+//				var_dump($cachedir . '/' . $cachefile);
+//			}
+			return $cachedir . '/' . $cachefile;
 		}
 	}
 

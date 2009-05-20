@@ -15,25 +15,29 @@
 	
 	public static function autoload($c,$showMessage=true){
 		global $core;
-		if(substr($c,0,4)!=='Mod_'){
-	 		if(file_exists("./includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
+		if($c == 'HTML_QuickForm'){
+			@include 'HTML/QuickForm.php';
+			$foundClass = true;
+		}elseif(strcasecmp(substr($c,0,4),'Mod_')!=0){
+	 		if(file_exists("includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
 	 			return true;
-	    	}elseif (file_exists("./includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("./includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
+	    	}elseif (file_exists("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
 	    		return true;
 	 		}else{
 	      		$foundClass = false;
 	   		}
 		}
-		if(array_key_exists(str_ireplace('controller','',str_ireplace('mod_','',$c)),$core->modsEnabled) && !$foundClass){
+		if(array_key_exists(str_ireplace('controller','',str_ireplace('Mod_','',$c)),$core->modsEnabled) && !$foundClass){
 			if(substr($c,0,4)!=='Mod_'){
 				$c = 'Mod_'.str_ireplace('Controller','',$c);
 			}
-			if(file_exists("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php")) {
+			if(file_exists("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php")) {
 				return true;
 	 		}
-		}else{
+		}
+		if(!$foundClass){
       		if($showMessage){
-      			$this->SetMessage("Could not load class '{$c}'",'error');
+      			$core->SetMessage("Could not load class '{$c}'",'error');
 			}
       		return false;
    		}
@@ -47,11 +51,12 @@
 		$sess = new SessionManager();
 		session_set_cookie_params(SESS_TTL);
 	    session_start();
-		self::EnabledMods();
-		$stats = new Mod_Stats();
-		$stats->commit();
+		$this->EnabledMods();
+		if(array_key_exists('Stats', $this->modsEnabled)){
+			$stats = new Mod_Stats();
+			$stats->commit();
+		}
 		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
-		@include 'HTML/QuickForm.php';
 		
 	}
 	
@@ -65,7 +70,10 @@
 		if(array_key_exists('image',$options)){
 			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
 		}
-		$link = "<a href='{$url}' class='{$options['class']}' id='{$options['id']}'>{$text}</a>";
+		$class = array_key_exists('class',$options) ? $options['class'] : '';
+		$id = array_key_exists('id',$options) ? $options['id'] : '';
+		$title = array_key_exists('title',$options) ? $options['title'] : '';
+		$link = "<a href='{$url}' class='{$class}' id='{$id}' title='{$title}'>{$text}</a>";
 		return $link;
 	}
 	
@@ -153,6 +161,42 @@
 		}else{
 			return false;
 		}
+	}
+ 
+	public function ArraySearchRecursive($needle, $haystack, $inverse = false, $limit = 1) {
+		# Settings
+		$path = array ();
+		$count = 0;
+		# Check if inverse
+		if($inverse == true){
+			$haystack = array_reverse ($haystack, true);
+        }
+		# Loop
+		foreach($haystack as $key => $value){
+			# Check for return
+			if ($count > 0 && $count == $limit){
+				return $path;
+			}
+			# Check for val
+			if($value === $needle){
+				# Add to path
+				$path[] = $key;
+				# Count
+				$count++;
+			}elseif(is_array($value)){
+				# Fetch subs
+				$sub = $this->ArraySearchRecursive($needle, $value, $inverse, $limit);
+				# Check if there are subs
+				if (count ($sub) > 0) {
+					# Add to path
+					$path[$key] = $sub;
+					# Add to count
+					$count += count ($sub);
+				}
+			}
+		}
+	 
+		return $path;
 	}
  }
  //ini_set('zlib.output_compression', 'On');

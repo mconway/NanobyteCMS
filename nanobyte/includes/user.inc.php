@@ -41,10 +41,10 @@ class User{
 		if ($result->rowCount() == 1){
 			$core->SetMessage('Error creating User: The username you have chosen already exists.');
 		}else{
-			$insert = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user (username, password, email, joined, gid) VALUES (:u, :p, :e, :t, :g); INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name;");	
+			$insert = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user (username, password, email, joined, gid) VALUES (:u, :p, :e, :t, :g)");	
 //			$profileq = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name");
 			try{
-				$insert->execute(array(':u'=>$array['name'],':p'=>$pw,':e'=>$array['email'],':t'=>time(),':g'=>DEFAULT_GROUP,':name'=>$array['name']));
+				$insert->execute(array(':u'=>$array['name'],':p'=>$pw,':e'=>$array['email'],':t'=>time(),':g'=>DEFAULT_GROUP));
 				if($insert->rowCount()==1){
 //					var_dump($this->dbh->lastInsertId());
 					$this->__construct($this->dbh->lastInsertId());
@@ -112,7 +112,7 @@ class User{
 		$cntRows = $this->dbh->query('SELECT found_rows() AS rows')->fetch(PDO::FETCH_OBJ)->rows;
 		$this->output['final'] = ($cntRows >($start+$limit)) ? $start+$limit : $cntRows;
 		$this->output['limit'] = $limit;
-		$this->output['nbItems'] = $nbItems;
+//		$this->output['nbItems'] = $nbItems;
 	}
 	
 	public function SetAccessTime(){

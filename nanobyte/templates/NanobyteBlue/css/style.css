@@ -19,7 +19,7 @@ a img{
 	border: none;
 }
 #header{
-	margin-bottom: 15px;
+	margin-bottom: 5px;
 	position: relative;
 }
 #banner{
@@ -90,13 +90,17 @@ a img{
 	left: 15%;
 }
 #messages{
-	background:#E6EEEE none repeat scroll 0 0;
-	border:1px solid #FFFFFF;
-	margin:0 50px 15px;
+	background: #FFF none repeat scroll 0 0;
+	border:2px solid #E6EEEE;
+	/*margin:0 50px 15px;*/
+	margin-bottom: 5px;
 	padding:5px 0;
+	height: 2em;
 }
 #messages ul, #mcont .messages ul{
 	list-style: none;
+	line-height: 2em;
+	padding-left: 10px;
 }
 .messages .status {
     background:transparent url(../images/list-status.png) no-repeat scroll -2px 50%;
@@ -121,8 +125,7 @@ a img{
 }
 #iconmenu ul li a{
 	display:inline-block;
-	height:48px;
-	padding:0 10px;
+	padding:48px 10px 10px;
 }
 
 #iconmenu a:hover, #iconmenu a.active{

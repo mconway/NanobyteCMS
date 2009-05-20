@@ -24,7 +24,7 @@
 			$options = array();
 			$options['image'] = '16';
 			$options['class'] = 'action-link';
-			$options['id'] = $module->name;
+			$options['id'] = 'mod_'.$module->name;
 			$list[] = array(
 				//'author'=>$module->conf->author, 
 				//'aurl'=> $module->conf->author->attributes()->url,
@@ -49,6 +49,7 @@
 	}
 	
 	public static function UpdateStatus($args,&$jsonObj){
+		global $core;
 		$module = new Module($args[2]);
 		if($module->Commit()){
 			$core->EnabledMods();
@@ -61,7 +62,7 @@
 			}
 			$jsonObj->callback = 'nanobyte.changeLink';
 			$str = $args[1] == 'enable' ? 'disable' : 'enable';
-			$jsonObj->args = $args[1]."|".$str."|".$module->name;
+			$jsonObj->args = $args[1]."|".$str."|mod_".$module->name;
 		}else{
 			$core->SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
 		}

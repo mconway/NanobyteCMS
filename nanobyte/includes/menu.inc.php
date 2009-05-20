@@ -18,25 +18,63 @@ class Menu{
 		}
 	}
 	
+	/*
+	array(1) {
+	  [0]=>
+	  array(1) {
+		[1]=>
+		array(1) {
+		  [0]=>
+		  string(3) "mid"
+		}
+	  }
+	}
+	*/
+	
 	public function GetAll(){
-		$query = $this->dbh->prepare("select mid, name, canDelete, parent_id from ".DB_PREFIX."_menus");
+		global $core;
+		$query = $this->dbh->prepare("select mid, name, canDelete, parent_id from ".DB_PREFIX."_menus ORDER BY parent_id ASC");
 		$query->execute();
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		$this->all = array('0'=>array('name'=>'Nanobyte Root', 'id'=>0, 'parent id'=>'N/A', 'can delete'=>0));
-		foreach($results as $row){
-			if(!array_key_exists($row['parent_id'],$this->all)){
-				$this->all[$row['parent_id']] = array();
-			}
-			if(!array_key_exists('children',$this->all[$row['parent_id']])){
-				$this->all[$row['parent_id']]['children'][$row['mid']] = array(
-					'name'=>$row['name'], 
-					'id'=>$row['mid'], 
-					'parent id'=>$row['parent_id'], 
-					'can delete'=>$row['canDelete']
-				);
-			}
-		}
-	}
+//		$this->all = array('0'=>array('name'=>'Nanobyte Root', 'id'=>0, 'parent id'=>'N/A', 'can delete'=>0));
+		$this->all = $results;
+//var_dump($results);
+//		foreach($results as $row){
+//			if(!isset($this->all[$row['parent_id']])){
+//				if($row['parent_id'] > 0){
+////					$result = $core->ArraySearchRecursive($row['parent_id'],$this->all);
+////					//var_dump($result);
+////					while($foundArray == false){
+////						
+////					}
+//				}
+//				
+//				$this->all[$row['parent_id']] = array();
+//			}
+//			array_push($this->all[$row['parent_id']],$row);
+//		}
+		
+//		foreach($results as $row){
+//			if(!array_key_exists($row['parent_id'],$this->all)){
+//				if($row['parent_id'] === '0'){
+//					$this->all[$row['parent_id']] = array();
+//				}else{ //loop through until it finds it's parent
+//					for($i=0;!$foundParent;$i++){
+//						 
+//					}
+				}
+//				
+//			}
+//			if(!array_key_exists('children',$this->all[$row['parent_id']])){
+//				$this->all[$row['parent_id']]['children'][$row['mid']] = array(
+//					'name'=>$row['name'], 
+//					'id'=>$row['mid'], 
+//					'parent id'=>$row['parent_id'], 
+//					'can delete'=>$row['canDelete']
+//				);
+//			}
+//		}
+//	}
 	
 	public function GetMenuName($mid){
 		$query = $this->dbh->prepare("select name from ".DB_PREFIX."_menus where `mid`=:mid");

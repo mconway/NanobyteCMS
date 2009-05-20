@@ -37,6 +37,8 @@
 		{eval var=$extra}
 	{/if}
 	</form>
-{$pager}
+	<div id="pager">
+		{$pager}
+	</div>
 </div>
-{debug}
+{*debug*}

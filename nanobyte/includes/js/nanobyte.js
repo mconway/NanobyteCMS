@@ -3,11 +3,11 @@
  */
 var nanobyte = {
 	ui: '',
-	submitForm : function(me){
+	submitForm : function(form){
 		if(this.initValidate()===true){
 			$.ajax({
-				url: me.parents('form').attr('action')+'/ajax',
-				data: me.parents('form').serialize()+'&submit=true',
+				url: form.attr('action')+'/ajax',
+				data: form.serialize()+'&submit=true',
 				dataType: 'json',
 				type: 'post',
 				success: function(r){
@@ -15,11 +15,10 @@ var nanobyte = {
 						eval(r.callback+'("'+r.args+'")');
 					}
 					nanobyte.showInlineMessage(r.messages);
-					if(r.content=='reload'){window.document.location.reload();}
-					me.parents('tr:first').remove();
-					if($('input[name=menuname]').length>0){
-						$('input[name=menuname]').parent().html($('input[name=menuname]').val());
+					if(!nanobyte.empty(r.content)){
+						$("#content").html(r.content).prepend(r.tabs).fadeIn('slow');
 					}
+					$(this).dialog('close');
 				}
 			});
 		}else{
@@ -34,18 +33,22 @@ var nanobyte = {
 			w = 'auto';
 		}
 		$('body').append('<div id="dialog'+i+'" class="dialog">	<div id="mcont"><div class="messages hidden"></div></div>'+msg+'</div>');
-		this.formatDialog();
+		this.formatContents(true);
 		if (!b) {
 			var	b = {
 				'Ok': function(){
-					$(this).dialog('close');
+					if($('.ui-dialog').find('form').length > 0){
+						nanobyte.submitForm($('.ui-dialog').find('form'));
+					}else{
+						$(this).dialog('close');
+					}
 				}
 			}
 		}
 		$('#dialog'+i).dialog({
 			modal: true,
-			show: 'puff',
-			hide: 'puff',
+//			show: 'puff',
+//			hide: 'puff',
 			overlay: {
 				opacity: 0.7,
 				background: "black"
@@ -82,9 +85,12 @@ var nanobyte = {
 			return false;
 		}
 	},
-	formatDialog : function(){
+	formatContents : function(dialog){
 		$('.formheader').remove();
 		$('.section').css('background-color',$('.ui-dialog').css('background-color'));
+		if(dialog){
+			$('.ui-dialog').find('.formbutton').remove();
+		}
 	},
 	showInlineMessage : function(msg){
 		if($('#mcont').parents('.ui-dialog:not(:hidden)').length>0){
@@ -106,10 +112,14 @@ var nanobyte = {
 		});
 	},
 	showLoader : function(){
-		$('#loading').dialog('open');
+		$('#content').fadeOut('fast',function(){
+			$('#loading').dialog('open');
+		});
 	},
 	hideLoader : function(){
-		$('#loading').dialog('close');
+		$('#content').fadeIn('slow',function(){
+			$('#loading').dialog('close');
+		});
 	},
 	deleteRows : function(rows){ // This will work on tables made by list.tpl
 		var rowArray = rows.split('|');
@@ -144,13 +154,9 @@ var nanobyte = {
 		return false;
 	},
 	ajaxcall : function(event){
-		var c = event.currentTarget.className.split(' ');
+//		var c = event.currentTarget.className.split(' ');
 		$(this).addClass('active').parent().siblings('li').children('.active').removeClass('active');
-		if (c[0] == 'action-link') {
-			nanobyte.showLoader();
-		}else{
-			$('#content').fadeOut('slow');
-		}
+		nanobyte.showLoader();
 		$.ajax({
 	  		url: $(this).attr('href')+'/ajax',
 	  		cache: false,
@@ -160,22 +166,34 @@ var nanobyte = {
 					switch (r.callback) {
 						case 'Dialog':
 							nanobyte.displayMessage(r.content, r.title);
-							nanobyte.hideLoader();
+//							nanobyte.hideLoader();
 							break;
 						default:
 							eval(r.callback+'("'+r.args+'")');
 							break;
 					}
+					nanobyte.hideLoader();
 				}else{
 					$("#content").html(r.content).prepend(r.tabs).fadeIn('slow');
+					nanobyte.hideLoader();
 				}
 	
-				nanobyte.formatDialog();
+				nanobyte.formatContents(false);
 				if (r.messages){
 					nanobyte.showInlineMessage(r.messages);
 				}
 	 		}
 		});
 		return false;
-	}
+	},
+	redirect : function (location){
+		window.location = location;
+	},
+	empty: function(v){
+		if(v==null||v==""||typeof(v)=="undefined"){
+			return true;
+		}else{
+			false;
+		}
+	},
 }

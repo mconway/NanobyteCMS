@@ -42,79 +42,99 @@ BaseController::GetThemeIncludes();
 $smarty->assign('sitename',SITE_NAME);
 $smarty->assign('feedurl', $core->url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
-
-//Get Blocks
-ModuleController::GetBlocks();
-
-//Create a new User, or use an Already logged in User Object from the Session, then update teh access time
-$user = $_SESSION['user'] ? new User($_SESSION['user']) : new User(0);
-if($user->uid != 0){
-	$user->SetAccessTime();
-}
-if (!isset($_SESSION['hash'])){
-	$smarty->assign('noSess', true);
-}
-// Get the Site Menu
-$smarty->assign('menu',MenuController::GetMenu('main',$user->group));
-
-// If the page is 'home' or blank, set it to the HOME defined constant
-if (!array_key_exists('page',$_GET) || strpos($_GET['page'], 'home') !== false){
-	$_GET['page'] = HOME;
-} 
-//Take the page argument and run the functions to display the correct page.
-if(array_key_exists('page',$_GET)){ 
-	//Creates an array of arguments to pass to specific pages
-	$args = explode('/', $_GET['page']); 
-	//If any actions have been set using POST, add these to the args array
-	if(array_key_exists('actions',$_POST)){ 
-		$action = explode('/',$_POST['actions']);
-		foreach ($action as $a){
-			$args[] = $a;
-		}
+$args = "";
+if(!CMS_INSTALLED){
+	if(array_key_exists('page',$_GET)){ 
+		//Creates an array of arguments to pass to specific pages
+		$args = explode('/', $_GET['page']); 
+		$ajax = in_array('ajax',$args) ? true : false;
+		array_shift($args); 
 	}
-	//The first bucket in the $args array is going to be the actual page we want to view
-	$script = array_shift($args); 
-	
+
 	//Determine if we are using AJAX, then remove it from the array and resort it
-	$ajax = in_array('ajax',$args) ? true : false;
 	if($ajax==true){
 		unset($args[array_search('ajax',$args)]);
 		$args = array_values($args);
 	}
+	$class = 'InstallController';
+	call_user_func(array($class,'Display'),array(&$args,$ajax,&$smarty,&$jsonObj,&$core));
+}else{
+	//Get Blocks
+	ModuleController::GetBlocks();
 	
-	//$class = $script.'Controller'; //for php 5.3.0
-	//If there is a file for the requested page - include it
-	if($core->autoload($script.'Controller',false)){
-		$class = $script.'Controller';
-	//If a file doesnt exist, check to see if it is an enabled module - and include it
-//	}elseif(array_key_exists($script, $modsEnabled)){ 
-//		$class = 'Mod_'.$script;
-	//If it's not a file or enabled mod - display a 404 error
-	}else{
-		$alias = $core->CheckAlias($script);
-		if ($alias){
-			$class = $alias.'Controller';
-		}else{
-			header("HTTP/1.1 404 Not Found");
-			$error = new Error(404,$script);
-			$smarty->assign('error_code',$error->error_code);
-			$smarty->assign('explanation',$error->explanation);
-			$smarty->assign('server_url',$error->server_url);
-			BaseController::GetHTMLIncludes();
-			$jsonObj->content = $smarty->fetch('error.tpl'); //this needs a controller
-			if($ajax){
-				print json_encoded($jsonObj);
-			}else{
-				print $jsonObj->content;
+	//Create a new User, or use an Already logged in User Object from the Session, then update teh access time
+	$user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);
+	if($user->uid != 0){
+		$user->SetAccessTime();
+	}
+	if (!isset($_SESSION['hash'])){
+		$smarty->assign('noSess', true);
+	}
+	// Get the Site Menu
+	$smarty->assign('menu',MenuController::GetMenu('main',$user->group));
+	
+	// If the page is 'home' or blank, set it to the HOME defined constant
+	if (!array_key_exists('page',$_GET) || strpos($_GET['page'], 'home') !== false){
+		$_GET['page'] = HOME;
+	} 
+	//Take the page argument and run the functions to display the correct page.
+	if(array_key_exists('page',$_GET)){ 
+		//Creates an array of arguments to pass to specific pages
+		$args = explode('/', $_GET['page']); 
+		//If any actions have been set using POST, add these to the args array
+		if(array_key_exists('actions',$_POST)){ 
+			$action = explode('/',$_POST['actions']);
+			foreach ($action as $a){
+				$args[] = $a;
 			}
 		}
+		//The first bucket in the $args array is going to be the actual page we want to view
+		$script = array_shift($args); 
+		
+		//Determine if we are using AJAX, then remove it from the array and resort it
+		$ajax = in_array('ajax',$args) ? true : false;
+		if($ajax==true){
+			unset($args[array_search('ajax',$args)]);
+			$args = array_values($args);
+		}
+		
+		//$class = $script.'Controller'; //for php 5.3.0
+		//If there is a file for the requested page - include it
+		if($core->autoload($script.'Controller',false)){
+			$class = $script.'Controller';
+		//If a file doesnt exist, check to see if it is an enabled module - and include it
+	//	}elseif(array_key_exists($script, $modsEnabled)){ 
+	//		$class = 'Mod_'.$script;
+		//If it's not a file or enabled mod - display a 404 error
+		}else{
+			$alias = $core->CheckAlias($script);
+			if ($alias){
+				$class = $alias.'Controller';
+			}else{
+				header("HTTP/1.1 404 Not Found");
+				$error = new Error(404,$script);
+				$smarty->assign('error_code',$error->error_code);
+				$smarty->assign('explanation',$error->explanation);
+				$smarty->assign('server_url',$error->server_url);
+				BaseController::GetHTMLIncludes();
+				$jsonObj->content = $smarty->fetch('error.tpl'); //this needs a controller
+				if($ajax){
+					print json_encoded($jsonObj);
+				}else{
+					print $jsonObj->content;
+				}
+			}
+		}
+		if(isset($class)){
+			call_user_func(array($class,'Display'),array(&$args,$ajax,&$smarty,&$user,&$jsonObj,&$core));
+		}
+	//If there are no args
+	}else{
+		//Add the Messages, Posts and Includes to smarty and display the results.
+		BaseController::DisplayMessages(); 
+		BaseController::GetHTMLIncludes();
+		$smarty->display('index.tpl');
 	}
-	call_user_func(array($class,'Display'),array(&$args,$ajax,&$smarty,&$user,&$jsonObj,&$core));
-//If there are no args
-}else{
-	//Add the Messages, Posts and Includes to smarty and display the results.
-	BaseController::DisplayMessages(); 
-	BaseController::GetHTMLIncludes();
-	$smarty->display('index.tpl');
 }
+
 ?>

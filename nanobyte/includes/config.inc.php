@@ -26,4 +26,5 @@ define("DEFAULT_GROUP", '2');
 define("SESS_TTL", '0');
 define("PEAR_PATH", '');
 define("HOME","content");
+define("CMS_INSTALLED","true");
 ?>
