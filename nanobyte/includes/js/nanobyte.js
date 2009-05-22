@@ -142,7 +142,7 @@ var nanobyte = {
 		$('#content').find('.tablesorter:first').find('tr:last').children('td').each(function(){
 			newRow += "<td class='"+$(this).attr('class')+"'></td>";
 		})
-		console.log(newRow);
+//		console.log(newRow);
 		$('#content').find('.tablesorter:first').find('tr:last').after(newRow);
 	},
 	changeLink : function(args){

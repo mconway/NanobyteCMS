@@ -53,11 +53,11 @@ define("THEME_PATH", 'templates/{$params['themepath']}');
 define("DEFAULT_GROUP", '{$perms->gid}');
 define("SESS_TTL", '{$params['sessttl']}');
 define("PEAR_PATH", '{$params['pearpath']}');
-define("HOME","");
+define("LIMIT", '{$params['limit']}');
+define("HOME","{$params['home']}");
+define("CMS_INSTALLED",true);
 ?>
 EOF;
-		$fh = fopen('./includes/config.inc.php', 'w');
-		fwrite($fh, $conf);
-		fclose($fh);
+		file_put_contents('./includes/config.inc.php', $conf);
 	}
 }

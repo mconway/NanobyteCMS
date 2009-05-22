@@ -2,11 +2,11 @@
 
 class UserController extends BaseController{
 	
-	public static function ListUsers(&$smarty,&$user){
+	public static function ListUsers(&$smarty,&$user,$page=1){
 		$perms = new Perms();
 		$perms->GetNames();
 		//create list
-		$user->Read(); //array of objects
+		$user->Read(BaseController::GetStart($page,10), 10, $page); //array of objects
 		$list = array();
 		$options = array(
 			'image' => '16',
@@ -34,6 +34,7 @@ class UserController extends BaseController{
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/user/add',$options));
 		// bind the params to smarty
 		$smartyArray = array(
+			'pager'=>BaseController::Paginate($user->output['limit'], $user->output['nbItems'], 'admin/user/list/', $page),
 			'sublinks'=>$links,
 			'cb'=>true,
 			'self'=>'admin/user/select',
@@ -287,7 +288,7 @@ class UserController extends BaseController{
 				}
 				break;
 			case 'list':
-				self::ListUsers($smarty, $user);
+				self::ListUsers($smarty, $user, $args[2]);
 				$content = $smarty->fetch('list.tpl'); 
 				break;
 			case 'details':

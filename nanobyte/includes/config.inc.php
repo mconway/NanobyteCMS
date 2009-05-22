@@ -20,11 +20,18 @@ define("UPLOAD_PATH", 'files/');
 define("FILE_TYPES", '.jpg, .gif, .png, .bmp, .jpeg');
 define("FILE_SIZE", '524288');
 define("CLEANURL", '1');
-define("COMPRESS", '0');
+define("COMPRESS", '');
 define("THEME_PATH", 'templates/NanobyteBlue');
 define("DEFAULT_GROUP", '2');
 define("SESS_TTL", '0');
 define("PEAR_PATH", '');
+define("LIMIT", '10');
 define("HOME","content");
-define("CMS_INSTALLED","true");
+define("CMS_INSTALLED",true);
+
+define("EMAIL_FROM","noreply@wiredbyte.com");
+define("EMAIL_SUBJECT","Test Email from Nanobyte CMS");
+define("EMAIL_IS_HTML",true);
+define("EMAIL_USE_SMTP",true);
+
 ?>

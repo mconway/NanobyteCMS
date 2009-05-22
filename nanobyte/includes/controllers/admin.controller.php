@@ -65,7 +65,7 @@ class AdminController extends BaseController{
 		$perms = new Perms();
 		$perms->GetNames();
 		//create the tabs menu
-		$tablinks = array('Global Settings','DB Settings','File Settings', 'Theme Settings', 'User Settings', 'License');
+		$tablinks = array('Global Settings','DB Settings','File Settings', 'Email Settings', 'Theme Settings', 'User Settings', 'License');
 		//create the form object 
 		$form = new HTML_QuickForm('newuser','post','admin/settings');
 		
@@ -94,6 +94,7 @@ class AdminController extends BaseController{
 			'sessttl'=>SESS_TTL,
 			'compress'=>COMPRESS,
 			'home'=>HOME,
+			'limit'=>LIMIT,
 			'license'=>$license
 		));
 		//create form elements
@@ -103,6 +104,7 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'sitename', 'Site Name', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'siteslogan', 'Site Slogan', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'limit', 'Default Limit on Table Lists', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'home', 'Default Home Page', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
 		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
@@ -118,6 +120,15 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'uploadpath', 'Upload Path', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'filesize', 'Max File Size', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'filetypes', 'Allowed File Types', array('size'=>25, 'maxlength'=>60));
+		
+		$form->addElement('header','','Email Settings');
+		$form->addElement('checkbox', 'use_smtp' ,'Use SMTP Server');
+		$form->addElement('text', 'smtp_user', 'SMTP Username', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('password', 'smtp_pass', 'SMTP Password', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'smtp_host', 'SMTP Host', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'from_name', 'Default FROM Name', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'subject', 'Default Subject', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('checkbox', 'use_html' ,'Compile Emails in HTML');
 		
 		$form->addElement('header','','Theme Settings');
 		$form->addElement('select', 'themepath', 'Select Theme', BaseController::GetThemeList());

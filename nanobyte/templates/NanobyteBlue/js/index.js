@@ -130,7 +130,7 @@ $(document).ready(function(){
 				url: me.attr('href')+'/ajax',
 				dataType: 'json',
 				success: function(r){
-					console.log(r.title);
+//					console.log(r.title);
 					me.parents('.ui-tabs-panel:first').html(r.content).fadeIn();
 				}
 			})

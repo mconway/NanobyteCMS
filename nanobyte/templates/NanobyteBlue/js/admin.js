@@ -42,6 +42,12 @@ $(document).ready(
 				return false;
 			});
 		});
+		
+		//livequery this to #a.settings click
+		if($('a.active').attr('id')=='a-settings'&&$('input[name=use_smtp]:checked').length==0){
+			$('input[name=use_smtp]').siblings('elementcontainer').css('opacity','20');
+		}
+		
 		function serialize()
 		{
 			var item1 = $('#groupContainer1').sortable("serialize") + '&';
