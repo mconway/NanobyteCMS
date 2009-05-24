@@ -7,7 +7,7 @@
 			$perms = new Perms();
 			switch($args[1]){
 				case 'add':
-					$jsonObj->callback = 'Dialog';
+//					$jsonObj->callback = 'Dialog';
 					self::Add($smarty,$jsonObj);
 					$content = $smarty->fetch('form.tpl');
 					break;
@@ -57,7 +57,7 @@
 			$actions = array('delete' => 'Delete');
 			$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submit" value="Go!"/>';
 			$options['image'] = '24';
-			$options['class'] = 'action-link';
+			$options['class'] = 'action-link-tab';
 			$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/group/add',$options), 'edit'=>Core::l('edit','admin/group/edit',$options));
 			// bind the params to smarty
 			$smarty->assign(array(
@@ -107,12 +107,14 @@
 			//apply form prefilters
 			$form->applyFilter('__ALL__', 'trim');
 			$form->applyFilter('__ALL__', 'strip_tags');
+			// Add required Fields
+			$form->addRule('name', 'A Group Name is required.', 'required');
 			//If the form has already been submitted - validate the data
 			if($form->validate()){
 				$perms = new Perms();
 				$form->process(array($perms,'AddGroup'));
-				$jsonObj->callback = 'nanobyte.addRow';
-				$jsonObj->args = $perms;
+//				$jsonObj->callback = 'nanobyte.addRow';
+//				$jsonObj->args = $perms;
 				Core::SetMessage('Your group has been created successfully.','info');
 	//			BaseController::Redirect('admin/groups');
 			}

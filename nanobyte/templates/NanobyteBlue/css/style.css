@@ -50,12 +50,14 @@ a img{
 	text-align:right;
 	top:15px;
 }
+/*
 #user{
 	float:right;
 	padding-right:5px;
 	position:relative;
 	top:46px;
 }
+*/
 #header #rbbox{
 	position: absolute;
 	right: 10px;
@@ -96,6 +98,7 @@ a img{
 	margin-bottom: 5px;
 	padding:5px 0;
 	height: 2em;
+	overflow: hidden;
 }
 #messages ul, #mcont .messages ul{
 	list-style: none;
@@ -125,7 +128,8 @@ a img{
 }
 #iconmenu ul li a{
 	display:inline-block;
-	padding:48px 10px 10px;
+	padding:48px 10px 10px 0;
+	width: 50px;
 }
 
 #iconmenu a:hover, #iconmenu a.active{
@@ -151,6 +155,9 @@ a img{
 }
 #a-settings{
 	background: url(../images/settings.png) no-repeat;
+}
+#a-alias{
+	background: url(../images/alias.png) no-repeat;
 }
 
 #sidebar-right{
@@ -222,7 +229,7 @@ div.contentheader, .groupItem .itemHeader{
 }
 .itemContent{
 	background-color: #F9F9F9;
-		-moz-border-radius-bottomleft:3px;
+	-moz-border-radius-bottomleft:3px;
 	-moz-border-radius-bottomright:3px;
 	-moz-border-radius-topleft:3px;
 	-moz-border-radius-topright:3px;
@@ -319,7 +326,9 @@ table.tablesorter tbody td.actions{
 .formheader{
 	text-align: center;
 	font-weight:bold;
+	/*
 	background: transparent url(../images/contentheader.png) repeat-x scroll;
+	*/
 }
 .elementcontainer{
 	padding: 15px 10px 10px;
@@ -429,14 +438,26 @@ Begin Sortables Styles
 .element{
 	margin-left: 130px;
 }
+/*
 .section {
 	background-color: #3C4040;
 	margin-bottom:	10px;
 	padding-bottom: 10px;
 }
+*/
 #tabs .ui-tabs-panel .post .contentheader{
 	display:none;
 }
 .hidden{
 	display: none;
+}
+.ui-tabs .ui-tabs-nav li a.tabClose{
+	background:transparent url(../images/close-16.png) no-repeat scroll 0 0;
+	height:16px;
+	padding: 0;
+	width: 16px;
+	cursor: pointer;
+}
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected a.tabClose, .ui-tabs .ui-tabs-nav li.ui-state-disabled a.tabClose, .ui-tabs .ui-tabs-nav li.ui-state-processing a.tabClose{
+	cursor: pointer;
 }

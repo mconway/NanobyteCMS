@@ -134,6 +134,7 @@ var nanobyte = {
 		for(key in rowArray){
 			if (rowArray[key] != "") {
 				$('input[type=checkbox][value=' + rowArray[key] + ']').parent().siblings(':eq(2)').text($('select[name=actions] option:selected').text());
+//				console.log($('select[name=actions] option:selected').text());
 			}
 		}
 	},

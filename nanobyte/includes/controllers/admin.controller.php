@@ -57,6 +57,8 @@ class AdminController extends BaseController{
 	public static function EditConfig($params){
 		$params['dbuser'] = Admin::EncodeConfParams($params['dbuser']);
 		$params['dbpass'] = Admin::EncodeConfParams($params['dbpass']);
+		$params['smtp_user'] = Admin::EncodeConfParams($params['smtp_user']);
+		$params['smtp_pass'] = Admin::EncodeConfParams($params['smtp_pass']);
 		Admin::WriteConfig($params);
 	}
 	
@@ -95,7 +97,15 @@ class AdminController extends BaseController{
 			'compress'=>COMPRESS,
 			'home'=>HOME,
 			'limit'=>LIMIT,
-			'license'=>$license
+			'license'=>$license,
+			'from_name'=>EMAIL_FROM,
+			'subject'=>EMAIL_SUBJECT,
+			'use_html'=>EMAIL_IS_HTML,
+			'smtp_auth'=>SMTP_AUTH,
+			'smtp_host'=>SMTP_SERVER,
+			'smtp_port'=>SMTP_PORT,
+			'smtp_user'=>$core->DecodeConfParams(SMTP_USER),
+			'smtp_pass'=>$core->DecodeConfParams(SMTP_PASS)
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
@@ -122,10 +132,11 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'filetypes', 'Allowed File Types', array('size'=>25, 'maxlength'=>60));
 		
 		$form->addElement('header','','Email Settings');
-		$form->addElement('checkbox', 'use_smtp' ,'Use SMTP Server');
+		$form->addElement('text', 'smtp_host', 'SMTP Host', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'smtp_port', 'SMTP Port (25)', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('checkbox', 'smtp_auth' ,'SMTP Server Uses Authentication');
 		$form->addElement('text', 'smtp_user', 'SMTP Username', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('password', 'smtp_pass', 'SMTP Password', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'smtp_host', 'SMTP Host', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'from_name', 'Default FROM Name', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'subject', 'Default Subject', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'use_html' ,'Compile Emails in HTML');

@@ -104,14 +104,13 @@ $(document).ready(function(){
 			},
 			add: function(event, ui) {
 		        $(this).tabs('select', '#' + ui.panel.id);
-				$('a[href=#'+ui.panel.id+']').after('<a style="padding:0" class="tabClose" id="tab_'+ui.index+'">X</a>');
+				$('a[href=#'+ui.panel.id+']').after('<a class="tabClose" id="tab_'+ui.index+'"></a>');
 		    }
 		});
 	});
 	$('.tabClose').live('click',function(){
 		var panelId = $(this).attr('id').replace(/tab_/,'');
 		$(this).parents('.tabs').tabs('remove',panelId).tabs('select',panelId-1);
-		$(this).remove();
 	});
 	$('.toggle').live('click',function(){
 		var img = $(this).children('img');

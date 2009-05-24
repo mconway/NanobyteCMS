@@ -6,7 +6,9 @@
 			$this->clearAllRecipients();
 			$this->subject = EMAIL_SUBJECT;
 			$this->body = "";
-			$this->smtp = EMAIL_USE_SMTP;
+			$this->smtp_server = SMTP_SERVER;
+			$this->smtp_port = SMTP_PORT;
+			$this->smtp_auth = SMTP_AUTH;
 			$this->isHTML = EMAIL_IS_HTML;
 			$this->wordwrap = 70;
 			$this->addHeader('X-Mailer: Nanobyte CMS Mailer');
@@ -59,7 +61,14 @@
 			if(!empty($this->bcc)){
 				$this->addHeader("BCC: ".implode(', ',$this->bcc));
 			}
-			mail(implode(', ',$this->recipients), trim($this->subject), $this->body,implode("\r\n",$this->headers));
+			
+			//maybe change this:
+			$this->recipients = implode(', ',$this->recipients);
+			$this->subject = trim($this->subject);
+			$this->headers = implode("\r\n",$this->headers);
+			
+			$this->sendSMTP();
+//			mail(implode(', ',$this->recipients), trim($this->subject), $this->body,implode("\r\n",$this->headers));
 		}
 		
 		public function setHTML($html){
@@ -68,77 +77,79 @@
 		
 		private function sendSMTP(){ //todo : all failed messages to log if available
 			// Open an SMTP connection
-			$cp = fsockopen (SMTP_SERVER, SMTP_PORT, &$errno, &$errstr, 1);
-			if (!$cp){
+			$this->smtp_socket = fsockopen ($this->smtp_server, $this->smtp_port, &$errno, &$errstr, 1);
+			if (!$this->smtp_socket){
 				Core::SetMessage("Failed to even make an SMTP connection",'error');
-			return false;
+				return false;
 			}
-			$res=fgets($cp,256);
+			$res=fgets($this->smtp_socket,256);
 			if(substr($res,0,3) != "220"){
 				Core::SetMessage("Failed to connect",'error');
 			return false;
 			} 
 			
 			// Say hello...
-			fputs($cp, "HELO ".SMTP_SERVER."\r\n");
-			$res=fgets($cp,256);
+			fputs($this->smtp_socket, "HELO ".$this->smtp_server."\r\n");
+			$res=fgets($this->smtp_socket,256);
 			if(substr($res,0,3) != "250"){
 				Core::SetMessage("Failed to Introduce",'error');
-			return false;
+				return false;
 			} 
 			
-			// perform authentication
-			fputs($cp, "auth login\r\n");
-			$res=fgets($cp,256);
-			if(substr($res,0,3) != "334"){
-				Core::SetMessage("Failed to Initiate Authentication");
-			return false;
-			} 
-			
-			fputs($cp, base64_encode(SMTP_USER)."\r\n");
-			$res=fgets($cp,256);
-			if(substr($res,0,3) != "334"){ 
-				Core::SetMessage("Failed to Provide Username for Authentication");
-			}
-			
-			fputs($cp, base64_encode(Core::ConfDecode(SMTP_PASS))."\r\n");
-			$res=fgets($cp,256);
-			if(substr($res,0,3) != "235"){
-				Core::SetMessage("Failed to Authenticate");
+			if($this->smtp_auth=='1'){
+				// perform authentication
+				fputs($this->smtp_socket, "auth login\r\n");
+				$res=fgets($this->smtp_socket,256);
+				if(substr($res,0,3) != "334"){
+					Core::SetMessage("Failed to Initiate Authentication");
+					return false;
+				} 
+				
+				fputs($this->smtp_socket, base64_encode(Core::DecodeConfParams(SMTP_USER))."\r\n");
+				$res=fgets($this->smtp_socket,256);
+				if(substr($res,0,3) != "334"){ 
+					Core::SetMessage("Failed to Provide Username for Authentication");
+				}
+				
+				fputs($this->smtp_socket, base64_encode(Core::DecodeConfParams(SMTP_PASS))."\r\n");
+				$res=fgets($this->smtp_socket,256);
+				if(substr($res,0,3) != "235"){
+					Core::SetMessage("Failed to Authenticate");
+				}
 			}
 			
 			// Mail from...
-			fputs($cp, "MAIL FROM: <$from>\r\n");
-			$res=fgets($cp,256);
+			fputs($this->smtp_socket, "MAIL FROM: <$this->from>\r\n");
+			$res=fgets($this->smtp_socket,256);
 			if(substr($res,0,3) != "250"){
 				Core::SetMessage("MAIL FROM failed");
 			}
 			
 			// Rcpt to...
-			fputs($cp, "RCPT TO: <$to>\r\n");
-			$res=fgets($cp,256);
+			fputs($this->smtp_socket, "RCPT TO: <$this->recipients>\r\n");
+			$res=fgets($this->smtp_socket,256);
 			if(substr($res,0,3) != "250"){
 				Core::SetMessage("RCPT TO failed");
 			}
 			
 			// Data...
-			fputs($cp, "DATA\r\n");
-			$res=fgets($cp,256);
+			fputs($this->smtp_socket, "DATA\r\n");
+			$res=fgets($this->smtp_socket,256);
 			if(substr($res,0,3) != "354"){
 				Core::SetMessage("DATA failed");
 			}
 			
 			// Send To:, From:, Subject:, other headers, blank line, message, and finish
 			// with a period on its own line (for end of message)
-			fputs($cp, "To: $to\r\nFrom: $from\r\nSubject: $subject\r\n$headers\r\n\r\n$message\r\n.\r\n");
-			$res=fgets($cp,256);
+			fputs($this->smtp_socket, "To: $this->recipients\r\nFrom: $this->from\r\nSubject: $this->subject\r\n$this->headers\r\n\r\n$this->body\r\n.\r\n");
+			$res=fgets($this->smtp_socket,256);
 			if(substr($res,0,3) != "250"){
 				Core::SetMessage("Message Body Failed");
 			}
 			
 			// ...And time to quit...
-			fputs($cp,"QUIT\r\n");
-			$res=fgets($cp,256);
+			fputs($this->smtp_socket,"QUIT\r\n");
+			$res=fgets($this->smtp_socket,256);
 			if(substr($res,0,3) != "221"){
 				Core::SetMessage("QUIT failed");
 			}

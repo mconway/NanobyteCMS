@@ -84,9 +84,9 @@ class Menu{
 		$this->name = $name['name'];
 	}
 	
-	public function Commit($update=null){
+	public function Commit($insert=null){
 		global $core;
-		if($update){
+		if($insert){
 			$query = $this->dbh->prepare("insert into ".DB_PREFIX."_menu_links (menu, linkpath, linktext, viewableby, class, styleid) values (:menu,:path,:text,:view,:class,:sid)");
 		}else{
 			$query = $this->dbh->prepare("update ".DB_PREFIX."_menu_links set `linkpath`=:path, `linktext`=:text, `viewableby`=:view, `class`=:class, `styleid`=:sid where `id`=:id");
@@ -100,8 +100,14 @@ class Menu{
 				$item['styleid']='';
 			}
 			$item['viewableby'] = implode(',',$item['viewableby']);
-			$array = array(':path'=>$item['linkpath'],':text'=>$item['linktext'],':view'=>$item['viewableby'],':class'=>$item['class'],'sid'=>$item['styleid']);
-			$id==true ? $array['id']=$key : $array[':menu']=$update;
+			$array = array(
+				':path'=>$item['linkpath'],
+				':text'=>$item['linktext'],
+				':view'=>$item['viewableby'],
+				':class'=>$item['class'],
+				'sid'=>$item['styleid']
+			);
+			$id==true ? $array['id']=$key : $array[':menu']=$insert;
 			try{
 				$query->execute($array);
 			}catch(PDOException $e){

@@ -195,14 +195,15 @@ class ContentController extends BaseController{
 			$options['title'] = "Viewing-".$post['title'];
 			$actions = Core::l('info','content/'.$post['pid'],$options).' | ';
 			$options['title'] = "Edit-".$post['title'];
-			$actions .=
+			$actions .= Core::l('info','admin/content/edit/'.$post['pid'],$options);
 			array_push($list, array(
 				'id'=>$post['pid'], 
 				'title'=>$post['title'], 
 				'created'=>date('Y-M-D',$post['created']),
 				'author'=>$post['author'],
 				'published'=>$post['published'],
-				'actions'=>Core::l('info','content/'.$post['pid'],$options).' | '.Core::l('edit','admin/content/edit/'.$post['pid'],$options)
+//				'actions'=>Core::l('info','content/'.$post['pid'],$options).' | '.Core::l('edit','admin/content/edit/'.$post['pid'],$options)
+				'actions'=>$actions
 				));
 		}
 

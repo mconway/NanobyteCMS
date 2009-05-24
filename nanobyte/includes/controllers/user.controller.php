@@ -13,6 +13,10 @@ class UserController extends BaseController{
 			'class' => 'action-link-tab'
 		);
 		foreach ($user->output['items'] as $key=>$u){
+			$options['title'] = "Details for - ".$u['username'];
+			$actions = Core::l('info','content/'.$u['uid'],$options).' | ';
+			$options['title'] = "Edit - ".$u['username'];
+			$actions .= Core::l('info','admin/user/edit/'.$u['uid'],$options);
 			array_push($list, array(
 				'id'=>$u['uid'], 
 				'name'=>Core::l($u['username'], 'user/'.$u['uid']), 
@@ -29,7 +33,8 @@ class UserController extends BaseController{
 		$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submit" value="Go!"/>';
 		$options = array(
 			'image' => '24',
-			'class' => 'action-link-tab'
+			'class' => 'action-link-tab',
+			'title' => 'Add New User'
 		);
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/user/add',$options));
 		// bind the params to smarty
@@ -150,8 +155,8 @@ class UserController extends BaseController{
 			$newUser->Create($form->exportValues());
 //			var_dump($newUser);
 			Core::SetMessage('Your user account has been created!','info');
-			$jsonObj->callback = 'nanobyte.addRow';
-			$jsonObj->args = $newUser;
+//			$jsonObj->callback = 'nanobyte.addRow';
+//			$jsonObj->args = $newUser;
 //			var_dump($jsonObj->args);
 			//BaseController::Redirect();
 		}
@@ -314,7 +319,7 @@ class UserController extends BaseController{
 	 		foreach($delUser as $delete){
 	 			if ($user->uid != $delete){
 	 				$jsonObj->callback = 'nanobyte.deleteRows';
- 					if (Admin::DeleteObject('user', 'uid', $delete) === true && Admin::DeleteObject('user_profiles', 'uid', $delete)){
+ 					if (Admin::DeleteObject('user', 'uid', $delete) === true){
 						Core::SetMessage('User '.$delete.' has been deleted!', 'info');
 						$jsonObj->args .= $delete."|";
 					} else {
