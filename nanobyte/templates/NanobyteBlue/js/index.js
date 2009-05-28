@@ -8,15 +8,15 @@ $(document).ready(function(){
 	$('#loginform').dialog({
 		autoOpen : false,
 		title: 'Please Log In',
-		show: 'puff',
-		hide: 'puff',
-		height: 200,
+//		show: 'puff',
+//		hide: 'puff',
+		height: 220,
 		width: 400,
 		modal: true,
 		closeOnEscape: false,
 		buttons: {
 			'Log In' : function(){
-				if(nanobyte.initValidate()===true){
+				if(nanobyte.initValidate($('#loginform form'))===true){
 					$.ajax({
 						url : $('#loginform form').attr('action')+'/ajax',
 						data: $('#loginform form').serialize(),
@@ -71,6 +71,7 @@ $(document).ready(function(){
 		});
 		return false;
 	});
+	$('#forgot_pw a').click(nanobyte.ajaxcall)
 //	$('textarea').livequery(function(){
 //		nicEditors.allTextAreas({
 //			fullPanel: true,

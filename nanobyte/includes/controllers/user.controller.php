@@ -335,7 +335,7 @@ class UserController extends BaseController{
 	}
 
 	public static function Display(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
+		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
 			switch($args[0]){ // What sub page are we trying to view
 				case 'details': // view user details - THIS IS NOT THE PROFILE PAGE
 					$content = self::GetDetails($args['1']);
@@ -378,6 +378,12 @@ class UserController extends BaseController{
 					self::RegForm($argsArray);
 					$content = $smarty->fetch('form.tpl');
 					break;
+				case "reset_pw":
+					$smarty->assign('form',self::ResetPassword($user));
+					$content = $smarty->fetch('form.tpl');
+					$jsonObj->callback = 'Dialog';
+					$jsonObj->title = 'Reset Password';
+					break;
 //				case 'profiles':
 //					self::ShowProfile($args[1]);
 //					parent::DisplayMessages(); // Get Messages
@@ -404,5 +410,21 @@ class UserController extends BaseController{
 			}
 	}
 
+	public static function ResetPassword(&$user){
+		$form = new HTML_QuickForm('resetpw','post','user/reset_pw');
+		//create form elements
+		$form->addElement('header','','Request New Password');
+		$form->addElement('text', 'username', 'Username', array('size'=>25, 'maxlength'=>50));
+		$form->addElement('text', 'email', 'Email Address', array('size'=>25, 'maxlength'=>50));
+		$form->addElement('submit', 'submit', 'Submit');
+		if(array_key_exists('submit',$_POST) && $form->validate()){
+			$user->SetUsername($form->exportValue('username'));
+			$user->SetEmail($form->exportValue('email'));
+			if($user->ValidateEmail()){
+				$user->ResetPassword();
+			}
+		}
+		return $form->toArray();
+	}
 }
 ?>

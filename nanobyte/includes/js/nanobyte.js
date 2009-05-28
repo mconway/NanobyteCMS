@@ -4,7 +4,7 @@
 var nanobyte = {
 	ui: '',
 	submitForm : function(form){
-		if(this.initValidate()===true){
+		if(this.initValidate(form)===true){
 			$.ajax({
 				url: form.attr('action')+'/ajax',
 				data: form.serialize()+'&submit=true',
@@ -65,9 +65,9 @@ var nanobyte = {
 		});
 		i++;
 	},
-	initValidate : function(){
+	initValidate : function(form){
 		var errors = false;
-		$('.required').each(function(){
+		form.children('.required').each(function(){
 			if ($(this).children('input').val() == ''){
 				$(this).children('input').focus().animate({backgroundColor:'#ffff80'}).keypress(function(){
 					$(this).animate({
@@ -134,7 +134,6 @@ var nanobyte = {
 		for(key in rowArray){
 			if (rowArray[key] != "") {
 				$('input[type=checkbox][value=' + rowArray[key] + ']').parent().siblings(':eq(2)').text($('select[name=actions] option:selected').text());
-//				console.log($('select[name=actions] option:selected').text());
 			}
 		}
 	},
@@ -156,6 +155,7 @@ var nanobyte = {
 	},
 	ajaxcall : function(event){
 //		var c = event.currentTarget.className.split(' ');
+//		window.location.hash = $(this).attr('href').replace();
 		$(this).addClass('active').parent().siblings('li').children('.active').removeClass('active');
 		nanobyte.showLoader();
 		$.ajax({

@@ -461,3 +461,11 @@ Begin Sortables Styles
 .ui-tabs .ui-tabs-nav li.ui-tabs-selected a.tabClose, .ui-tabs .ui-tabs-nav li.ui-state-disabled a.tabClose, .ui-tabs .ui-tabs-nav li.ui-state-processing a.tabClose{
 	cursor: pointer;
 }
+
+#forgot_pw{
+	display:inline-block;
+	font-size:11px;
+	padding: 10px 0;
+	text-align:center;
+	width:100%;
+}

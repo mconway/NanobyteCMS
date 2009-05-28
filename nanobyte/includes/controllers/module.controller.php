@@ -14,7 +14,7 @@
 		return $mod;
 	}
 	
-	public static function ListModule(){
+	public static function ListModule($page){
 		global $smarty;
 		//create list
 		$modsList = self::GetAll(); //array of objects
@@ -34,14 +34,14 @@
 				'description' => $module->conf->description,
 				'enabled'=>"<center><img src='".THEME_PATH."/images/{$module->status}-25.png'/></center>",
 				'actions'=> Core::l($s,'admin/module/'.strtolower($s).'/'.$module->name,$options).' | '
-				);
-				$options['id'] = "";
-				$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,$options);
+			);
+			$options['id'] = "";
+			$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,$options);
 		}
 		//create the actions options
 		//$actions['General Actions'] = array();
 		//$actions['With Selected'] = array( 'editUser'=>'Edit User (1)','delete' => 'Delete User(s)');
-		
+		$smarty->assign('pager', BaseController::Paginate(LIMIT, count($modsList), 'admin/module/list/', $page));
 		// bind the params to smarty
 		//$smarty->assign('actions', $actions);
 		$smarty->assign('list', $list);
@@ -112,7 +112,7 @@
 			// Default is to display the module list
 			case 'list':
 				$func = 'List'.$args[0];
-				self::$func();
+				self::$func($args[1]);
 				$content = $smarty->fetch('list.tpl');
 				break;
 			case 'details':
@@ -125,7 +125,6 @@ EOF;
 				$jsonObj->callback = 'Dialog';
 				$jsonObj->title = 'Module Information for: '.ucfirst($args[2]);
 				break;
-
 		}
 		$jsonObj->content = $content;
 	}

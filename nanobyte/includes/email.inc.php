@@ -2,6 +2,7 @@
     class Email{
     	
 		public function __construct(){
+			$this->headers = array();
 			$this->from = EMAIL_FROM;
 			$this->clearAllRecipients();
 			$this->subject = EMAIL_SUBJECT;

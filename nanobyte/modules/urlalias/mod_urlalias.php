@@ -48,6 +48,10 @@ class UrlAliasController extends BaseController{
 					$smarty->assign(self::GetList($args[2]));
 					$content = $smarty->fetch('list.tpl'); 
 					break;
+				case 'add':
+					$smarty->assign('form', self::AddAlias());
+					$content = $smarty->fetch('form.tpl'); 
+					break;
 			}
 		}else{
 			$tabs = array(Core::l('Aliases','admin/urlalias/list'));
@@ -97,6 +101,30 @@ class UrlAliasController extends BaseController{
 			'list'=>$list
 		);
 		return $smartyArray;
+	}
+
+	public static function AddAlias(){
+		$form = new HTML_QuickForm('newuser','post','user/register/');
+		//create form elements
+		$form->addElement('header','','Create New Alias');
+		$form->addElement('text', 'alias', 'Alias', array('size'=>25, 'maxlength'=>15));
+		$form->addElement('text', 'path', 'Actual Path', array('size'=>25, 'maxlength'=>50));
+		$form->addElement('submit', 'submit', 'Submit');
+		//apply form prefilters
+		$form->applyFilter('__ALL__', 'trim');
+		$form->applyFilter('__ALL__', 'strip_tags');
+		//add form rules
+		$form->addRule('alias', 'A valid alias is required.', 'required');
+		$form->addRule('path', 'A valid path is required.', 'required');
+		//If the form has already been submitted - validate the data
+		if($_POST['submit']){
+			if($form->validate()){
+			
+			}
+		}
+
+		//send the form to smarty
+		return $form->toArray(); 
 	}
 }
 

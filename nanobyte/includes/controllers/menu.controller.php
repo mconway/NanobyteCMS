@@ -24,7 +24,8 @@ class MenuController extends BaseController{
 		$menus = new Menu();
 		$menus->GetAll();
 		$options['image'] = '16';
-		$options['class'] = 'action-link';
+		$options['class'] = 'action-link-tab';
+		$options['title'] = "Edit menu";
 		$list = array();
 		//create list
 		foreach($menus->all as $menu){
@@ -41,6 +42,7 @@ class MenuController extends BaseController{
 		}
 		//create the actions options
 		$options['image'] = '24';
+		$options['title'] = "Add menu";
 		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/menu/add',$options));
 		// bind the params to smarty
 		$smarty->assign('sublinks',$links);
@@ -130,7 +132,7 @@ class MenuController extends BaseController{
 	}
 
 	public static function Admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
+		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
 		
 		$tabs = array(Core::l('Menus','admin/menu/list'));
 		$smarty->assign('tabs',$tabs);
@@ -174,7 +176,6 @@ class MenuController extends BaseController{
 					}
 					self::ListMenuItems($args[2]);
 					$content = $smarty->fetch('list.tpl');
-					$jsonObj->callback = 'Dialog';
 				}else{
 					Core::SetMessage('You must specify a menu!', 'error');
 				}
