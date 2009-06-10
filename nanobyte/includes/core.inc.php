@@ -43,11 +43,11 @@
    		}
 	}
 	
-	public function DecodeConfParams($param){
+	public function decodeConfParams($param){
  		return str_rot13(base64_decode($param));
  	}
 
-	public function StartSession(){
+	public function startSession(){
 		$sess = new SessionManager();
 		session_set_cookie_params(SESS_TTL);
 	    session_start();
@@ -67,17 +67,17 @@
  		}else{
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
-		if(array_key_exists('image',$options)){
+		if(isset($options['image'])){
 			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
 		}
-		$class = array_key_exists('class',$options) ? $options['class'] : '';
-		$id = array_key_exists('id',$options) ? $options['id'] : '';
-		$title = array_key_exists('title',$options) ? $options['title'] : '';
+		$class = isset($options['class']) ? $options['class'] : '';
+		$id = isset($options['id']) ? $options['id'] : '';
+		$title = isset($options['title']) ? $options['title'] : '';
 		$link = "<a href='{$url}' class='{$class}' id='{$id}' title='{$title}'>{$text}</a>";
 		return $link;
 	}
 	
-	public function SetMessage($message=null, $type='status'){
+	public function setMessage($message=null, $type='status'){
 		if (!isset($_SESSION['messages'])){
 			$_SESSION['messages'] = array();
 		}
@@ -88,7 +88,7 @@
 		return $_SESSION['messages'];
 	}
 	
-	public function GetMessages($type=null, $clear=true){
+	public function getMessages($type=null, $clear=true){
 		$messages = $_SESSION['messages'];
 		if ($type){
 			if ($clear){
@@ -106,7 +106,7 @@
 		return array();
 	}
 	
-	public function AuthUser($user, $perm){
+	public function authUser($user, $perm){
 			if (array_key_exists($perm, $user->permissions)){
 				return true;
 			}else{
@@ -114,7 +114,7 @@
 			}
 	}
 
- 	public function IsSingle($item){
+ 	public function isSingle($item){
  		if (count($item) == 1){
  			return true;
  		}else{
@@ -122,7 +122,7 @@
  		}
  	}
 	
- 	public function Url($path){
+ 	public function url($path){
  		if (CLEANURL){
  			return PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;;
  		}else{
@@ -133,7 +133,7 @@
  		}
  	}
 	
-	public static function FileUpload($file){
+	public function fileUpload($file){
 		$filename = $file['name']; // Get the name of the file (including file extension).
 		if(move_uploaded_file($file['tmp_name'],UPLOAD_PATH . $filename)){
     		return true;
@@ -142,7 +142,7 @@
 		}
 	}
 	
-	public function EnabledMods(){
+	public function enabledMods(){
 		$modsList = Module::GetEnabled('module');
 		foreach($modsList as $mod){
 			$this->modsEnabled[$mod['name']] = true;
@@ -151,7 +151,7 @@
 		}
 	}
 	
-	public function CheckAlias($alias){
+	public function checkAlias($alias){
 		$dbh = DBCreator::GetDBObject();
 		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
 		$query->execute(array(0=>$alias));
@@ -163,7 +163,7 @@
 		}
 	}
  
-	public function ArraySearchRecursive($needle, $haystack, $inverse = false, $limit = 1) {
+	public function arraySearchRecursive($needle, $haystack, $inverse = false, $limit = 1) {
 		# Settings
 		$path = array ();
 		$count = 0;
@@ -195,10 +195,21 @@
 				}
 			}
 		}
-	 
-		return $path;
+//		return implode('|',$path);
+return $path;
 	}
+ 
+ 	public function array_path_insert(&$array, $path, $value){
+		$path_el = explode('|', $path);
+		$arr_ref =& $array;
+		$count = count($path_el);
+		for($i=0; $i<$count; $i++){
+			$arr_ref =& $arr_ref[$path_el[$i]];
+		}
+		$arr_ref = $value;
+    }
+ 	
  }
  //ini_set('zlib.output_compression', 'On');
- spl_autoload_register(array("Core","autoload"));
+ spl_autoload_register(array('Core',"autoload"));
 ?>

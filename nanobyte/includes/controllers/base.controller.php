@@ -1,7 +1,7 @@
 <?php
 
 class BaseController{
-	public static function Redirect($page=null,$ajax=false){
+	public static function redirect($page=null,$ajax=false){
 		if ($page && !$ajax){ 
 			header("location: " . Core::Url($page), true, 303);
 		}elseif ($page && $ajax){ 
@@ -14,7 +14,7 @@ class BaseController{
 		exit;
 	}
 	
-	public static function DisplayMessages(){
+	public static function displayMessages(){
 		global $smarty;
 		if(isset($_SESSION['messages'])){
 			$messages = Core::getMessages();
@@ -69,13 +69,13 @@ class BaseController{
 		return $output;
 	}
 	
-	public function GetStart($page,$limit){
+	public static function getStart($page,$limit){
 		if (!$page || $page == ""){$page = 1; } 
 		$start = (($page - 1) * $limit) ;
 		return $start;
 	}
 	
-	public static function VerifyFile($file){
+	public static function verifyFile($file){
 		$filename = $file['name'];
 		$ext = substr($filename, strripos($filename, '.')); // Get the extension from the filename.
 		$allowed_filetypes = explode(', ',FILE_TYPES);
@@ -93,7 +93,7 @@ class BaseController{
 		return isset($error) ? $error : false;
 	}
 	
-	public static function AddCss($file=null, $media='all'){
+	public static function addCss($file=null, $media='all'){
 		static $cssFiles = array();
 		if($file != null){
 			$cssFiles[] = $file;
@@ -101,7 +101,7 @@ class BaseController{
 		return $cssFiles;
 	}
 	
- 	public static function AddJs($file=null){
+ 	public static function addJs($file=null){
  		static $jsFiles;
 		if($file != null){
 			$jsFiles[] = $file;
@@ -109,16 +109,29 @@ class BaseController{
 		return $jsFiles;
  	}
 	
-	public static function GetHTMLIncludes(){
+	public static function getHTMLIncludes(){
 		global $smarty;
+		$includes = '';
 		if(COMPRESS){
-			$smarty->assign(array('js'=>self::CompressFiles(self::AddJs(),'js'),'css'=>self::CompressFiles(self::AddCss(),'css')));
+			$includes = "<link type='text/css' rel='stylesheet' href='".self::CompressFiles(self::AddCss(),'css')."' />\n";
+			$includes .= "<script type='text/javascript' src='".self::CompressFiles(self::AddJs(),'js')."'></script>\n";
+//			var_dump(self::CompressFiles(self::AddCss(),'css'),self::CompressFiles(self::AddJs(),'js'),$includes);
+			$smarty->assign('includes',$includes);
 		}else{
-			$smarty->assign(array('js'=>self::AddJs(),'css'=>self::AddCss()));
+			$css = self::AddCss();
+			foreach($css as $c){
+				$includes .= "<link type='text/css' rel='stylesheet' href='{$c}' />\n";
+			}
+			$js = self::AddJs();
+			foreach($js as $j){
+				$includes .= "<script type='text/javascript' src='{$j}'></script>\n";
+			}
+			$smarty->assign('includes',$includes);
+			
 		}
 	}
 	
-	public static function HandleImage($image,$resize=null){
+	public static function handleImage($image,$resize=null){
 		$filename = $image['name'];
 		$error = BaseController::VerifyFile($image);
 		if ($error == false){
@@ -139,7 +152,7 @@ class BaseController{
 		
 	}
 	
-	public static function ResizeImage($image, $thumb_x){
+	public static function resizeImage($image, $thumb_x){
 		$imagepath = UPLOAD_PATH.$image['name'];
 		//open original (uploaded) image, based on type.
 		switch($image['type']) {
@@ -185,7 +198,7 @@ class BaseController{
 	    return $uri;
 	}
 	
-	public static function GetThemeList(){
+	public static function getThemeList(){
 		$dirs = glob('templates/*', GLOB_ONLYDIR);
 		foreach($dirs as $dir){
 			$dir = str_replace('templates/','',$dir);
@@ -194,17 +207,12 @@ class BaseController{
 		return $theme;
 	}
 	
-	public static function CompressFiles($fileArray,$type){
-		$cache 	  = true;
+	public static function compressFiles($fileArray,$type,$output=false){
 		$cachedir = UPLOAD_PATH . 'cache';
 	// Determine last modification date of the files
 		$lastmodified = 0;
 		while(list(,$element) = each($fileArray)){
 			$path = realpath($element);
-//			if(($type == 'js' && substr($path, -3) != '.js') || ($type == 'css' && substr($path, -4) != '.css')){
-//				header ("HTTP/1.0 403 Forbidden");
-//				exit;	
-//			}
 			$lastmodified = max($lastmodified, filemtime($path));
 		}
 	
@@ -212,95 +220,90 @@ class BaseController{
 		$hash = $lastmodified . '-' . md5(implode(',',$fileArray));
 //		header ("Etag: \"" . $hash . "\"");
 	
-//		if(isset($_SERVER['HTTP_IF_NONE_MATCH']) && stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) == '"' . $hash . '"') {
-//			// Return visit and no modifications, so do not send anything
-//			header ("HTTP/1.0 304 Not Modified");
-//			header ('Content-Length: 0');
-//		}else{
-			// First time visit or files were modified
-			if($cache) 
-			{
-				// Determine supported compression method
-				$gzip = strstr($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip');
-				$deflate = strstr($_SERVER['HTTP_ACCEPT_ENCODING'], 'deflate');
-		
-				// Determine used compression method
-				$encoding = $gzip ? 'gzip' : ($deflate ? 'deflate' : 'none');
-		
-				// Check for buggy versions of Internet Explorer
-				if (!strstr($_SERVER['HTTP_USER_AGENT'], 'Opera') && 
-					preg_match('/^Mozilla\/4\.0 \(compatible; MSIE ([0-9]\.[0-9])/i', $_SERVER['HTTP_USER_AGENT'], $matches)) {
-					$version = floatval($matches[1]);
-					
-					if ($version < 6)
-						$encoding = 'none';
-						
-					if ($version == 6 && !strstr($_SERVER['HTTP_USER_AGENT'], 'EV1')) 
-						$encoding = 'none';
-				}
-				
-				// Try the cache first to see if the combined files were already generated
-//				$cachefile = 'cache-' . $hash . '.' . $type . ($encoding != 'none' ? '.' . $encoding : '');
-				$cachefile = 'cache-' . $hash . '.' . $type;
-//				if (file_exists($cachedir . '/' . $cachefile)) {
-//					if ($fp = fopen($cachedir . '/' . $cachefile, 'rb')) {
-//	
-//						if ($encoding != 'none') {
-//							header ("Content-Encoding: " . $encoding);
-//						}
-//					
-//						header ("Content-Type: text/" . $type);
-//						header ("Content-Length: " . filesize($cachedir . '/' . $cachefile));
-//			
-//						fpassthru($fp);
-//						fclose($fp);
-//						exit;
-//					}
-//				}
-			}
-		
-			// Get contents of the files
-			$contents = '';
-			reset($fileArray);
-			while (list(,$element) = each($fileArray)) {
-				$path = realpath($element);
-//				var_dump($path);
-				$contents .= "\n\n" . file_get_contents($path);
-			}
+	// First time visit or files were modified
+
+		// Check for buggy versions of Internet Explorer
+		if (!strstr($_SERVER['HTTP_USER_AGENT'], 'Opera') && 
+			preg_match('/^Mozilla\/4\.0 \(compatible; MSIE ([0-9]\.[0-9])/i', $_SERVER['HTTP_USER_AGENT'], $matches)) {
+			$version = floatval($matches[1]);
 			
-			// Send Content-Type
+			if ($version < 6)
+				$encoding = 'none';
+				
+			if ($version == 6 && !strstr($_SERVER['HTTP_USER_AGENT'], 'EV1')) 
+				$encoding = 'none';
+		}
+		
+		// Try the cache first to see if the combined files were already generated
+//				$cachefile = 'cache-' . $hash . '.' . $type . ($encoding != 'none' ? '.' . $encoding : '');
+		$cachefile = 'cache-' . $hash . '.' . $type;
+		
+		// Get contents of the files
+		$contents = '';
+		reset($fileArray);
+		while (list(,$element) = each($fileArray)) {
+			$path = realpath($element);
+//				var_dump($path);
+			$contents .= file_get_contents($path);
+		}
+		
+		// Send Content-Type
 //			header ("Content-Type: text/" . $type);
-//			
-//			if (isset($encoding) && $encoding != 'none') 
-//			{
-//				// Send compressed contents
-//				$contents = gzencode($contents, 9, $gzip ? FORCE_GZIP : FORCE_DEFLATE);
-				$contents = gzcompress($contents, 9);
-//				header ("Content-Encoding: " . $encoding);
-//				header ('Content-Length: ' . strlen($contents));
-//				echo $contents;
-//			} 
+		$encoding = self::getEncodeType();
+//		if (isset($encoding) && $encoding != 'none' && $output===true) 
+//		{
+////				// Send compressed contents
+////				$contents = gzencode($contents, 9, $gzip ? FORCE_GZIP : FORCE_DEFLATE);
+//			$contents = gzcompress($contents, 9);
+//			header ("Content-Encoding: " . $encoding);
+//			header ('Content-Length: ' . strlen($contents));
+//			echo $contents;
+//			return;
+//		} 
 //			else 
 //			{
 //				// Send regular contents
 //				header ('Content-Length: ' . strlen($contents));
 //				echo $contents;
 //			}
-	
+
 			// Store cache
-			
-			if ($cache) {
-				if ($fp = fopen($cachedir . '/' . $cachefile, 'wb')) {
-					fwrite($fp, $contents);
-					fclose($fp);
+		if ($fp = fopen($cachedir . '/' . $cachefile, 'wb')) {
+			fwrite($fp, preg_replace('!^\s*/\*.*?\*/!sm','',$contents));
+			fclose($fp);
+		}
+		
+		return $cachedir . '/' . $cachefile;
+	}
+
+	public static function getCacheFile($file, $type){
+		$encoding = self::getEncodeType();
+		if (file_exists($file)) {
+//			if ($fp = fopen($file, 'rb')) {
+				if ($encoding != 'none') {
+//					header ("Content-Encoding: " . $encoding);
 				}
-//				var_dump($cachedir . '/' . $cachefile);
+			
+				header ("Content-Type: text/" . $type);
+				header ("Content-Length: " . filesize($file));
+	
+				echo utf8_decode(file_get_contents($file));
+//				fclose($fp);
+//				return;
 //			}
-			return $cachedir . '/' . $cachefile;
 		}
 	}
 
-	public static function GetThemeIncludes(){
+	public static function getEncodeType(){
+		// Determine supported compression method
+		$gzip = strstr($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip');
+		$deflate = strstr($_SERVER['HTTP_ACCEPT_ENCODING'], 'deflate');
+
+		// Determine used compression method
+		return $gzip ? 'gzip' : ($deflate ? 'deflate' : 'none');
+	}
+
+	public static function getThemeIncludes(){
 		$themePathArray = explode('/',THEME_PATH);
 		if (file_exists(THEME_PATH.'/'.$themePathArray[1].'.xml')){
 			$xml = simplexml_load_file(THEME_PATH.'/'.$themePathArray[1].'.xml');
@@ -314,4 +317,28 @@ class BaseController{
 			Core::SetMessage('Configuration file '.THEME_PATH.'/'.$themePathArray[1].'.xml is unreadable or does not exist!', 'error');
 		}
 	}
+
+	public static function emailForm($method,$email=array('id'=>'','subject'=>'','body'=>'','function'=>'')){
+		$form = new HTML_QuickForm('email','post',$method);
+		//set form default values
+		$form->setdefaults(array(
+			'id'=>$email['id'],
+			'subject'=>$email['subject'],
+			'body'=>$email['body'],
+			'function'=>$email['function']
+		));
+		//create form elements
+		$form->addElement('header','',"Email Details for {$email['function']}");
+		$form->addElement('hidden','id');
+		$form->addElement('text', 'subject', 'Subject', array('size'=>63, 'maxlength'=>50));
+		$form->addElement('textarea', 'body', 'Body',array('rows'=>15,'cols'=>60));
+		$form->addElement('text', 'function', 'Function', array('size'=>63, 'maxlength'=>50));
+		$form->addElement('submit','submit','Submit');
+		if(isset($_POST['submit']) && $form->validate()){
+			$emailObj=new Email();
+			return $emailObj->setEmailData($form->exportValues());
+		}
+		return $form->toArray();
+	}
+
 }

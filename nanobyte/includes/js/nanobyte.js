@@ -2,7 +2,8 @@
  * @author michael
  */
 var nanobyte = {
-	ui: '',
+	ui: {index: 0},
+	lastUI: {index: 0},
 	submitForm : function(form){
 		if(this.initValidate(form)===true){
 			$.ajax({
@@ -13,11 +14,10 @@ var nanobyte = {
 				success: function(r){
 					if(r.callback){
 						eval(r.callback+'("'+r.args+'")');
-					}
-					nanobyte.showInlineMessage(r.messages);
-					if(!nanobyte.empty(r.content)){
+					}else if(!nanobyte.empty(r.content)){
 						$("#content").html(r.content).prepend(r.tabs).fadeIn('slow');
 					}
+					nanobyte.showInlineMessage(r.messages);
 					$(this).dialog('close');
 				}
 			});
@@ -148,8 +148,8 @@ var nanobyte = {
 	changeLink : function(args){
 		var argsArray = args.split('|');
 		var boolStr = argsArray[1] == 'enable' ? ['1','0'] : ['0','1'];
-		var newSrc = $('#'+argsArray[2]).parents('td:first').siblings('.enabled').find('img').attr('src').replace(boolStr[0],boolStr[1]);
-		$('#'+argsArray[2]).attr('href',$('#'+argsArray[2]).attr('href').replace(argsArray[0],argsArray[1])).children('img').attr('src',$('#'+argsArray[2]).children('img').attr('src').replace(argsArray[0],argsArray[1])).parents('td:first').siblings('.enabled').find('img').attr('src',newSrc);
+		var newSrc = $('#'+argsArray[2]).parents('td:first').siblings('.'+argsArray[3]).find('img').attr('src').replace(boolStr[0],boolStr[1]);
+		$('#'+argsArray[2]).attr('href',$('#'+argsArray[2]).attr('href').replace(argsArray[0],argsArray[1])).children('img').attr('src',$('#'+argsArray[2]).children('img').attr('src').replace(argsArray[0],argsArray[1])).parents('td:first').siblings('.'+argsArray[3]).find('img').attr('src',newSrc);
 		this.hideLoader();
 		return false;
 	},
@@ -197,4 +197,8 @@ var nanobyte = {
 			false;
 		}
 	},
+	closeParentTab : function(e){
+		$('a[href=#'+$(e).parents('.ui-tabs-panel:first').attr('id')+']').next('a.tabClose').click();
+	}
 }
+

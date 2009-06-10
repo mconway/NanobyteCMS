@@ -98,6 +98,7 @@ $(document).ready(function(){
 				data: 'actions=/ajax'
 			} ,
 			select : function(event, ui){
+				nanobyte.lastUI = nanobyte.ui;
 				nanobyte.ui = ui;
 			},
 			fx : {
@@ -110,16 +111,16 @@ $(document).ready(function(){
 		});
 	});
 	$('.tabClose').live('click',function(){
-		var panelId = $(this).attr('id').replace(/tab_/,'');
-		$(this).parents('.tabs').tabs('remove',panelId).tabs('select',panelId-1);
+		$(this).parents('.tabs').tabs('remove',$(this).attr('id').replace(/tab_/,'')).tabs('select',nanobyte.lastUI.index);
 	});
 	$('.toggle').live('click',function(){
 		var img = $(this).children('img');
 		$(this).parent().next().slideToggle('slow');
-		if(img.attr('src')=='templates/NanobyteBlue/images/enable-16.png'){
-			img.attr('src','templates/NanobyteBlue/images/disable-16.png');
+		var path = 'templates/NanobyteBlue/images/';
+		if(img.attr('src')==path+'enable-16.png'){
+			img.attr('src',path+'disable-16.png');
 		}else{
-			img.attr('src','templates/NanobyteBlue/images/enable-16.png');
+			img.attr('src',path+'enable-16.png');
 		}
 	})
 	$('#pager a').livequery(function(){

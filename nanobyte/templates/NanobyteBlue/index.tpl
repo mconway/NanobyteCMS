@@ -17,7 +17,7 @@
 			<div id="more">More Links Here...</div>
 		</div>
 	</div>
-	<div class="content-block" id="projects">
+<!--	<div class="content-block" id="projects">
 		<div class="contentheader">
 			<h2 class="title">Current Projects</h2>
 			<span class="toggle"><img src="templates/NanobyteBlue/images/disable-16.png"/></span>
@@ -42,7 +42,7 @@
 				<li><a href="{$posts.3.url}">Other 3</a></li>
 			</ul>
 		</div>
-	</div>
+	</div>-->
 {elseif $post}
 	{include file="post.tpl"}
 	{foreach from=$comments item=comment}

@@ -1,7 +1,11 @@
 <?php
     class Email{
-    	
+    	private $html;
+		private $body;
+		private $dbh;
+		
 		public function __construct(){
+			$this->dbh = DbCreator::GetDBObject();
 			$this->headers = array();
 			$this->from = EMAIL_FROM;
 			$this->clearAllRecipients();
@@ -37,6 +41,8 @@
 		
 		public function setBody($body){
 			$this->body = wordwrap(trim($body),$this->wordwrap);
+//			if($this->isHTML)
+//				$this->body = nl2br($this->body);
 		}
 		
 		public function clearAllRecipients(){
@@ -78,7 +84,7 @@
 		
 		private function sendSMTP(){ //todo : all failed messages to log if available
 			// Open an SMTP connection
-			$this->smtp_socket = fsockopen ($this->smtp_server, $this->smtp_port, &$errno, &$errstr, 1);
+			$this->smtp_socket = fsockopen ($this->smtp_server, $this->smtp_port, $errno, $errstr, 1);
 			if (!$this->smtp_socket){
 				Core::SetMessage("Failed to even make an SMTP connection",'error');
 				return false;
@@ -159,5 +165,28 @@
 		private function useSMTP($smtp){
 			$this->smtp = $smtp;
 		}
+	
+		public function getEmailData($function){
+			$query = $this->dbh->prepare("SELECT * FROM ".DB_PREFIX."_email WHERE function=:function");
+			$query->execute(array(':function'=>$function));
+			return $query->fetch(PDO::FETCH_ASSOC);
+		}
+	
+		public function setEmailData($data){
+			$bind = array(':sub'=>$data['subject'],':body'=>$data['body'],':func'=>$data['function']);
+			if(isset($data['id']) && !empty($data['id'])){
+				$query = $this->dbh->prepare('UPDATE '.DB_PREFIX.'_email SET subject=:sub, body=:body, function=:func WHERE id=:id');
+				$bind[':id'] = $data['id'];
+			}else{
+				$query = $this->dbh->prepare('INSERT INTO '.DB_PREFIX.'_email SET subject=:sub, body=:body, function=:func');
+			}
+			$query->execute($bind);
+			if($query->rowCount()==1){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	
 	}
 ?>

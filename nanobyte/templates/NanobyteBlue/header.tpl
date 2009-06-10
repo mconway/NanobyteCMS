@@ -4,19 +4,20 @@
 		<title>{$sitename}::{$title | default: 'Untitled'}</title>
 		<base href="{php}print SITE_DOMAIN.'/'.PATH{/php}" />
 		<link rel="alternate" type="application/rss+xml" title="{$sitename} Feed" href="{$feedurl}" />
-		{foreach from=$css item=inc}
+		{$includes}
+		{*foreach from=$css item=inc}
 			<link type="text/css" rel="stylesheet" href="{eval var=$inc}" />
 		{/foreach}
 		{foreach from=$js item=script}
 			<script type="text/javascript" src="{eval var=$script}"></script>
-		{/foreach}
+		{/foreach*}
 	</head>
 	<body>
 	<div id="header">
 		<div id="banner">
-			<div id="logo"></div>
-			<div id="sitename">{$sitename}</div>
-			<div id="siteslogan">{$siteslogan}</div>
+			{if $logo!=''}<div id="logo"><img src="{$logo}"></div>
+			{else}<div id="sitename">{$sitename}</div>
+			<div id="siteslogan">{$siteslogan}</div>{/if}
 		</div>
 		<div id="menu">
 			{foreach from=$menu item=link}

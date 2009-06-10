@@ -1,8 +1,8 @@
 <?php
-/*
+/**
  * Index page logic
- * All page requests are directed here
- * Since 5/2008
+ * All page requests are directed here. The correct Classes and functions are called automagically to display the page
+ * Since 5/1/2008
  */
 ini_set('display_messages',E_ALL);
 //require the Core and Smarty Classes
@@ -11,7 +11,7 @@ require_once './includes/contrib/smarty/libs/Smarty.class.php';
 require_once './includes/contrib/geshi/geshi.php';
 require_once './includes/config.inc.php';
 
-// Make teh Core Object (Ghetto Bootstrap)
+// Make the Core Object (Ghetto Bootstrap)
 $core = new Core();
 
 //Start the session and create any objects we need
@@ -28,7 +28,7 @@ BaseController::AddCss('includes/js/tango/skin.css');
 //Add Global JS Files
 BaseController::AddJs('includes/js/jquery.js');
 BaseController::AddJs('includes/js/livequery.js');
-BaseController::AddJs('includes/js/jquery.ui.js');
+BaseController::AddJs('includes/js/jquery-ui-1.7.2.custom.js');
 BaseController::AddJs('includes/js/jquery.jcarousel.js');
 BaseController::AddJs('includes/js/pause.js');
 BaseController::AddJs('includes/js/nanobyte.js');
@@ -40,8 +40,26 @@ BaseController::GetThemeIncludes();
 
 //Assign Global Site Variables to Smarty
 $smarty->assign('sitename',SITE_NAME);
+$smarty->assign('logo',SITE_LOGO);
 $smarty->assign('feedurl', $core->url('rss'));
 $smarty->assign('siteslogan', SITE_SLOGAN);
+if(isset($_GET['file']) && isset($_GET['type']) && COMPRESS){
+	BaseController::getCacheFile($_GET['file'],$_GET['type']);
+	exit;
+}elseif(isset($_GET['file']) && isset($_GET['type'])){
+	if(($_GET['type']=='js'&&substr($_GET['file'],-2)==$_GET['type'])||($_GET['type']=='css'&&substr($_GET['file'],-3)==$_GET['type'])){
+		if(file_exists($_GET['file'])){
+			header ("Content-Type: text/" . $_GET['type']);
+			$fp = fopen($_GET['file'],'r');
+			fpassthru($fp);
+			fclose($fp);
+		}
+	}else{
+		die('You cannot access this file directly!');
+	}
+	exit;
+}
+
 $args = "";
 if(!CMS_INSTALLED){
 	if(array_key_exists('page',$_GET)){ 

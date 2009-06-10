@@ -19,9 +19,11 @@
 			return false;
 		}
 	}
+	
 	public static function EncodeConfParams($param){
 		return base64_encode(str_rot13($param));
 	}
+	
 	public static function WriteConfig($params){
 		$cleanurl = $params['cleanurl'] ? 'true' : 'false';
 		$perms = new Perms($params['defaultgroup']);
@@ -45,6 +47,7 @@ define("PATH", '{$params['path']}');
 define("SITE_NAME", '{$params['sitename']}');
 define("SITE_SLOGAN", '{$params['siteslogan']}');
 define("SITE_DOMAIN", '{$params['sitedomain']}');
+define("SITE_LOGO", '{$params['sitelogo']}');
 define("UPLOAD_PATH", '{$params['uploadpath']}');
 define("FILE_TYPES", '{$params['filetypes']}');
 define("FILE_SIZE", '{$params['filesize']}');

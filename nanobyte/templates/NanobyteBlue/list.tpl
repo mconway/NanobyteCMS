@@ -1,5 +1,5 @@
 <div id="{$page}list">
-	<form action="{$self}" method="post">
+	<form action="{$formAction}" method="post">
 	{if $sublinks}
 		{foreach from=$sublinks item=link}
 			{$link}
@@ -41,4 +41,5 @@
 		{$pager}
 	</div>
 </div>
+{if $generated}Page Generated in: {$generated}{/if}
 {*debug*}

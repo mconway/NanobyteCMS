@@ -1,14 +1,36 @@
 <?php
 	class GroupController extends BaseController{
+	
+		public static function add(){
+			//create the form object 
+			$form = new HTML_QuickForm('newgroup','post','admin/group/add');
+			//create form elements
+			$form->addElement('header','','Add New Permissions Group');
+			$form->addElement('text', 'name', 'Group Name', array('size'=>25, 'maxlength'=>60));
+			$form->addElement('text', 'comments', 'Comments', array('size'=>25, 'maxlength'=>60));
+			$form->addElement('submit', 'submit', 'Submit');
+			//apply form prefilters
+			$form->applyFilter('__ALL__', 'trim');
+			$form->applyFilter('__ALL__', 'strip_tags');
+			// Add required Fields
+			$form->addRule('name', 'A Group Name is required.', 'required');
+			//If the form has already been submitted - validate the data
+			if(isset($_POST['submit']) && $form->validate()){
+				$perms = new Perms();
+				$form->process(array($perms,'AddGroup'));
+				Core::SetMessage('Your group has been created successfully.','info');
+			}
+			//send the form to smarty
+			return $form->toArray(); 
+		}
 		
-	    public static function Admin(&$argsArray){
+	    public static function admin(&$argsArray){
 			list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
 			
 			$perms = new Perms();
 			switch($args[1]){
 				case 'add':
-//					$jsonObj->callback = 'Dialog';
-					self::Add($smarty,$jsonObj);
+					$smarty->assign('form',self::Add());
 					$content = $smarty->fetch('form.tpl');
 					break;
 				case 'edit':
@@ -22,7 +44,7 @@
 					break;
 				case 'list': 
 					$perms->GetAll();
-					self::ListGroups($perms,$smarty);
+					$smarty->assign(self::ListGroups($perms));
 					$content = $smarty->fetch('list.tpl');
 					break;
 				case 'select':
@@ -43,34 +65,29 @@
 			}
 			$jsonObj->content = $content;
 		}
+	
+		public static function delete(){
+			if(isset($_POST['group'])){
+	 			$del = $_POST['group'];
+				$retArray = array();
+		 		foreach($del as $delete){
+	 				$deleted = Admin::DeleteObject('groups', 'gid', $delete);
+					if ($deleted === true){
+						array_push($retArray,$delete);
+						Core::SetMessage('Group ID '.$delete.' has been deleted!', 'info');
+					}else{
+						Core::SetMessage('Unable to delete Group ID'.$delete.' , an error has occurred.', 'error');
+					}
+				}
+				return $retArray;
+	 		}else{
+	 			Core::SetMessage('You must choose one or more groups to delete!', 'error');
+	 		}
+			//BaseController::Redirect('admin/perms');
+			exit;
+		}	
 		
-		public static function ListGroups($perms,&$smarty){
-			//create list
-			foreach($perms->all as $group){
-				$list[] = array(
-					'id'=>$group['gid'],
-					'name'=>$group['name'],
-					'comments'=>$group['comments']	
-				);
-			}
-			//create the actions options
-			$actions = array('delete' => 'Delete');
-			$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submit" value="Go!"/>';
-			$options['image'] = '24';
-			$options['class'] = 'action-link-tab';
-			$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/group/add',$options), 'edit'=>Core::l('edit','admin/group/edit',$options));
-			// bind the params to smarty
-			$smarty->assign(array(
-				'cb'=>true,
-				'sublinks'=>$links,
-				'self'=>'admin/group/select',
-				'actions'=>$actions,
-				'extra'=>$extra,
-				'list'=>$list
-			));
-		}
-		
-		public static function Edit($perms,&$smarty){
+		public static function edit($perms,&$smarty){
 			$permList = $perms->GetPermissionsList();
 			$perms->GetAll();
 			$i = 0;
@@ -89,59 +106,44 @@
 				'extra'=>'<input type="submit" value="Submit" name="submit"/>'
 			));
 		} 
+
+		public static function listGroups($perms){
+			//create list
+			$list = array();
+			foreach($perms->all as $group){
+				array_push($list,array(
+					'id'=>$group['gid'],
+					'name'=>$group['name'],
+					'comments'=>$group['comments']	
+				));
+			}
+			//create the actions options
+			$actions = array('delete' => 'Delete');
+			$extra = 'With Selected: {html_options name=actions options=$actions}<input type="submit" name="submit" value="Go!"/>';
+			$options = array(
+				'title' => "Add new group",
+				'image' => "24",
+				'class' => "action-link-tab"
+			);
+			$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/group/add',$options));
+			$options['title'] = 'Edit group';
+			$links['edit'] = Core::l('edit','admin/group/edit',$options);
+			// bind the params to smarty
+			return array(
+				'cb'=>true,
+				'sublinks'=>$links,
+				'formAction'=>'admin/group/select',
+				'actions'=>$actions,
+				'extra'=>$extra,
+				'list'=>$list
+			);
+		}
 		
-		public static function Write($perms){
+		public static function write($perms){
 			$perms->data = $_POST;
 			unset($perms->data['submit']);
 			$perms->commit();
 		}
 		
-		public static function Add(&$smarty,&$jsonObj){
-			//create the form object 
-			$form = new HTML_QuickForm('newgroup','post','admin/group/add');
-			//create form elements
-			$form->addElement('header','','Add New Permissions Group');
-			$form->addElement('text', 'name', 'Group Name', array('size'=>25, 'maxlength'=>60));
-			$form->addElement('text', 'comments', 'Comments', array('size'=>25, 'maxlength'=>60));
-			$form->addElement('submit', 'submit', 'Submit');
-			//apply form prefilters
-			$form->applyFilter('__ALL__', 'trim');
-			$form->applyFilter('__ALL__', 'strip_tags');
-			// Add required Fields
-			$form->addRule('name', 'A Group Name is required.', 'required');
-			//If the form has already been submitted - validate the data
-			if($form->validate()){
-				$perms = new Perms();
-				$form->process(array($perms,'AddGroup'));
-//				$jsonObj->callback = 'nanobyte.addRow';
-//				$jsonObj->args = $perms;
-				Core::SetMessage('Your group has been created successfully.','info');
-	//			BaseController::Redirect('admin/groups');
-			}
-			//send the form to smarty
-			$smarty->assign('form', $form->toArray()); 
-		}
-		
-		public static function Delete(){
-		if(isset($_POST['group'])){
- 			$del = $_POST['group'];
-			$retArray = array();
-	 		foreach($del as $delete){
- 				$deleted = Admin::DeleteObject('groups', 'gid', $delete);
-				if ($deleted === true){
-					array_push($retArray,$delete);
-					Core::SetMessage('Group ID '.$delete.' has been deleted!', 'info');
-				}else{
-					Core::SetMessage('Unable to delete Group ID'.$delete.' , an error has occurred.', 'error');
-				}
-			}
-			return $retArray;
- 		}else{
- 			Core::SetMessage('You must choose one or more groups to delete!', 'error');
- 		}
-		//BaseController::Redirect('admin/perms');
-		exit;
-	}
-	
 	}
 ?>

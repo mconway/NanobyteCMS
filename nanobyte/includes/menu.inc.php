@@ -42,11 +42,11 @@ class Menu{
 //		foreach($results as $row){
 //			if(!isset($this->all[$row['parent_id']])){
 //				if($row['parent_id'] > 0){
-////					$result = $core->ArraySearchRecursive($row['parent_id'],$this->all);
-////					//var_dump($result);
-////					while($foundArray == false){
-////						
-////					}
+//					$result = $core->ArraySearchRecursive($row['parent_id'],$this->all);
+//					var_dump($result);
+///					while($foundArray == false){
+//						
+//					}
 //				}
 //				
 //				$this->all[$row['parent_id']] = array();

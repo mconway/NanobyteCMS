@@ -87,6 +87,7 @@ class AdminController extends BaseController{
 			'sitename'=>SITE_NAME,
 			'siteslogan'=>SITE_SLOGAN,
 			'sitedomain'=>SITE_DOMAIN,
+			'sitelogo'=>SITE_LOGO,
 			'uploadpath'=>UPLOAD_PATH,
 			'filesize'=>FILE_SIZE,
 			'filetypes'=>FILE_TYPES,
@@ -112,12 +113,13 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'path', 'Site Path', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'pearpath', 'Pear Include Path', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitename', 'Site Name', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'sitelogo', 'Site Logo', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'siteslogan', 'Site Slogan', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'limit', 'Default Limit on Table Lists', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'home', 'Default Home Page', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
-		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
+//		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
 		
 		$form->addElement('header','','DB Settings');
 		$form->addElement('text', 'dbuser', 'DB Username', array('size'=>25, 'maxlength'=>60));

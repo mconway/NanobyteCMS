@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * Created Aug 6th
  */
  
@@ -62,7 +62,7 @@
 			}
 			$jsonObj->callback = 'nanobyte.changeLink';
 			$str = $args[1] == 'enable' ? 'disable' : 'enable';
-			$jsonObj->args = $args[1]."|".$str."|mod_".$module->name;
+			$jsonObj->args = $args[1]."|".$str."|mod_".$module->name."|enabled";
 		}else{
 			$core->SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
 		}

@@ -22,6 +22,11 @@ a img{
 	margin-bottom: 5px;
 	position: relative;
 }
+#logo{
+	left:325px;
+	position:relative;
+	top:10px;
+}
 #banner{
 	-moz-border-radius-bottomleft:3px;
 	-moz-border-radius-bottomright:3px;

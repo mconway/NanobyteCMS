@@ -17,6 +17,7 @@ define("PATH", 'Nanobyte/');
 define("SITE_NAME", 'Nanobyte');
 define("SITE_SLOGAN", 'The Wiredbyte CMS');
 define("SITE_DOMAIN", 'http://home.wiredbyte.com');
+define("SITE_LOGO", 'templates/NanobyteBlue/images/nanobyte_small.png');
 define("UPLOAD_PATH", 'files/');
 define("FILE_TYPES", '.jpg, .gif, .png, .bmp, .jpeg');
 define("FILE_SIZE", '524288');
