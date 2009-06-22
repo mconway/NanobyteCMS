@@ -24,6 +24,7 @@ $smarty->force_compile = true;
 // Add the main CSS styles for inclusion
 BaseController::AddCss('includes/js/jquery.jcarousel.css');
 BaseController::AddCss('includes/js/tango/skin.css');
+BaseController::AddCss('includes/js/jquery.tooltip.css');
 
 //Add Global JS Files
 BaseController::AddJs('includes/js/jquery.js');
@@ -31,6 +32,8 @@ BaseController::AddJs('includes/js/livequery.js');
 BaseController::AddJs('includes/js/jquery-ui-1.7.2.custom.js');
 BaseController::AddJs('includes/js/jquery.jcarousel.js');
 BaseController::AddJs('includes/js/pause.js');
+BaseController::AddJs('includes/js/jquery.tooltip.js');
+//BaseController::AddJs('includes/js/jquery.qtip.js');
 BaseController::AddJs('includes/js/nanobyte.js');
 BaseController::AddJs('includes/contrib/nicedit/nicEdit.js');
 //BaseController::AddJs('http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js');
@@ -78,7 +81,7 @@ if(!CMS_INSTALLED){
 	call_user_func(array($class,'Display'),array(&$args,$ajax,&$smarty,&$jsonObj,&$core));
 }else{
 	//Get Blocks
-	ModuleController::GetBlocks();
+	ModuleController::GetBlocks(true);
 	
 	//Create a new User, or use an Already logged in User Object from the Session, then update teh access time
 	$user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);

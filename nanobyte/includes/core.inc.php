@@ -68,7 +68,7 @@
  			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
  		}
 		if(isset($options['image'])){
-			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" title="'.$text.'" alt="'.$text.'"/>';
+			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" alt="'.$text.'"/>';
 		}
 		$class = isset($options['class']) ? $options['class'] : '';
 		$id = isset($options['id']) ? $options['id'] : '';
@@ -196,7 +196,7 @@
 			}
 		}
 //		return implode('|',$path);
-return $path;
+		return $path;
 	}
  
  	public function array_path_insert(&$array, $path, $value){
@@ -209,6 +209,17 @@ return $path;
 		$arr_ref = $value;
     }
  	
+	public function saveSettings($value,$setting){
+		$dbh = DBCreator::GetDbObject();
+		$query = $dbh->prepare("UPDATE ".DB_PREFIX."_settings SET value=:val WHERE setting=:set");
+		$query->execute(array(':val'=>$value,':set'=>$setting));
+		if($query->rowCount()==1){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
  }
  //ini_set('zlib.output_compression', 'On');
  spl_autoload_register(array('Core',"autoload"));

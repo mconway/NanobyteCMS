@@ -2,8 +2,11 @@
  * @author Michael
  */
 var i = 0;
+
 $(document).ready(function(){
 	nanobyte.initLoader();
+	
+	$.preloadImages('templates/NanobyteBlue/images/list-info.png','templates/NanobyteBlue/images/list-error.png');
 	
 	$('#loginform').dialog({
 		autoOpen : false,
@@ -26,7 +29,7 @@ $(document).ready(function(){
 							if(r.messages){
 								nanobyte.showInlineMessage(r.messages);
 								if(r.content=='reload'){
-									window.document.location.reload();
+									setTimeout('window.document.location.reload()',2000);
 								}else{
 									$('#loginform form')[0].reset();
 								}
@@ -131,12 +134,29 @@ $(document).ready(function(){
 				url: me.attr('href')+'/ajax',
 				dataType: 'json',
 				success: function(r){
-//					console.log(r.title);
 					me.parents('.ui-tabs-panel:first').html(r.content).fadeIn();
 				}
 			})
 			return false;
 		});
 	})
+	$('a[title]').livequery(function(){
+		$(this).attr('tabtitle',$(this).attr('title')).tooltip({showURL: false});
+	});
+	$('input[type=file]').live('change',function(){
+		$(this).parents('form:first').submit();
+		console.log($(this).parents('form:first'));
+	});
+//	$('table.sortable tbody').livequery(function(){
+////		console.log('load!')
+//		$(this).sortable({
+//			revert: true,
+//			update: function(element, ui) {
+//				console.log($(this).sortable('serialize')); 
+//			}
+//		});
+//		$('td, th').each(function(){ $(this).css('width',$(this).width()); });
+//	});
+})
 
-});
+

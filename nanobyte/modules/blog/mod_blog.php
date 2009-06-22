@@ -1,7 +1,7 @@
 <?php
     class Mod_Blog{
     	
-		public static function Install(){
+		public static function install(){
 			//register block
 			Module::RegBlock(array('name'=>'PostsByDate', 'module'=>'Blog', 'options'=>''));
 			//add content type
@@ -9,15 +9,20 @@
 			$content->RegisterContentType('Blog Post');
 		}
 		
-		public static function PostsByDate_Block(){
+		public static function uninstall(){
+			$content = new Mod_Content();
+			$content->UnregisterContentType('Blog Post');
+		}
+		
+		public static function postsByDate_Block(){
 			return new Block_PostsByDate();
 		}
 		
-		public function Display(){
+		public function display(){
 			
 		}
 		
-		public function Admin(){
+		public function admin(){
 			
 		}
 	

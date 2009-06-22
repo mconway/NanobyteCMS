@@ -10,13 +10,14 @@
 		<div class="tabs">
 			<ul>
 				{foreach from=$posts item=post}
-					<li><a href={$post.url}>{$post.title}</a></li>
+					<li><a href="{$post.url}">{$post.title}</a></li>
 				{/foreach}
 				<li><a href="#more">More...</a></li>
 			</ul>
 			<div id="more">More Links Here...</div>
 		</div>
 	</div>
+
 <!--	<div class="content-block" id="projects">
 		<div class="contentheader">
 			<h2 class="title">Current Projects</h2>

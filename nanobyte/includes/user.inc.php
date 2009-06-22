@@ -1,27 +1,60 @@
 <?php
 /**
-*User will make a PDO database connection to retrieve user info
- *@author Mike Conway
- *@copyright 2008, Mike Conway
- *@since 01-May-2008
+ * @author Mike Conway <mike@nanobytecms.com>
+ * @copyright Copyright (c) 2009, Mike Conway
+ * @since Version .01
  */
 
+/**
+ * Creates and stores a connection to the database and makes all database calls on the user table.
+ * Handles password and account creation. Handles password resets and getting user data for display
+ */
 class User{
+	/**
+	 * @var object
+	 */
 	private $dbh;
+	/**
+	 * @var string
+	 */
 	private $email;
+	/**
+	 * @var string
+	 */
 	private $group;
+	/**
+	 * @var int
+	 */
 	private	$joined;
+	/**
+	 * @var string
+	 */
 	private $name;
+	/**
+	 * @var string
+	 */
 	private $password;
+	/**
+	 * @var array
+	 */
 	public $patterns;
+	/**
+	 * @var array
+	 */
 	private $permissions;
+	/**
+	 * @var string
+	 */
 	private $salt;
+	/**
+	 * @var integer
+	 */
 	private $uid;
 	
 	/**
-	 * 
-	 * @return 
-	 * @param object $id[optional]
+	 * Create the User object
+	 * @return void
+	 * @param string/integer $id[optional]
 	 */
 	public function __construct($id=null){
 		$this->dbh = DBCreator::GetDbObject();
@@ -48,27 +81,27 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
-	 * @param object $name
+	 * Magic get method for private variables
+	 * @return mixed
+	 * @param mixed $name
 	 */
 	public function __get($name){
 		return $this->$name;
 	}
 
 	/**
-	 * 
-	 * @return 
-	 * @param object $name
-	 * @param object $value
+	 * Magic set method for private variables
+	 * @return void
+	 * @param string $name
+	 * @param mixed $value
 	 */
 	public function __set($name,$value){
 		$this->$name = $value;
 	}
 	
 	/**
-	 * 
-	 * @return 
+	 * Save changed object data to the database
+	 * @return bool
 	 */
 	public function commit(){
 		if($this->pwchanged){
@@ -84,9 +117,10 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
-	 * @param object $array
+	 * Create a new user in the database
+	 * Inserts a new user into the database. Generates an email informing the user of their registration.
+	 * @return bool
+	 * @param array $array
 	 */
 	public function create($array){
 		global $core;
@@ -129,10 +163,11 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
-	 * @param object $length[optional]
-	 * @param object $level[optional]
+	 * Generate a new password to replace a forgotten one
+	 * Generates a new password for an account. Level 4 [default] will randomize the security level used during generation.
+	 * @return string $password
+	 * @param integer $length[optional]
+	 * @param integer $level[optional]
 	 */
 	public function generatePassword($length=6,$level=4){
 		list($usec, $sec) = explode(' ', microtime());
@@ -160,8 +195,8 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
+	 * Get the last page access time of a user
+	 * @return void
 	 */
 	public function getAccessTime(){
 		$query = $this->dbh->prepare("SELECT `online` FROM ".DB_PREFIX."_user where `uid`=:uid");
@@ -171,21 +206,21 @@ class User{
 	}
 
 	/**
-	 * 
-	 * @return 
-	 * @param object $username
-	 * @param object $pass
-	 *  returns 40 Char PW hash salted with Username--- DO NOT EVER CHANGE THIS!!!
+	 * Generate 40 Char PW hash salted with Username--- DO NOT EVER CHANGE THIS!!!
+	 * @return string $password
+	 * @param string $username
+	 * @param string $pass
 	 */	
 	private function getPassword($username, $pass){
 		return sha1($pass . substr(str_rot13(strtolower($username)), 0, 3));
 	}
 
 	/**
-	 * 
-	 * @return 
-	 * @param object $username
-	 * @param object $pass
+	 * Log a user in with a given username and password
+	 * Check the username and password given for login, and create a new user object with full information if successful
+	 * @return bool
+	 * @param string $username
+	 * @param string $pass
 	 */
 	public function login($username, $pass){
 		$pass = $this->GetPassword($username,$pass);
@@ -206,8 +241,9 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
+	 * Log a user out
+	 * Log a user out, destroy the User object and their session
+	 * @return void
 	 */
 	public function logout(){
 		$sname = session_name();
@@ -216,10 +252,10 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
-	 * @param object $start[optional]
-	 * @param object $limit[optional]
+	 * Get data for all users in a database to display
+	 * @return void
+	 * @param integer $start[optional]
+	 * @param integer $limit[optional]
 	 */
 	public function read($start=0, $limit=15){
 		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM ".DB_PREFIX."_user ORDER BY joined DESC LIMIT {$start},{$limit}";
@@ -233,8 +269,9 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
+	 * Request a new password and email it to a user
+	 * Called when a user forgot their password. Verifies the user's information and emails them a new password to use for login.
+	 * @return bool
 	 */
 	public function resetPassword(){
 		$genPw = $this->generatePassword();
@@ -254,16 +291,17 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
+	 * Create an MD5 hash to verify user sessions
+	 * Creates an MD5 hash with username and salt. This allows pages to verify the session has not been hijacked, as it compares to the user's login information.
+	 * @return string
 	 */
 	public function sessionHash(){
 		return md5($this->name . $this->salt);
 	}
 	
 	/**
-	 * 
-	 * @return 
+	 * Sets the last time a user accessed or requested a page
+	 * @return void
 	 */
 	public function setAccessTime(){
 		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user set `online`=:time where `uid`=:uid");
@@ -271,8 +309,8 @@ class User{
 	}
 	
 	/**
-	 * 
-	 * @return 
+	 * Valiate the email given by a user is the same that was registered by that username
+	 * @return bool
 	 */
 	public function validateEmail(){
 		$query = $this->dbh->prepare("SELECT email FROM ".DB_PREFIX."_user WHERE email=:email AND username=:username");

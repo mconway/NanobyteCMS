@@ -29,7 +29,7 @@ class BaseController{
 		return substr($s1, 0, strpos($s1, $s2)); 
 	}
 
-	public static function paginate($limit=15,$total,$filePath,$currentPage) {
+	public static function paginate($limit=LIMIT,$total,$filePath,$currentPage) {
 		$allPages = ceil($total/$limit);
 		$pagination = "";
 		$output = '';
@@ -55,15 +55,20 @@ class BaseController{
 				: Core::l($i,$filePath.$i);
 			}
 		}
-
+		//Set the pager links
+		$first = Core::l('FIRST', $filePath.'1', array('title'=>'Go to the first page','class'=>'pager','image'=>'24'));
+		$prev = Core::l('Prev',$filePath.($currentPage-1), array('title'=>'Back one page','class'=>'pager','image'=>'24'));
+		$next = Core::l('Next',$filePath.($currentPage + 1), array('title'=>'Forward one page','class'=>'pager','image'=>'24'));
+		$last = Core::l('LAST', $filePath.$allPages, array('title'=>'Go to last page','class'=>'pager','image'=>'24'));
+		
 		if($currentPage>1 && $currentPage<$allPages){
-			$output .= Core::l('FIRST', $filePath.'1').' '.Core::l('<',$filePath.($currentPage-1)).' '.$pagination.' '. Core::l('>',$filePath.($currentPage + 1)).' '.Core::l('LAST', $filePath.$allPages);
+			$output .= $first.' '.$prev.' '.$pagination.' '.$next.' '.$last;
 		}
 		elseif ($currentPage>1){
-			$output .= Core::l('FIRST', $filePath.'1').' '.Core::l('<',$filePath.($currentPage-1)).' '.$pagination;
+			$output .= $first.' '.$prev.' '.$pagination;
 		}
 		elseif ($currentPage<$allPages){
-			$output .= $pagination .' '. Core::l('>',$filePath.($currentPage + 1)).' '.Core::l('LAST', $filePath.$allPages);
+			$output .= $pagination .' '.$next.' '.$last;
 		}
 	
 		return $output;

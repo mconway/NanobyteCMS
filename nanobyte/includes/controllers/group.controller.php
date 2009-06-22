@@ -125,7 +125,7 @@
 				'image' => "24",
 				'class' => "action-link-tab"
 			);
-			$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/group/add',$options));
+			$links = array('add'=>Core::l('add','admin/group/add',$options));
 			$options['title'] = 'Edit group';
 			$links['edit'] = Core::l('edit','admin/group/edit',$options);
 			// bind the params to smarty

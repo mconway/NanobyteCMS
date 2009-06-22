@@ -15,7 +15,6 @@
 	}
 	
 	public static function ListModule($page){
-		global $smarty;
 		//create list
 		$modsList = self::GetAll(); //array of objects
 		$list = array();
@@ -26,9 +25,6 @@
 			$options['class'] = 'action-link';
 			$options['id'] = 'mod_'.$module->name;
 			$list[] = array(
-				//'author'=>$module->conf->author, 
-				//'aurl'=> $module->conf->author->attributes()->url,
-				//'aemail'=>$module->conf->author->attributes()->email,
 				'title'=>$module->conf->title, 
 				'version'=>$module->conf->version.'-'.$module->conf->status, 
 				'description' => $module->conf->description,
@@ -38,33 +34,40 @@
 			$options['id'] = "";
 			$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,$options);
 		}
-		//create the actions options
-		//$actions['General Actions'] = array();
-		//$actions['With Selected'] = array( 'editUser'=>'Edit User (1)','delete' => 'Delete User(s)');
-		$smarty->assign('pager', BaseController::Paginate(LIMIT, count($modsList), 'admin/module/list/', $page));
-		// bind the params to smarty
-		//$smarty->assign('actions', $actions);
-		$smarty->assign('list', $list);
-		return $smarty;
+		$smartyVars = array(
+			'pager'=>BaseController::Paginate(LIMIT, count($modsList), 'admin/module/list/', $page),
+			'list'=>$list,
+		);
+		
+		return $smartyVars;
 	}
 	
 	public static function UpdateStatus($args,&$jsonObj){
 		global $core;
-		$module = new Module($args[2]);
-		if($module->Commit()){
-			$core->EnabledMods();
-			$core->SetMessage(strtoupper($module->name). ' has been '.$args[1].'d.','info');
-			if ($args[1] == "enable"){
-				require_once($module->modpath."Mod_".$module->name.'.php');
-				call_user_func(array('Mod_'.$module->name, 'Install'));
-			}else{
-				call_user_func(array('Mod_'.$module->name, 'Uninstall'));
+		if($args[0]=='block'){
+			$module = new Module();
+			if($module->updateBlockStatus($args[2])){
+				$jsonObj->callback = 'nanobyte.changeLink';
+				$str = $args[1] == 'enable' ? 'disable' : 'enable';
+				$jsonObj->args = $args[1]."|".$str."|block_".$args[2]."|status";
 			}
-			$jsonObj->callback = 'nanobyte.changeLink';
-			$str = $args[1] == 'enable' ? 'disable' : 'enable';
-			$jsonObj->args = $args[1]."|".$str."|mod_".$module->name."|enabled";
 		}else{
-			$core->SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
+			$module = new Module($args[2]);
+			if($module->Commit()){
+				$core->EnabledMods();
+				$core->SetMessage(strtoupper($module->name). ' has been '.$args[1].'d.','info');
+				if ($args[1] == "enable"){
+					require_once($module->modpath."Mod_".$module->name.'.php');
+					call_user_func(array('Mod_'.$module->name, 'Install'));
+				}else{
+					call_user_func(array('Mod_'.$module->name, 'Uninstall'));
+				}
+				$jsonObj->callback = 'nanobyte.changeLink';
+				$str = $args[1] == 'enable' ? 'disable' : 'enable';
+				$jsonObj->args = $args[1]."|".$str."|mod_".$module->name."|enabled";
+			}else{
+				$core->SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
+			}
 		}
 //		UserController::Redirect();
 	}
@@ -74,9 +77,9 @@
 		call_user_func(array('Mod_'.$mod, 'Install'));
 	}
 	
-	public static function GetBlocks(){
+	public static function GetBlocks($filter=null){
 		global $smarty;
-		$enabled = Module::GetBlocks(true);
+		$enabled = Module::GetBlocks($filter);
 		foreach($enabled as $block){
 			$position = explode("_",$block['position']);
 			$blockobj = call_user_func(array('Mod_'.$block['providedby'], $block['name'].'_Block'));
@@ -90,10 +93,25 @@
 	}
 	
 	public static function ListBlock(){
-		global $smarty;
 		$blocks = Module::GetBlocks();
-		$smarty->assign('list',$blocks);
-		$smarty->assign('self','admin/blocks');
+		
+		$options['image'] = '16';
+		$options['class'] = 'action-link';
+		foreach($blocks as &$block){
+			$options['id'] = 'block_'.$block['id'];
+			$s = $block['status'] == 1 ?  'Disable' : 'Enable';
+			$block['actions'] = Core::l($s,'admin/block/'.strtolower($s).'/'.$block['id'],$options)
+				." | ".Core::l('Up','admin/block/up/'.$block['id']."/".($block['weight']-1) ,array_merge($options,array('id'=>'','title'=>'Move up')))
+				." | ".Core::l('Down','admin/block/down/'.$block['id']."/".($block['weight']+1) ,array_merge($options,array('id'=>'','title'=>'Move down')));
+			$block['status'] = "<center><img src='".THEME_PATH."/images/{$block['status']}-25.png'/></center>";
+		}
+		
+		$smartyVars = array(
+			'list'=>$blocks,
+			'formAction'=>'admin/blocks',
+			'tableclass' => 'sortable'
+		);
+		return $smartyVars;
 	}
 	
 	public static function Admin(&$argsArray){
@@ -112,7 +130,7 @@
 			// Default is to display the module list
 			case 'list':
 				$func = 'List'.$args[0];
-				self::$func($args[1]);
+				$smarty->assign(self::$func($args[1]));
 				$content = $smarty->fetch('list.tpl');
 				break;
 			case 'details':
@@ -125,6 +143,14 @@ EOF;
 				$jsonObj->callback = 'Dialog';
 				$jsonObj->title = 'Module Information for: '.ucfirst($args[2]);
 				break;
+			case 'down':
+			case 'up':
+			//$args[1] = up/down $args[2] = id $args[3] = weight
+			$module = new Module();
+			if($module->moveBlock($args)){
+				$jsonObj->callback = 'nanobyte.moveRow';
+				$jsonObj->args = 'block_'.$args[2].'|'.$args[1];
+			}
 		}
 		$jsonObj->content = $content;
 	}

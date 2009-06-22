@@ -112,13 +112,38 @@ class Module{
 		return $qSelect->fetchAll(PDO::FETCH_ASSOC);
 	} 
 	
-	public static function GetBlocks($enabled = null){
+	public static function GetBlocks($enabled=null){
 		$where = $enabled ? "WHERE `status`=1" : "";
 		$dbh = DBCreator::GetDbObject();
-		$qSelect = $dbh->prepare("SELECT * FROM ".DB_PREFIX."_blocks WHERE `status`=1 ORDER BY position ASC");
+		$qSelect = $dbh->prepare("SELECT * FROM ".DB_PREFIX."_blocks $where ORDER BY position, weight ASC");
 		$qSelect->execute();
 		return $qSelect->fetchAll(PDO::FETCH_ASSOC);
 	}
+
+	public function updateBlockStatus($id){
+		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_blocks set `status`=status XOR 1 WHERE id=:id");
+		$query->execute(array(':id'=>$id));
+		if($query->rowCount()==1){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	public function moveBlock(&$args){
+		$weight = ($args[1] == 'up' || $args[1]=='down') ? "weight={$args[3]}" : '';
+		$position = $args[1] == 'position' ? "position={$args[3]}" : '';
+		
+		$query = "UPDATE ".DB_PREFIX."_blocks SET {$weight}{$position} WHERE id={$args[2]}";
+		$run = $this->dbh->prepare($query);
+		$run->execute();
+		if($run->rowCount()==1){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 }
 
 

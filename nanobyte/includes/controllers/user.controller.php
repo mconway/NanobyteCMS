@@ -23,10 +23,12 @@ class UserController extends BaseController{
 						$jsonObj->callback = 'nanobyte.closeParentTab';
 						$jsonObj->args = 'input[name=submit][value=Save Changes]';
 					}
-					break;	
+					$jsonObj->title = "Edit user";
+					break;
 				case 'add':
 					$smarty->assign('form',self::RegForm($core,true));
 					$content = $smarty->fetch('form.tpl');
+					$jsonObj->title = "Add new user";
 					break;
 				case 'select':
 					switch($args[2]){
@@ -225,7 +227,7 @@ class UserController extends BaseController{
 		//set form default values
 		$form->setdefaults(array(
 			'name'=>$edituser->name, 
-			'joined'=>date('G:i m.d.y T',$edituser->joined),
+			'joined'=>date('G:i m/d/Y T',$edituser->joined),
 			'email'=>$edituser->email,
 //			'avatar'=>$profile->avatar,
 //			'location'=>$profile->location,
@@ -308,7 +310,7 @@ class UserController extends BaseController{
 			'class' => 'action-link-tab',
 			'title' => 'Add New User'
 		);
-		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/user/add',$options));
+		$links = array('add'=>Core::l('add','admin/user/add',$options));
 		// bind the params to smarty
 		
 		$smartyArray = array(

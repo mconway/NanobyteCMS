@@ -17,6 +17,7 @@ a:visited{
 }
 a img{
 	border: none;
+	outline: none;
 }
 #header{
 	margin-bottom: 5px;
@@ -32,12 +33,8 @@ a img{
 	-moz-border-radius-bottomright:3px;
 	-moz-border-radius-topleft:3px;
 	-moz-border-radius-topright:3px;
-	/*#B2C7D7*/
 	background: #E7EEF3 url(cupertino/images/ui-bg_highlight-soft_100_e7eef3_1x100.png) repeat-x scroll 50% 50%;
 	border:1px solid #DDDDDD;
-	/*
-	background: url('../images/wcms_banner.png');
-	*/
 	height:65px;
 }
 #sitename{
@@ -55,14 +52,6 @@ a img{
 	text-align:right;
 	top:15px;
 }
-/*
-#user{
-	float:right;
-	padding-right:5px;
-	position:relative;
-	top:46px;
-}
-*/
 #header #rbbox{
 	position: absolute;
 	right: 10px;
@@ -135,6 +124,7 @@ a img{
 	display:inline-block;
 	padding:48px 10px 10px 0;
 	width: 50px;
+	outline: none;
 }
 
 #iconmenu a:hover, #iconmenu a.active{
@@ -190,14 +180,8 @@ a img{
 	margin-bottom:15px;
 	padding-bottom:20px;
 	margin-right: 5px;
-	/*background-color: #3c4040;
-	-moz-opacity: .85;
-	filter: alpha(opacity=75);*/
 }
 div.contentheader, .groupItem .itemHeader{
-	/*
-	background: transparent url(../images/contentheader.png) repeat-x scroll;
-	*/
 	height: 23px;
 }
 .groupItem .itemHeader{
@@ -286,7 +270,7 @@ h2.title, h2.title a {
 	clear: both;
 }
 /* tables */
-table.tablesorter {
+table{
 	font-family:arial;
 	color: #000;
 	background-color: #CDCDCD;
@@ -294,46 +278,43 @@ table.tablesorter {
 	font-size: 8pt;
 	width: 100%;
 	text-align: left;
+	border: 1px solid #FFF;
 }
-table.tablesorter thead tr th, table.tablesorter tfoot tr th {
-	background-color: #e6EEEE;
+table thead{
+	background: #E7EEF3 url(cupertino/images/ui-bg_highlight-soft_100_e7eef3_1x100.png) repeat-x scroll 50% 50%;
+}
+table thead tr th, table tfoot tr th {
 	border: 1px solid #FFF;
 	font-size: 8pt;
 	padding: 4px;
 }
-table.tablesorter thead tr .header {
+table thead tr .header {
 	background-image: url(bg.gif);
 	background-repeat: no-repeat;
 	background-position: center right;
 	cursor: pointer;
 }
-table.tablesorter tbody td {
-	color: #3D3D3D;
+table tbody td {
 	padding: 4px;
-	background-color: #FFF;
-	vertical-align: top;
 }
-table.tablesorter tbody tr.odd td {
+table tbody tr.odd td {
 	background-color:#F0F0F6;
 }
-table.tablesorter thead tr .headerSortUp {
+table thead tr .headerSortUp {
 	background-image: url(asc.gif);
 }
-table.tablesorter thead tr .headerSortDown {
+table thead tr .headerSortDown {
 	background-image: url(desc.gif);
 }
-table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+table thead tr .headerSortDown, table thead tr .headerSortUp {
 	background-color: #8dbdd8;
 }
-table.tablesorter tbody td.actions{
+table tbody td.actions{
 	text-align: center;
 }
 .formheader{
 	text-align: center;
 	font-weight:bold;
-	/*
-	background: transparent url(../images/contentheader.png) repeat-x scroll;
-	*/
 }
 .elementcontainer{
 	padding: 15px 10px 10px;
@@ -358,7 +339,6 @@ div.formbutton{
 /*
 Begin Sortables Styles
 */
-
 .groupWrapper
 {
 	width: 373px;
@@ -366,7 +346,6 @@ Begin Sortables Styles
 	margin-right: 10px;
 	min-height: 400px;
 }
-
 #sidebar
 {
 	width: 15%;
@@ -383,29 +362,6 @@ Begin Sortables Styles
 {
 	float: left;
 }
-
-/*
-.groupItem
-{
-	margin-bottom: 20px;
-	background: #F9F9F9;
-}
-*/
-/*
-.groupItem .itemHeader
-{
-	line-height: 20px;
-	background: transparent url(../images/contentheader.png) repeat-x scroll 0 0;
-	color: #fff;
-	padding: 0 10px;
-	cursor: move;
-	font-weight: bold;
-	font-size: 16px;
-	height: 20px;
-	position: relative;
-}
-*/
-
 .edit
 {
 	position: absolute;
@@ -439,17 +395,9 @@ Begin Sortables Styles
 	color: #000;
 	line-height: 1em;
 }
-
 .element{
 	margin-left: 130px;
 }
-/*
-.section {
-	background-color: #3C4040;
-	margin-bottom:	10px;
-	padding-bottom: 10px;
-}
-*/
 #tabs .ui-tabs-panel .post .contentheader{
 	display:none;
 }
@@ -466,11 +414,37 @@ Begin Sortables Styles
 .ui-tabs .ui-tabs-nav li.ui-tabs-selected a.tabClose, .ui-tabs .ui-tabs-nav li.ui-state-disabled a.tabClose, .ui-tabs .ui-tabs-nav li.ui-state-processing a.tabClose{
 	cursor: pointer;
 }
-
 #forgot_pw{
 	display:inline-block;
 	font-size:11px;
 	padding: 10px 0;
 	text-align:center;
 	width:100%;
+}
+.evenrow{
+	background-color: #FFF;
+}
+.oddrow{
+	background-color: #F0F0F0;
+}
+#action-links{
+	float:right;
+	position:relative;
+	top:-44px;
+}
+#action-links a{
+	margin: auto;
+}
+.jcarousel-prev-disabled, .jcarousel-next-disabled{
+	opacity: .2;
+	filter: alpha(opacity=20);
+}
+tbody tr:hover{
+	background-color: #99C2FF;
+}
+tr td{
+	position: relative;
+}
+#pager{
+	text-align: center;
 }

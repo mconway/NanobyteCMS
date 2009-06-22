@@ -84,13 +84,18 @@ class Mod_Content{
 		ContentController::Display($argsArray);
 	}
 	
+	public function getDefaultType(){
+		$row = $this->dbh->query("SELECT setting, value FROM ".DB_PREFIX."_settings WHERE setting='defaultContentType'")->fetch();
+		return $row['value'];
+	}
+	
 	/**
 	 * 
 	 * @return 
 	 */
 	public function getTypes(){
 		foreach($this->dbh->query("SELECT id,name FROM ".DB_PREFIX."_content_types") as $row){
-			array_push($this->types,$row['name']);
+			$this->types[$row['id']] = $row['name'];
 		}
 	}
 	
@@ -181,10 +186,10 @@ class Mod_Content{
 	 * @param object $type
 	 */
 	public function unregisterContentType($type){
-		$delete = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_content_types WHERE name=:name");
-		$delete->execute(array(':name'=>$type));
+		$delete = $this->dbh->prepare("UPDATE ".DB_PREFIX."_content SET type=0 WHERE type=(SELECT id FROM ".DB_PREFIX."_content_types WHERE name=?); DELETE FROM ".DB_PREFIX."_content_types WHERE name=?");
+		$delete->execute(array($type,$type));
 		if($delete->rowCount()==1){
-			return true;	
+			return true;
 		}else{
 			return false;
 		}
@@ -211,7 +216,6 @@ class ContentController extends BaseController{
 		foreach($contents->types as $key=>$tab){
 			array_push($tabs, Core::l($tab,'admin/content/'.$key));
 		}
-		array_push($tabs,Core::l('Settings','admin/content/settings'));
 		if(isset($args[1])){
 			if(is_numeric($args[1])){
 				$smarty->assign(self::GetList($args[1],$args[2]));
@@ -223,6 +227,10 @@ class ContentController extends BaseController{
 						$jsonObj->args = implode('|',$_POST['content']);
 						break;
 					case 'add':
+						if(!isset($_POST['submit']) && isset($_POST['image'])){
+							$json->content = parent::HandleImage($data['image'],'80');
+							exit();
+						}
 						$smarty->assign(self::Form());
 						$content = $smarty->fetch('form.tpl');
 						if(isset($_POST['submit'])){
@@ -243,7 +251,7 @@ class ContentController extends BaseController{
 							$content = $smarty->fetch('form.tpl');
 						}
 						break;	
-					case 'settings':
+					case 'addtype':
 						$content = '';
 						if($args[2]=='addtype'){
 							$smarty->assign('form',ContentController::Form_Settings_AddType());
@@ -251,6 +259,10 @@ class ContentController extends BaseController{
 						}
 						$options['id'] = 'addtype';
 						$content .= Core::l('Add Content Type', 'admin/content/settings/addtype', $options);
+						break;
+					case 'settings':
+						$smarty->assign('form',self::formSettings());
+						$content = $smarty->fetch('form.tpl');
 						break;
 					case 'enable':
 					case 'disable':
@@ -301,7 +313,7 @@ class ContentController extends BaseController{
 		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
 		
 		if(empty($args)){
-			self::DisplayContent(0,1,$smarty);
+			$smarty->assign('posts',self::DisplayContent(1));
 		}elseif(!$args[1]){
 			self::View($args[0]);
 			$content = $smarty->fetch('post.tpl');
@@ -333,24 +345,35 @@ class ContentController extends BaseController{
 	 * @param object $page
 	 * @param object $smarty
 	 */
-	public static function displayContent($type,$page,&$smarty){
+	public static function displayContent($page){
 		$theList = array();
 		$content = new Mod_Content();
-		$content->Read($type,'1',5);
-		foreach ($content->items['content'] as $p){
-			$post = new Mod_Content($p['pid']);
-//			$num = count($post->comments->all);
+		$content->Read($content->getDefaultType(),'1',5);
+		if(!empty($content->items['content'])){
+			foreach ($content->items['content'] as $p){
+				$post = new Mod_Content($p['pid']);
+	//			$num = count($post->comments->all);
+				array_push($theList, array( 
+					'url'=>'content/'.$post->pid, 
+					'title'=>$post->title, 
+					'body'=>$post->body, 
+					'created'=>date('M jS',$post->created),
+					'author'=>$post->author,
+	//				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
+				));
+			}
+		}else{
 			array_push($theList, array( 
-				'url'=>'content/'.$post->pid, 
-				'title'=>$post->title, 
-				'body'=>$post->body, 
-				'created'=>date('M jS',$post->created),
-				'author'=>$post->author,
+				'url'=>'', 
+				'title'=>'No Content to Display', 
+				'body'=>'There is currently no published content to display.', 
+				'created'=>date('M jS'),
+				'author'=>'System',
 //				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
 			));
 		}
 		//$smarty->assign('pager',BaseController::Paginate($posts['limit'], $posts['nbItems'], '', $page));
-		$smarty->assign('posts', $theList);
+		return $theList;
 	}
 	
 	/**
@@ -378,12 +401,13 @@ class ContentController extends BaseController{
 		//set form default values
 
 		if(isset($content)){
-			$form->setdefaults(array(
+			$defaults = array(
 				'pid'=>$content->pid, 
 				'title'=>$content->title, 
-				'body'=> preg_replace('/<br \/>/','',$content->body),
-				'published'=>$content->published
-			));
+				'published'=>$content->published,
+				'body'=> preg_replace('/<br \/>/','',$content->body)
+			);
+			$form->setdefaults($defaults);
 			$header = 'Edit Content';
 		}else{
 			$form->setdefaults(array(
@@ -430,6 +454,47 @@ class ContentController extends BaseController{
 		$smarty->assign('tabbed',$tablinks);
 	}
 	
+	public static function formSettings(){
+		$content = new Mod_Content();
+		
+		//Create the form object
+		$form = new HTML_QuickForm('settings','post','admin/content/settings');
+		//set form default values
+
+		$defaults = array(
+			'type'=>$content->getDefaultType() 
+		);
+		$form->setdefaults($defaults);
+		
+		
+		$content->GetTypes();
+		
+		//create form elements
+		$form->addElement('header','','Content Settings');
+		$form->addElement('select', 'type', 'Default Content Type', $content->types);
+		
+		$form->addElement('submit', 'submit', 'Save');
+		
+		//apply form prefilters
+		$form->applyFilter('__ALL__', 'trim');
+
+		//If the form has already been submitted - validate the data
+		if(isset($_POST['submit']) && $form->validate()){
+			global $core;
+//			foreach($form->exportValues() as $val){
+//				$core->saveSettings($val,$setting);
+//			}
+			if($core->saveSettings($form->exportValue('type'),'defaultContentType')){
+				$core->setMessage("Settings saved Successfully!", 'info');
+			}else{
+				$core->setMessage("Unable to save settings.","error");
+			}
+		
+		}
+		//send the form to smarty
+		return $form->toArray();
+	}
+	
 	/**
 	 * 
 	 * @return 
@@ -458,11 +523,13 @@ class ContentController extends BaseController{
 			$options['title'] = "Edit-".$post['title'];
 			$actions .= Core::l('edit','admin/content/edit/'.$post['pid'],$options);
 			
+			$modified = !empty($post['modified']) ? date('m-d-Y',$post['modified']) : 'N/A';
+			
 			array_push($list, array(
 				'id'=>$post['pid'], 
 				'title'=>$post['title'], 
 				'created'=>date('m-d-Y',$post['created']),
-				'modified'=>date('m-d-Y',$post['modified']),
+				'modified'=>$modified,
 				'author'=>ucfirst($post['author']),
 				'published'=>"<center><img src='".THEME_PATH."/images/{$post['published']}-25.png'/></center>",
 				'actions'=>$actions
@@ -472,7 +539,7 @@ class ContentController extends BaseController{
 		//create the actions options and bind the params to smarty
 		return array(
 			'pager'=>BaseController::Paginate($content->items['limit'], $content->items['nbItems'], 'admin/content/'.$type.'/', $page),
-			'sublinks'=>array('header'=>'Actions: ','add'=>Core::l('add','admin/content/add',$options)),
+			'sublinks'=>array('add'=>Core::l('add','admin/content/add',$options),'settings'=>Core::l('settings','admin/content/settings',array('image'=>'24', 'class'=>'action-link-tab', 'title'=>'Content Settings')),'addtype'=>Core::l('addtype','admin/content/addtype',array('image'=>'24', 'class'=>'action-link-tab', 'title'=>'Add Content Type'))),
 			'cb'=>true,
 			'formAction'=>'admin/content',
 			'actions'=>array('delete' => 'Delete'),
@@ -521,8 +588,9 @@ class ContentController extends BaseController{
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
 		//upload files if needed
 		$image = '';
+		var_dump($data['image']);
 		if(!empty($data['image']['name'])){
-			$image = BaseController::HandleImage($data['image'],'80');
+			$image = parent::HandleImage($data['image'],'80');
 		}
 		$codestr = substr($data['body'],strpos($data['body'],'<code>'),strpos($data['body'],'</code>'));
 		$codestr = str_replace('<code>','',$codestr);

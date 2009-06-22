@@ -1,39 +1,9 @@
 <?php
 
-class Mod_Stats
+class Mod_Stats extends Module
 {
-	public static function ListStats($page){
-		global $smarty;
-		$stats = new Stats();
-		$start = BaseController::GetStart($page,15);
-		$statsArray = $stats->Read($start, $_POST['Date_Day'], $_POST['Date_Month'], $_POST['Date_Year']);
-		
-		$smarty->assign('list',$statsArray['items']);
-		$smarty->assign('pager',BaseController::Paginate($statsArray['limit'], $statsArray['nbItems'], 'admin/stats/', $page));
-		$hits = $stats->UniqueHits();	
-		
-		$formTop = '<div><form id="daterange" name="daterange" method="post" action="http://beta.wiredbyte.com/WiredCMS/admin/stats">{html_select_date}<input type="submit" name="Submit" value="Submit" /></form></div><div id="hits">Hits Today: '.$hits['day'].' | Hits Total: '.$hits['total'].'</div>';
-		$smarty->assign('extra', $formTop);
-	}
-	
 	public static function Admin(&$argsArray){
-	    	
-		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
-			
-		switch($args[1]){
-			case 'list':
-				unset($args[array_search('ajax',$args)]);
-				self::ListStats($args[2]); // Get the stats list
-				$content = $smarty->fetch('list.tpl'); // Display the list
-				break;
-			default:
-global $core;
-				$tabs = array($core->l('Site Statistics','admin/stats/list'));
-				$smarty->assign('tabs',$tabs);
-				if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
-				break;
-		}
-		$jsonObj->content = $content;
+		StatsController::admin($argsArray);
 	}
 
 	public static function BrowserGraph(){
@@ -139,16 +109,20 @@ global $core;
 		}
 	}
 	
-	public function Read($start,$day=null,$month=null,$year=null){
+	public function Read($start,$dateArray=array()){
 		//set up the query
+		if(!empty($dateArray)){
+			list($day,$month,$year) = $dateArray();
+		}
+		
 		$limit = 15;
-		if (!$day) {
+		if (empty($day)) {
 			$day = date("d");
 		}
-		if (!$month) {
+		if (empty($month)) {
 			$month = date("m");
 		}
-		if (!$year) {
+		if (empty($year)) {
 			$year = date("Y");
 		}
 		//prepare and execute
@@ -210,6 +184,48 @@ global $core;
 		return $result;
 	}
 
+}
+
+class StatsController extends BaseController{
+	
+	public static function admin(&$argsArray){
+		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
+			
+		switch($args[1]){
+			case 'list':
+				unset($args[array_search('ajax',$args)]);
+				$smarty->assign(self::listStats($args[2])); // Get the stats list
+				$content = $smarty->fetch('list.tpl'); // Display the list
+				break;
+			default:
+				$tabs = array($core->l('Site Statistics','admin/stats/list'));
+				$smarty->assign('tabs',$tabs);
+				if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
+				break;
+		}
+		$jsonObj->content = $content;
+	}
+	
+	public static function listStats($page){
+		$stats = new Mod_Stats();
+		$start = parent::GetStart($page,15);
+		if(isset($_POST['Date_Day'])){
+			$statsArray = $stats->Read($start, $_POST['Date_Day'], $_POST['Date_Month'], $_POST['Date_Year']);
+		}else{
+			$statsArray = $stats->Read($start);
+		}
+		
+		
+		$hits = $stats->UniqueHits();	
+		
+		$formTop = '<div><form id="daterange" name="daterange" method="post" action="http://beta.wiredbyte.com/WiredCMS/admin/stats">{html_select_date}<input type="submit" name="Submit" value="Submit" /></form></div><div id="hits">Hits Today: '.$hits['day'].' | Hits Total: '.$hits['total'].'</div>';
+		
+		return array(
+			'list' => $statsArray['items'],
+			'pager' => BaseController::Paginate($statsArray['limit'], $statsArray['nbItems'], 'admin/stats/', $page),
+			'extra' => $formTop
+		);
+	}
 
 }
 

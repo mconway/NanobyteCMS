@@ -8,7 +8,7 @@
 		</ul>
 	
 	{/if}
-	<form {$form.attributes}>
+	<form {$form.attributes} target="frame">
 		<div class="formcontainer">
 			{foreach from=$form.sections item=section key=id}
 			<div class="section" id="section{$id}">
@@ -31,12 +31,12 @@
 				{/if}
 				{/foreach}
 			</div>
-			
 			{/foreach}
 		</div>
 		<p>{$form.requirednote}</p>
 	</form>
 </div>
+<iframe id="frame" style="display:none"></iframe>
 {if $tabbed}
 </div>
 {/if}

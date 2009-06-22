@@ -18,7 +18,7 @@ class RSSController{
 		<copyright>WiredCMS 2008 Michael Conway - Wiredbyte</copyright>
 EOF;
 		$content = new Mod_Content();
-		$posts = $content->Read(0, '1', 10); // Get the Last 10 posts
+		$posts = $content->Read($content->getDefaultType(), '1', LIMIT); // Get the Last 10 posts
 		foreach ($content->items['content'] as $post){ // Set the pubdate and create an <item></item> for each post
 			$pubDate = strftime( "%a, %d %b %Y %T %Z" , $post['created']);
 			print <<<EOF

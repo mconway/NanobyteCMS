@@ -6,10 +6,14 @@ $(document).ready(
 		$('#iconmenu ul').addClass('jcarousel-skin-tango').jcarousel();
 		$('#iconmenu ul li a').click(nanobyte.ajaxcall);
 		$('.action-link').livequery(function(){
+//			if($(this).qtip('api')){
+//				$(this).qtip('hide');
+//			}
+			
 			$(this).click(nanobyte.ajaxcall);
 		});
 		$('.action-link-tab').live('click',function(){
-			$(this).parents('.tabs:first').tabs('add',$(this).attr('href'),$(this).attr('title'));
+			$(this).parents('.tabs:first').tabs('add',$(this).attr('href'),$(this).attr('tabtitle'));
 //			nanobyte.formatContents(false);
 			return false;
 		});

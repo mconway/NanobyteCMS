@@ -6,9 +6,15 @@ var nanobyte = {
 	lastUI: {index: 0},
 	submitForm : function(form){
 		if(this.initValidate(form)===true){
+			var data = form.serialize()+'&submit=true';
+			if(form.find('input[type=file]').length > 0){
+				form.find('input[type=file]').each(function(){
+					data += '&'+$(this).attr('name')+'='+$(this).val();
+				})
+			}
 			$.ajax({
 				url: form.attr('action')+'/ajax',
-				data: form.serialize()+'&submit=true',
+				data: data,
 				dataType: 'json',
 				type: 'post',
 				success: function(r){
@@ -199,6 +205,35 @@ var nanobyte = {
 	},
 	closeParentTab : function(e){
 		$('a[href=#'+$(e).parents('.ui-tabs-panel:first').attr('id')+']').next('a.tabClose').click();
+	},
+	moveRow : function(args){
+		var argsArray = args.split('|');
+		var id = argsArray[0];
+		var func = argsArray[1];
+		var weight = parseInt($('#'+id).find('td.weight').text());
+		if(func == 'down'){
+			var next = $('#'+id).next('tr').length > 0 ? '#'+$('#'+id).next('tr').attr('id'): '';
+			if(next !='' && weight+1 > $(next).find('td.weight').text()){
+				$('#'+id).clone().insertAfter(next);
+				$('#'+id).remove();
+			}
+			$('#'+id).find('td.weight').text(parseInt($('#'+id).find('td.weight').text())+1);
+		}else{
+			var prev = $('#'+id).prev('tr').length > 0 ? '#'+$('#'+id).prev('tr').attr('id'): '';
+			if(prev != '' && weight-1 < $(prev).find('td.weight').text()){
+				$('#'+id).clone().insertBefore(prev);
+				$(prev).next().remove();
+			}
+			$('#'+id).find('td.weight').text(parseInt($('#'+id).find('td.weight').text())-1);
+		}
+		return false;
 	}
 }
 
+jQuery.preloadImages = function()
+{
+  for(var i = 0; i<arguments.length; i++)
+  {
+    jQuery("<img>").attr("src", arguments[i]);
+  }
+}
