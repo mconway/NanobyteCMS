@@ -19,11 +19,11 @@
 			{else}<div id="sitename">{$sitename}</div>
 			<div id="siteslogan">{$siteslogan}</div>{/if}
 		</div>
-		<div id="menu">
+		{*<div id="menu">
 			{foreach from=$menu item=link}
 				{$link}
 			{/foreach}
-		</div>
+		</div>*}
 		{if $noSess}<div id="rbbox">{include file="user.login.tpl"}</div>{/if}
 	</div>
 	<div id="messages" title="Messages">

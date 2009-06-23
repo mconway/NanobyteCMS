@@ -80,14 +80,15 @@ if(!CMS_INSTALLED){
 	$class = 'InstallController';
 	call_user_func(array($class,'Display'),array(&$args,$ajax,&$smarty,&$jsonObj,&$core));
 }else{
-	//Get Blocks
-	ModuleController::GetBlocks(true);
-	
 	//Create a new User, or use an Already logged in User Object from the Session, then update teh access time
 	$user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);
 	if($user->uid != 0){
 		$user->SetAccessTime();
 	}
+	
+	//Get Blocks
+	ModuleController::GetBlocks(true);
+	
 	if (!isset($_SESSION['hash'])){
 		$smarty->assign('noSess', true);
 	}

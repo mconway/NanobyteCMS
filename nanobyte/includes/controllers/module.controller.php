@@ -24,6 +24,7 @@
 			$options['image'] = '16';
 			$options['class'] = 'action-link';
 			$options['id'] = 'mod_'.$module->name;
+			$options['title'] = $s;
 			$list[] = array(
 				'title'=>$module->conf->title, 
 				'version'=>$module->conf->version.'-'.$module->conf->status, 
@@ -32,6 +33,7 @@
 				'actions'=> Core::l($s,'admin/module/'.strtolower($s).'/'.$module->name,$options).' | '
 			);
 			$options['id'] = "";
+			$options['title'] = 'Info';
 			$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,$options);
 		}
 		$smartyVars = array(
@@ -100,6 +102,7 @@
 		foreach($blocks as &$block){
 			$options['id'] = 'block_'.$block['id'];
 			$s = $block['status'] == 1 ?  'Disable' : 'Enable';
+			$options['title'] = $s;
 			$block['actions'] = Core::l($s,'admin/block/'.strtolower($s).'/'.$block['id'],$options)
 				." | ".Core::l('Up','admin/block/up/'.$block['id']."/".($block['weight']-1) ,array_merge($options,array('id'=>'','title'=>'Move up')))
 				." | ".Core::l('Down','admin/block/down/'.$block['id']."/".($block['weight']+1) ,array_merge($options,array('id'=>'','title'=>'Move down')));

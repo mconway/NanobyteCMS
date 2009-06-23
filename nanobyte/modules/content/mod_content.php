@@ -84,6 +84,10 @@ class Mod_Content{
 		ContentController::Display($argsArray);
 	}
 	
+	/**
+	 * 
+	 * @return 
+	 */
 	public function getDefaultType(){
 		$row = $this->dbh->query("SELECT setting, value FROM ".DB_PREFIX."_settings WHERE setting='defaultContentType'")->fetch();
 		return $row['value'];
@@ -454,6 +458,10 @@ class ContentController extends BaseController{
 		$smarty->assign('tabbed',$tablinks);
 	}
 	
+	/**
+	 * 
+	 * @return 
+	 */
 	public static function formSettings(){
 		$content = new Mod_Content();
 		

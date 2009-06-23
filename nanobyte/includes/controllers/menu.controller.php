@@ -30,20 +30,19 @@ class MenuController extends BaseController{
 		//create list
 		foreach($menus->all as $menu){
 			array_push($list, array(
-				'id'=>$menu['mid'],
-				'menu name'=>$menu['name'],
+//				'id'=>$menu['mid'],
+				'menu name'=>ucwords($menu['name']),
 //				'parent id'=>$menu['parent_id'],
 				'actions'=>Core::l('edit','admin/menu/edit/'.$menu['mid'],$options)
 			));
 		}
-
 		if($menu['canDelete']==true){
-			$list[count($list)-1]['actions'] .= "|".Core::l('delete','admin/menu/delete/'.$menu['name'],$options);
+			$list[count($list)-1]['actions'] .= " | ".Core::l('delete','admin/menu/delete/'.$menu['name'],$options);
 		}
 		//create the actions options
 		$options['image'] = '24';
 		$options['title'] = "Add menu";
-		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/menu/add',$options));
+		$links = array('add'=>Core::l('add','admin/menu/add',$options));
 		// bind the params to smarty
 		$smarty->assign('sublinks',$links);
 		$smarty->assign(array('self'=>'admin/menu','list'=>$list));
@@ -154,7 +153,6 @@ class MenuController extends BaseController{
 					$content = $smarty->fetch('form.tpl');
 					$jsonObj->callback = 'Dialog';
 				}
-				
 				break;
 			case 'delete':
 				if($args[2] && $args[3]){

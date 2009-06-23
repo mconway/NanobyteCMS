@@ -147,6 +147,9 @@ $(document).ready(function(){
 		$(this).parents('form:first').submit();
 		console.log($(this).parents('form:first'));
 	});
+	
+	$('#menu-accordion').accordion({header: 'h3', navigation: true});
+	
 //	$('table.sortable tbody').livequery(function(){
 ////		console.log('load!')
 //		$(this).sortable({
