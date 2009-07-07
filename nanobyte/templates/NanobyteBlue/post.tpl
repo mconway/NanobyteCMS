@@ -9,7 +9,7 @@
 	{/if}  
 	{*$post.terms*}
 	<div class="content">
-		{$post.body}
+		{if $post.images}<a class="postImage thickbox" href="{$post.images.0.1}"><img src="{$post.images.0.0}"/></a>{/if}{$post.body}
 	</div>
 	<div class="links">
 		{if $post.numcomments}<div class="comments"><a href="{$post.url}">{$post.numcomments}</a></div>{/if}

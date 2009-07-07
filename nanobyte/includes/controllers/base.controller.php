@@ -5,11 +5,19 @@ class BaseController{
 		if ($page && !$ajax){ 
 			header("location: " . Core::Url($page), true, 303);
 		}elseif ($page && $ajax){ 
-			header("location: " . Core::Url($page).'/ajax', true, 303);
+//			header("location: " . Core::Url($page).'/ajax', true, 303);
+			global $jsonObj;
+			
+			$jsonObj->callback = 'Redirect';
+			$jsonObj->args = Core::Url($page);
 		}elseif(!isset($page) && !$ajax){
 			header("location: ".$_SERVER['HTTP_REFERER'], true, 303); 
 		}elseif(!isset($page) && $ajax){
-			header("location: ".$_SERVER['HTTP_REFERER'].'/ajax', true, 303); 
+//			header("location: ".$_SERVER['HTTP_REFERER'].'/ajax', true, 303); 
+			global $jsonObj;
+			
+			$jsonObj->callback = 'Redirect';
+			$jsonObj->args = $_SERVER['HTTP_REFERER'];
 		}
 		exit;
 	}
@@ -136,7 +144,7 @@ class BaseController{
 		}
 	}
 	
-	public static function handleImage($image,$resize=null){
+	public static function handleImage($image,$resize=false){
 		$filename = $image['name'];
 		$error = BaseController::VerifyFile($image);
 		if ($error == false){
@@ -150,10 +158,14 @@ class BaseController{
 		}
 		if ($resize){
 			$images = self::ResizeImage($image, $resize);
-			return '<a class="postImage" href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
-		}else{
-			return '<img src="'.UPLOAD_PATH.$filename.'" />';
+//			return '<a class="postImage" href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
+			
 		}
+		else{
+			$images['orig'] = UPLOAD_PATH.$filename;
+//			return '<img src="'.UPLOAD_PATH.$filename.'" />';
+		}
+		return $images;
 		
 	}
 	
@@ -179,7 +191,7 @@ class BaseController{
 				$name = str_replace('.bmp', '', strtolower($image['name']));
 				break;
 			default:
-				Core::SetMessage('Unknown File Format or MIME Type. The Your file is: '.$image['type'],'error');
+				Core::SetMessage('Unknown File Format or MIME Type. Your file is: '.$image['type'],'error');
 		}
 		$base = UPLOAD_PATH . $name;
 		if ($orig){
@@ -346,4 +358,7 @@ class BaseController{
 		return $form->toArray();
 	}
 
+	public static function split(&$v, $k, $delim){
+		$v = explode($delim,$v);
+	}
 }

@@ -29,10 +29,6 @@ a img{
 	top:10px;
 }
 #banner{
-	-moz-border-radius-bottomleft:3px;
-	-moz-border-radius-bottomright:3px;
-	-moz-border-radius-topleft:3px;
-	-moz-border-radius-topright:3px;
 	background: #E7EEF3 url(cupertino/images/ui-bg_highlight-soft_100_e7eef3_1x100.png) repeat-x scroll 50% 50%;
 	border:1px solid #DDDDDD;
 	height:65px;
@@ -130,28 +126,28 @@ a img{
 #iconmenu a:hover, #iconmenu a.active{
 	color: #179AFC;
 }
-#a-admin{
+#iconmenu #a-admin{
 	background: url(../images/admin.png) no-repeat;
 }
-#a-users{
+#iconmenu #a-users{
 	background: url(../images/users.png) no-repeat;
 }
-#a-content{
+#iconmenu #a-content{
 	background: url(../images/content.png) no-repeat;
 }
-#a-modules{
+#iconmenu #a-modules{
 	background: url(../images/modules.png) no-repeat;
 }
-#a-menus{
+#iconmenu #a-menus{
 	background: url(../images/menus.png) no-repeat;
 }
-#a-stats{
+#iconmenu #a-stats{
 	background: url(../images/stats.png) no-repeat;
 }
-#a-settings{
+#iconmenu #a-settings{
 	background: url(../images/settings.png) no-repeat;
 }
-#a-alias{
+#iconmenu #a-alias{
 	background: url(../images/alias.png) no-repeat;
 }
 
@@ -159,10 +155,6 @@ a img{
 	padding: 5px 5px 0 5px ;
 	background-color: #E6EEEE;
 	float: right;
-	-moz-border-radius-bottomleft:3px;
-	-moz-border-radius-bottomright:3px;
-	-moz-border-radius-topleft:3px;
-	-moz-border-radius-topright:3px;
 	border:1px solid #DDDDDD;
 }
 
@@ -171,10 +163,6 @@ a img{
 	border:1px solid #DDDDDD;
 	margin-bottom:10px;
 	background-color: #F9F9F9;
-	-moz-border-radius-bottomleft:3px;
-	-moz-border-radius-bottomright:3px;
-	-moz-border-radius-topleft:3px;
-	-moz-border-radius-topright:3px;
 }
 .post{
 	margin-bottom:15px;
@@ -204,10 +192,6 @@ div.contentheader, .groupItem .itemHeader{
 	width:188px;
 }
 .content-block, .block, .groupItem{
-	-moz-border-radius-bottomleft:3px;
-	-moz-border-radius-bottomright:3px;
-	-moz-border-radius-topleft:3px;
-	-moz-border-radius-topright:3px;
 	background-color:#E6E6E6;
 	padding: 5px;
 	border:1px solid #DDDDDD;
@@ -218,10 +202,6 @@ div.contentheader, .groupItem .itemHeader{
 }
 .itemContent{
 	background-color: #F9F9F9;
-	-moz-border-radius-bottomleft:3px;
-	-moz-border-radius-bottomright:3px;
-	-moz-border-radius-topleft:3px;
-	-moz-border-radius-topright:3px;
 }
 #userlist ul li{
 	background:transparent url(../images/online.png) no-repeat scroll 0 50%;
@@ -447,4 +427,22 @@ tr td{
 }
 #pager{
 	text-align: center;
+}
+#thumbnail{
+	background-color:#FFFFFF;
+	border: 1px solid black;
+	float:right;
+	padding: 5px;
+	position:relative;
+	right:100px;
+	top:-50px;
+	text-align: center;
+}
+#thumbnail img{
+	border: 1px solid white;
+	padding: 1px;
+}
+
+a{
+	cursor: pointer;
 }

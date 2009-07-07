@@ -6,7 +6,14 @@ class AdminController extends BaseController{
 		//make construct check for perms, hash and then make object.
 	}
 	
-	public static function Display(&$argsArray){ //passed by call_user_func
+	public static function admin(&$argsArray){
+		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
+		
+ 		self::ShowConfig();
+		$jsonObj->content =  $smarty->fetch('form.tpl');
+	}
+	
+	public static function display(&$argsArray){ //passed by call_user_func
 		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
 		// Check user permissions
 	 	if (array_key_exists('hash',$_SESSION) && $_SESSION['hash'] == $user->SessionHash() && Core::AuthUser($user, 'access admin pages')){
@@ -47,14 +54,7 @@ class AdminController extends BaseController{
 		}
 	}
 	
-	public static function Admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
-		
- 		self::ShowConfig();
-		$jsonObj->content =  $smarty->fetch('form.tpl');
-	}
-	
-	public static function EditConfig($params){
+	public static function editConfig($params){
 		$params['dbuser'] = Admin::EncodeConfParams($params['dbuser']);
 		$params['dbpass'] = Admin::EncodeConfParams($params['dbpass']);
 		$params['smtp_user'] = Admin::EncodeConfParams($params['smtp_user']);
@@ -62,7 +62,7 @@ class AdminController extends BaseController{
 		Admin::WriteConfig($params);
 	}
 	
-	public static function ShowConfig(){
+	public static function showConfig(){
 		global $smarty, $core;
 		$perms = new Perms();
 		$perms->GetNames();

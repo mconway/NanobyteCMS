@@ -8,6 +8,7 @@
 
 class Menu{
 	private $dbh;
+	
 	public function __construct($name=null){
 		$this->dbh = DBCreator::GetDbObject();
 		if($name){
@@ -18,20 +19,61 @@ class Menu{
 		}
 	}
 	
-	/*
-	array(1) {
-	  [0]=>
-	  array(1) {
-		[1]=>
-		array(1) {
-		  [0]=>
-		  string(3) "mid"
+	public function commit($insert=null){
+		global $core;
+		if($insert){
+			$query = $this->dbh->prepare("insert into ".DB_PREFIX."_menu_links (menu, linkpath, linktext, viewableby, class, styleid) values (:menu,:path,:text,:view,:class,:sid)");
+		}else{
+			$query = $this->dbh->prepare("update ".DB_PREFIX."_menu_links set `linkpath`=:path, `linktext`=:text, `viewableby`=:view, `class`=:class, `styleid`=:sid where `id`=:id");
+			$id = true;
 		}
-	  }
+		foreach($this->data as $key=>$item){
+			if(!isset($item['class'])){
+				$item['class']='';
+			}
+			if(!isset($item['styleid'])){
+				$item['styleid']='';
+			}
+			$item['viewableby'] = isset($item['viewableby']) && is_array($item['viewableby']) ? implode(',',$item['viewableby']) : '';
+			$array = array(
+				':path'=>$item['linkpath'],
+				':text'=>$item['linktext'],
+				':view'=>$item['viewableby'],
+				':class'=>$item['class'],
+				'sid'=>$item['styleid']
+			);
+			$id==true ? $array['id']=$key : $array[':menu']=$insert;
+			try{
+				$query->execute($array);
+			}catch(PDOException $e){
+				$core->SetMessage('Unable to update item #'.$key.'. Error: '.$e->getMessage());
+			}
+		}
 	}
-	*/
 	
-	public function GetAll(){
+	public function create($postData){
+		global $core;
+		$query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_menus SET name=:name,canDelete=1");
+		$query->execute(array(':name'=>$postData['name']));
+		if($query->rowCount()==1){
+			$core->SetMessage('The menu was created successfully!','info');
+		}else{
+			$core->SetMessage('There was an error creating this menu','error');
+		}
+	}
+	
+	public function delete(){
+		global $core;
+		$query = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_menus WHERE name=:name");
+		$query->execute(array(':name'=>$this->name));
+		if($query->rowCount()==1){
+			$core->SetMessage('The menu was deleted successfully!','info');
+		}else{
+			$core->SetMessage('There was an error deleting this menu','error');
+		}
+	}
+	
+	public function getAll(){
 		global $core;
 		$query = $this->dbh->prepare("select mid, name, canDelete, parent_id from ".DB_PREFIX."_menus ORDER BY parent_id ASC");
 		$query->execute();
@@ -63,7 +105,7 @@ class Menu{
 //						 
 //					}
 				}
-//				
+/*				
 //			}
 //			if(!array_key_exists('children',$this->all[$row['parent_id']])){
 //				$this->all[$row['parent_id']]['children'][$row['mid']] = array(
@@ -75,8 +117,8 @@ class Menu{
 //			}
 //		}
 //	}
-	
-	public function GetMenuName($mid){
+*/
+	public function getMenuName($mid){
 		$query = $this->dbh->prepare("select name from ".DB_PREFIX."_menus where `mid`=:mid");
 		$query->bindParam(':mid',$mid);
 		$query->execute(array(':mid'=>$mid));
@@ -84,58 +126,5 @@ class Menu{
 		$this->name = $name['name'];
 	}
 	
-	public function Commit($insert=null){
-		global $core;
-		if($insert){
-			$query = $this->dbh->prepare("insert into ".DB_PREFIX."_menu_links (menu, linkpath, linktext, viewableby, class, styleid) values (:menu,:path,:text,:view,:class,:sid)");
-		}else{
-			$query = $this->dbh->prepare("update ".DB_PREFIX."_menu_links set `linkpath`=:path, `linktext`=:text, `viewableby`=:view, `class`=:class, `styleid`=:sid where `id`=:id");
-			$id = true;
-		}
-		foreach($this->data as $key=>$item){
-			if($item['class']==null){
-				$item['class']='';
-			}
-			if($item['styleid']==null){
-				$item['styleid']='';
-			}
-			$item['viewableby'] = implode(',',$item['viewableby']);
-			$array = array(
-				':path'=>$item['linkpath'],
-				':text'=>$item['linktext'],
-				':view'=>$item['viewableby'],
-				':class'=>$item['class'],
-				'sid'=>$item['styleid']
-			);
-			$id==true ? $array['id']=$key : $array[':menu']=$insert;
-			try{
-				$query->execute($array);
-			}catch(PDOException $e){
-				$core->SetMessage('Unable to update item #'.$key.'. Error: '.$e->getMessage());
-			}
-		}
-	}
-
-	public function Create(){
-		global $core;
-		$query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_menus SET name=:name,canDelete=1");
-		$query->execute(array(':name'=>$_POST['name']));
-		if($query->rowCount()==1){
-			$core->SetMessage('The menu was created successfully!','info');
-		}else{
-			$core->SetMessage('There was an error creating this menu','error');
-		}
-	}
-	
-	public function Delete(){
-		global $core;
-		$query = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_menus WHERE name=:name");
-		$query->execute(array(':name'=>$this->name));
-		if($query->rowCount()==1){
-			$core->SetMessage('The menu was deleted successfully!','info');
-		}else{
-			$core->SetMessage('There was an error deleting this menu','error');
-		}
-	}
 }
  ?>

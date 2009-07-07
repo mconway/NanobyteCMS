@@ -32,6 +32,7 @@ BaseController::AddJs('includes/js/livequery.js');
 BaseController::AddJs('includes/js/jquery-ui-1.7.2.custom.js');
 BaseController::AddJs('includes/js/jquery.jcarousel.js');
 BaseController::AddJs('includes/js/pause.js');
+BaseController::AddJs('includes/js/ajaxfileupload.js');
 BaseController::AddJs('includes/js/jquery.tooltip.js');
 //BaseController::AddJs('includes/js/jquery.qtip.js');
 BaseController::AddJs('includes/js/nanobyte.js');

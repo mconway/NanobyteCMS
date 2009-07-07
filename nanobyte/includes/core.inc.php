@@ -15,32 +15,34 @@
 	
 	public static function autoload($c,$showMessage=true){
 		global $core;
-		if($c == 'HTML_QuickForm'){
-			@include 'HTML/QuickForm.php';
-			$foundClass = true;
-		}elseif(strcasecmp(substr($c,0,4),'Mod_')!=0){
-	 		if(file_exists("includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
-	 			return true;
-	    	}elseif (file_exists("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
-	    		return true;
-	 		}else{
-	      		$foundClass = false;
+		
+		$foundClass = false;
+		if(!empty($c) && $c != 'Controller'){
+			if($c == 'HTML_QuickForm'){
+				@include 'HTML/QuickForm.php';
+				$foundClass = true;
+			}elseif(strcasecmp(substr($c,0,4),'Mod_')!=0){
+		 		if(file_exists("includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
+		 			return true;
+		    	}elseif (file_exists("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
+		    		return true;
+		 		}
+			}
+			if(array_key_exists(str_ireplace('controller','',str_ireplace('Mod_','',$c)),$core->modsEnabled) && !$foundClass){
+				if(substr($c,0,4)!=='Mod_'){
+					$c = 'Mod_'.str_ireplace('Controller','',$c);
+				}
+				if(file_exists("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php")) {
+					return true;
+		 		}
+			}
+			if(!$foundClass){
+	      		if($showMessage){
+	      			$core->SetMessage("Could not load class '{$c}'",'error');
+				}
+	      		return false;
 	   		}
 		}
-		if(array_key_exists(str_ireplace('controller','',str_ireplace('Mod_','',$c)),$core->modsEnabled) && !$foundClass){
-			if(substr($c,0,4)!=='Mod_'){
-				$c = 'Mod_'.str_ireplace('Controller','',$c);
-			}
-			if(file_exists("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php")) {
-				return true;
-	 		}
-		}
-		if(!$foundClass){
-      		if($showMessage){
-      			$core->SetMessage("Could not load class '{$c}'",'error');
-			}
-      		return false;
-   		}
 	}
 	
 	public function decodeConfParams($param){

@@ -1,4 +1,4 @@
-<div id="{$page}">
+<div id="{$page}-form">
 	{if $tabbed}
 	<div class="tabs">
 		<ul>

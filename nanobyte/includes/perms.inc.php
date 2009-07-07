@@ -2,7 +2,8 @@
 
 class Perms{
 	private $dbh;
-	function __construct($id=null){
+	
+	public  function __construct($id=null){
 		$this->dbh = DBCreator::GetDbObject();
 		if ($id){
 			$query = $this->dbh->prepare("select name, comments, permissions from ".DB_PREFIX."_groups where `gid`=:id");
@@ -15,27 +16,20 @@ class Perms{
 		}
 	}
 	
-	public function GetAll(){
-		$groups = $this->dbh->prepare("select * from ".DB_PREFIX."_groups");
-		$groups->execute();
-		$all = $groups->fetchAll(PDO::FETCH_ASSOC);
-		$this->all = $all;
-	}
-	
-	public function GetNames(){
-		$namesQ = $this->dbh->prepare("select gid, name from ".DB_PREFIX."_groups");
-		$namesQ->execute();
-		$all = $namesQ->fetchAll(PDO::FETCH_ASSOC);
-		foreach($all as $name){
-				$this->names[$name['gid']] = $name['name'];
+	public function addGroup($params){
+		$insert = $this->dbh->prepare("insert into ".DB_PREFIX."_groups (name, comments) values (:name, :comm)");
+		$insert->bindParam(':name',$params['name']);
+		$insert->bindParam(':comm',$params['comments']);
+		$insert->execute();
+		if ($insert->rowCount() == 1){
+			$this->__construct($this->dbh->lastInsertId());
+			return true;
+		}else{
+			return false;
 		}
 	}
-	public function GetPermissionsList(){
-		$permsQ = $this->dbh->prepare("select category, description from ".DB_PREFIX."_perms");
-		$permsQ->execute();
-		return $permsQ->fetchAll(PDO::FETCH_ASSOC);
-	}
-	public function Commit(){
+	
+	public function commit(){
 		global $core;
 		foreach($this->data as $key=>$role){
 			$perm = implode(',',$role);
@@ -49,17 +43,27 @@ class Perms{
 			}
 		}
 	}
-	public function AddGroup($params){
-		$insert = $this->dbh->prepare("insert into ".DB_PREFIX."_groups (name, comments) values (:name, :comm)");
-		$insert->bindParam(':name',$params['name']);
-		$insert->bindParam(':comm',$params['comments']);
-		$insert->execute();
-		if ($insert->rowCount() == 1){
-			$this->__construct($this->dbh->lastInsertId());
-			return true;
-		}else{
-			return false;
+	
+	public function getAll(){
+		$groups = $this->dbh->prepare("select * from ".DB_PREFIX."_groups");
+		$groups->execute();
+		$all = $groups->fetchAll(PDO::FETCH_ASSOC);
+		$this->all = $all;
+	}
+	
+	public function getNames(){
+		$namesQ = $this->dbh->prepare("select gid, name from ".DB_PREFIX."_groups");
+		$namesQ->execute();
+		$all = $namesQ->fetchAll(PDO::FETCH_ASSOC);
+		foreach($all as $name){
+				$this->names[$name['gid']] = $name['name'];
 		}
+	}
+	
+	public function getPermissionsList(){
+		$permsQ = $this->dbh->prepare("select category, description from ".DB_PREFIX."_perms");
+		$permsQ->execute();
+		return $permsQ->fetchAll(PDO::FETCH_ASSOC);
 	}
 	
 }

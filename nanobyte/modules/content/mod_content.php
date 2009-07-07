@@ -19,11 +19,11 @@ class Mod_Content{
 		$this->dbh = DBCreator::GetDbObject();
 		$this->types = array();
 		if($id){
-			$result = $this->dbh->prepare("SELECT pid, title, body, created, author, published, modified FROM ".DB_PREFIX."_content WHERE pid=:id");
+			$result = $this->dbh->prepare("SELECT pid, title, body, images, created, author, published, modified,type FROM ".DB_PREFIX."_content WHERE pid=:id");
 			try{
 				$result->execute(array(':id'=>$id));
 				$row = $result->fetch();
-				list($this->pid,$this->title,$this->body,$this->created,$this->author,$this->published,$this->modified) = $row;
+				list($this->pid,$this->title,$this->body,$this->images,$this->created,$this->author,$this->published,$this->modified,$this->type) = $row;
 //				$this->comments = new ModComments($this->pid);
 			}catch(PDOException $e){
 				Core::SetMessage($e->getMessage(), 'error');
@@ -45,8 +45,8 @@ class Mod_Content{
 	 * @return 
 	 */
 	public function commit(){
-		$sql = $this->dbh->prepare("update ".DB_PREFIX."_content set `title`=:t, `body`=:b, `modified`=:m, `published`=:p where `pid`=:pid");
-		$sql->execute(array(':p'=>$this->published,':t'=>$this->title,':b'=>$this->body,':m'=>$this->modified,':pid'=>$this->pid));
+		$sql = $this->dbh->prepare("update ".DB_PREFIX."_content set title=:t, body=:b, images=:i, modified=:m, published=:p, type=:type where `pid`=:pid");
+		$sql->execute(array(':p'=>$this->published,':t'=>$this->title,':b'=>$this->body,':i'=>$this->images,':m'=>$this->modified,':pid'=>$this->pid,':type'=>$this->type));
 		if ($sql->rowCount() == 1){
 			return true;
 		}else{
@@ -61,10 +61,10 @@ class Mod_Content{
 	 */
 	public function create($params){
 		//take params and write post to DB.
-		$insert = $this->dbh->prepare("insert into ".DB_PREFIX."_content (title, body, created, author, published, type) values (:ti,:b,:c,:a,:p,:t)");
+		$insert = $this->dbh->prepare("insert into ".DB_PREFIX."_content (title, body, images, created, author, published, type) values (:ti,:b,:i,:c,:a,:p,:t)");
 		//$insert->bindParam(':ta', $params['tags']);
 		try{
-			$insert->execute(array(':ti'=>$params['title'],':b'=>$params['body'],':c'=>$params['created'],':a'=>$params['author'],':p'=>isset($params['published']) ? $params['published'] : '0', ':t'=>$params['type']));
+			$insert->execute(array(':ti'=>$params['title'],':b'=>$params['body'],':i'=>$params['imagelist'],':c'=>$params['created'],':a'=>$params['author'],':p'=>isset($params['published']) ? $params['published'] : '0', ':t'=>$params['type']));
 		}catch(PDOException $e){
 			Core::SetMessage($e->getMessage(), 'error');
 		}
@@ -99,8 +99,15 @@ class Mod_Content{
 	 */
 	public function getTypes(){
 		foreach($this->dbh->query("SELECT id,name FROM ".DB_PREFIX."_content_types") as $row){
+			if($row['name'] == 'Orphaned'){
+				$tmp[] = $row['id'];
+				$tmp[] = $row['name'];
+				continue;
+			}
 			$this->types[$row['id']] = $row['name'];
 		}
+		asort($this->types);
+		$this->types[$tmp[0]] = $tmp[1];
 	}
 	
 	/**
@@ -231,21 +238,27 @@ class ContentController extends BaseController{
 						$jsonObj->args = implode('|',$_POST['content']);
 						break;
 					case 'add':
-						if(!isset($_POST['submit']) && isset($_POST['image'])){
-							$json->content = parent::HandleImage($data['image'],'80');
-							exit();
-						}
-						$smarty->assign(self::Form());
-						$content = $smarty->fetch('form.tpl');
-						if(isset($_POST['submit'])){
+						if(isset($args[2]) && $args[2]=='image'){
+							$jsonObj->args = parent::handleImage($_FILES[key($_FILES)],'80');
+							$content = '';
+							print json_encode($jsonObj); exit;
+						}elseif(isset($_POST['submit'])){
+							self::form();
 							$jsonObj->callback = 'nanobyte.closeParentTab';
 							$jsonObj->args = 'input[name=submit][value=Save]';
+						}else{
+							$smarty->assign(self::form());
+							$content = $smarty->fetch('form.tpl');
 						}
 						break;
 					case 'edit':
 						if(!isset($args[2])){
 							Core::SetMessage('You did not specify content to edit!','error');
 //							BaseController::Redirect('admin/posts');
+						}elseif(isset($args[3]) && $args[3]=='image'){
+							$jsonObj->args = parent::handleImage($_FILES[key($_FILES)],'80');
+							$content = '';
+							print json_encode($jsonObj); exit;
 						}else{
 							if(isset($_POST['submit'])){
 								$jsonObj->callback = 'nanobyte.closeParentTab';
@@ -286,7 +299,9 @@ class ContentController extends BaseController{
 		if (!isset($content)){ 
 			$content =  $smarty->fetch('list.tpl');
 		}
+		
 		$jsonObj->content = $content;
+		
 	}
 	
 	/**
@@ -357,14 +372,20 @@ class ContentController extends BaseController{
 			foreach ($content->items['content'] as $p){
 				$post = new Mod_Content($p['pid']);
 	//			$num = count($post->comments->all);
+				if(!empty($post->images)){
+					$images = explode(';',$post->images);
+					array_walk($images,array('BaseController','split'),'|');
+				}
 				array_push($theList, array( 
 					'url'=>'content/'.$post->pid, 
 					'title'=>$post->title, 
 					'body'=>$post->body, 
+					'images'=>isset($images) ? $images : null,
 					'created'=>date('M jS',$post->created),
 					'author'=>$post->author,
 	//				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
 				));
+				unset($images);
 			}
 		}else{
 			array_push($theList, array( 
@@ -386,8 +407,9 @@ class ContentController extends BaseController{
 	 * @param object $id
 	 */
 	public static function edit($id){
+		global $smarty;
 		$content = new Mod_Content($id);
-		self::Form($content);
+		$smarty->assign(self::Form($content));
 	}
 	
 	/**
@@ -396,7 +418,6 @@ class ContentController extends BaseController{
 	 * @param object $content[optional]
 	 */
 	public static function form(&$content=null){
-		global $smarty;
 		global $user;
 		$func = $content ? 'edit/'.$content->pid : 'add';
 		$tablinks = array('Main','Image Functions','Publishing Options');
@@ -405,17 +426,19 @@ class ContentController extends BaseController{
 		//set form default values
 
 		if(isset($content)){
-			$defaults = array(
+			$form->setdefaults(array(
 				'pid'=>$content->pid, 
 				'title'=>$content->title, 
 				'published'=>$content->published,
-				'body'=> preg_replace('/<br \/>/','',$content->body)
-			);
-			$form->setdefaults($defaults);
+				'body'=> preg_replace('/<br \/>/','',$content->body),
+				'imagelist'=>$content->images,
+				'type'=>isset($content->type) ? $content->type : $content->getDefaultType()
+			));
+//			$form->setdefaults($defaults);
 			$header = 'Edit Content';
 		}else{
 			$form->setdefaults(array(
-				'published'=>true
+				'published'=>'1'
 			));
 			$content = new Mod_Content();
 		}
@@ -426,12 +449,15 @@ class ContentController extends BaseController{
 		$form->addElement('textarea','body','Body',array('rows'=>20,'cols'=>60));
 		
 		$form->addElement('header','','Image Functions');
-		$form->addElement('file','image','Add Image');
-		$form->addElement('text', 'ititle', 'Title', array('size'=>25, 'maxlength'=>15));
-		$form->addElement('text', 'ialt', 'Alt Text', array('size'=>25, 'maxlength'=>15));
+		$form->addElement('file','image','Add Image', array('id'=>'image'));
+		if(!empty($content->images)){
+			$form->addElement('hidden','imagelist','', array('id'=>'imagelist'));
+		}
+//		$form->addElement('text', 'ititle', 'Title', array('size'=>25, 'maxlength'=>15));
+//		$form->addElement('text', 'ialt', 'Alt Text', array('size'=>25, 'maxlength'=>15));
 		
 		$form->addElement('header','','Publishing Options');
-		$form->addElement('text', 'tags', 'Tags', array('size'=>25, 'maxlength'=>15));
+//		$form->addElement('text', 'tags', 'Tags', array('size'=>25, 'maxlength'=>15));
 		$form->addElement('select', 'type', 'Content Type', $content->types);
 		$form->addElement('checkbox','published','Publish');
 		
@@ -449,13 +475,15 @@ class ContentController extends BaseController{
 		$form->addRule('body', 'Body text is required.', 'required');
 		//If the form has already been submitted - validate the data
 		if(isset($_POST['submit']) && $form->validate()){
-				$form->process(array('ContentController','Save'));
+			$form->process(array('ContentController','Save'));
 //				BaseController::Redirect('admin/content');
 //				exit;
 		}
 		//send the form to smarty
-		$smarty->assign('form', $form->toArray()); 
-		$smarty->assign('tabbed',$tablinks);
+		return array(
+			'form'=>$form->toArray(),
+			'tabbed'=>$tablinks
+		);
 	}
 	
 	/**
@@ -517,7 +545,7 @@ class ContentController extends BaseController{
 		$list = array();
 		$options['image'] = '16';
 		foreach ($content->items['content'] as $post){
-			$options['class'] = 'action-link';
+			$options['class'] = 'action-link noloader';
 			$options['id'] = 'c_'.$post['pid'];
 			$func = ($post['published']==1?'disable':'enable');
 			$options['title'] = ucfirst($func)." this post";
@@ -569,36 +597,15 @@ class ContentController extends BaseController{
 	/**
 	 * 
 	 * @return 
-	 */
-	public static function form_Settings_AddType(){
-		$form = new HTML_QuickForm('content-settings','post','admin/content/settings');
-		$form->setdefaults(array());
-		
-		$form->addElement('header','','Add Content Type');
-		$form->addElement('text', 'name', 'Name', array('size'=>25, 'maxlength'=>15));
-		$form->addElement('submit', 'submit', 'Submit');
-		
-		if($form->validate()){
-			$content = new Mod_Content();
-			$form->process(array($content,'AddType'));
-			BaseController::Redirect('admin/content');
-			exit;
-		}
-		return $form->toArray(); 
-	}
-	
-	/**
-	 * 
-	 * @return 
 	 * @param object $data
 	 */
 	public static function save($data){ 
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
 		//upload files if needed
 		$image = '';
-		var_dump($data['image']);
-		if(!empty($data['image']['name'])){
+		if(isset($data['image']['name'])){
 			$image = parent::HandleImage($data['image'],'80');
+			$data['imagelist'] = $image['thumb'].'|'.$image['orig'].";";
 		}
 		$codestr = substr($data['body'],strpos($data['body'],'<code>'),strpos($data['body'],'</code>'));
 		$codestr = str_replace('<code>','',$codestr);
@@ -613,24 +620,25 @@ class ContentController extends BaseController{
 		if ($data['pid']){
 			$content = new Mod_Content($data['pid']);
 			$content->title = $data['title'];
-			$content->body = $image.$data['body'];
+			$content->body = $data['body'];
+			$content->images = isset($data['imagelist']) ? $data['imagelist'] : '';
 			$content->modified = time();
-			$content->published = $data['published'] ? '1' : '0';
+			$content->published = isset($data['published']) ? '1' : '0';
 			$content->type = $data['type'];
 			$content->Commit();
 			Core::SetMessage('Your changes have been saved!','info');
-		
 		}else{ //Create a new Post
 			$content = new Mod_Content();
-			isset($data['published']) ? 1 : 0;
-			$data['body'] = $image.$data['body'];
-			$saved = $content->Create($data);
-			if ($saved == true){
+			isset($data['published']) ? '1' : '0';
+			$data['body'] = $data['body'];
+			if ($content->create($data) == true){
 				Core::SetMessage('Your content has been successfully saved','info');
 			}else{
 				Core::SetMessage('Unable to save content. Please try again later.','error');
+				return false;
 			}
 		}
+		return true;
 		//UserController::Redirect('admin/posts');
 	}
 	
@@ -644,10 +652,15 @@ class ContentController extends BaseController{
 		$post = self::GetContent($pid);
 //		$num = count($post->comments->all);
 //		$comments = array();
+		if(!empty($post->images)){
+			$images = explode(';',$post->images);
+			array_walk($images,array('BaseController','split'),'|');
+		}
 		$data = array( 
 			'url'=>'content/'.$post->pid, 
 			'title'=>$post->title, 
-			'body'=>$post->body, 
+			'body'=>$post->body,
+			'images'=>isset($images) ? $images : null,
 			'created'=>date('M jS',$post->created),
 			'author'=>$post->author,
 //			'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'

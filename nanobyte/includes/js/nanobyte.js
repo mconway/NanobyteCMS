@@ -7,11 +7,19 @@ var nanobyte = {
 	submitForm : function(form){
 		if(this.initValidate(form)===true){
 			var data = form.serialize()+'&submit=true';
-			if(form.find('input[type=file]').length > 0){
-				form.find('input[type=file]').each(function(){
-					data += '&'+$(this).attr('name')+'='+$(this).val();
-				})
-			}
+			
+//			if(form.find('input[type=file]').length > 0){
+//				$.ajaxFileUpload({
+//					url:form.attr('action')+'/ajax',
+//	                secureuri:false,
+//	                fileElementId:'fileToUpload',
+//	                dataType: 'json',
+//	                success: function (data, status){
+//						console.log('File Uploaded!');
+//					}
+//				});
+//			}
+			
 			$.ajax({
 				url: form.attr('action')+'/ajax',
 				data: data,
@@ -127,7 +135,7 @@ var nanobyte = {
 			$('#loading').dialog('close');
 		});
 	},
-	deleteRows : function(rows){ // This will work on tables made by list.tpl
+	deleteRows : function(rows){ // This will work on tables made by list.tpl with checkboxes only
 		var rowArray = rows.split('|');
 		for(key in rowArray){
 			if (rowArray[key] != "") {
@@ -160,10 +168,17 @@ var nanobyte = {
 		return false;
 	},
 	ajaxcall : function(event){
-//		var c = event.currentTarget.className.split(' ');
+		var classes = event.currentTarget.className.split(' ');
 //		window.location.hash = $(this).attr('href').replace();
 		$(this).addClass('active').parent().siblings('li').children('.active').removeClass('active');
-		nanobyte.showLoader();
+		$.each(classes,function(i,v){
+			if(v=='noloader'){
+				noloader=true;
+			}
+		})
+		if(!noloader){
+			nanobyte.showLoader();
+		}
 		$.ajax({
 	  		url: $(this).attr('href')+'/ajax',
 	  		cache: false,
@@ -173,7 +188,9 @@ var nanobyte = {
 					switch (r.callback) {
 						case 'Dialog':
 							nanobyte.displayMessage(r.content, r.title);
-//							nanobyte.hideLoader();
+							break;
+						case 'Redirect':
+							window.location = r.args;
 							break;
 						default:
 							eval(r.callback+'("'+r.args+'")');
@@ -184,9 +201,8 @@ var nanobyte = {
 					$("#content").html(r.content).prepend(r.tabs).fadeIn('slow');
 					nanobyte.hideLoader();
 				}
-	
 				nanobyte.formatContents(false);
-				if (r.messages){
+				if (r.messages && r.messages!=false){
 					nanobyte.showInlineMessage(r.messages);
 				}
 	 		}
@@ -229,6 +245,7 @@ var nanobyte = {
 		return false;
 	}
 }
+
 
 jQuery.preloadImages = function()
 {

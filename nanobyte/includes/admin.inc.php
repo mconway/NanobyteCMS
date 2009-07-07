@@ -8,7 +8,7 @@
 
  class Admin{
  
- 	public static function DeleteObject($table, $field, $id){
+ 	public static function deleteObject($table, $field, $id){
 		$DB = DBCreator::GetDbObject();
 		$delete = $DB->prepare("delete from ".DB_PREFIX."_$table where `$field`=:id");
 		$delete->bindParam(':id', $id);
@@ -20,11 +20,11 @@
 		}
 	}
 	
-	public static function EncodeConfParams($param){
+	public static function encodeConfParams($param){
 		return base64_encode(str_rot13($param));
 	}
 	
-	public static function WriteConfig($params){
+	public static function writeConfig($params){
 		$cleanurl = $params['cleanurl'] ? 'true' : 'false';
 		$perms = new Perms($params['defaultgroup']);
 		$conf = <<<EOF
@@ -76,4 +76,5 @@ define("SMTP_PASS",'{$params['smtp_pass']}');
 EOF;
 		file_put_contents('./includes/config.inc.php', $conf);
 	}
+
 }

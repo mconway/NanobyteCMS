@@ -75,12 +75,14 @@ $(document).ready(function(){
 		return false;
 	});
 	$('#forgot_pw a').click(nanobyte.ajaxcall)
-//	$('textarea').livequery(function(){
-//		nicEditors.allTextAreas({
-//			fullPanel: true,
-//			iconsPath : 'includes/contrib/nicedit/nicEditorIcons.gif'
-//		}); 
-//	});
+/*
+	$('textarea').livequery(function(){
+		nicEditors.allTextAreas({
+			fullPanel: true,
+			iconsPath : 'includes/contrib/nicedit/nicEditorIcons.gif'
+		}); 
+	});
+*/
 	$('input[name=submit]').live('click',function(){
 		nanobyte.submitForm($(this).parents('form'));
 		return false;
@@ -143,13 +145,50 @@ $(document).ready(function(){
 	$('a[title]').livequery(function(){
 		$(this).attr('tabtitle',$(this).attr('title')).tooltip({showURL: false});
 	});
+
 	$('input[type=file]').live('change',function(){
-		$(this).parents('form:first').submit();
-		console.log($(this).parents('form:first'));
-	});
+		var me = $(this);
+		var myID = me.attr('id');
+		$.ajaxFileUpload({
+			url:me.parents('form:first').attr('action')+'/image/ajax',
+            secureuri:false,
+            fileElementId:'image',
+            dataType: 'json',
+            success: function (r, status){
+//				console.log(r)
+				if($('#thumbnail').length == 0){
+					$('#'+myID).after("<div id='thumbnail'><img src='"+r.args.thumb+"'/><input type='hidden' name='imagelist' id='imagelist'/></div>");
+					$('#thumbnail').append("<br/><a id='show-file-dialog'>Show all files </a>(<span id='file-count'>1</span>)");
+				}else{
+					$('#thumbnail img').attr('src',r.args.thumb);
+					$('#file-count').text(parseInt($('#file-count').text())+1);
+				}
+//				nanobyte.showInlineMessage(r.messages);
+				$('#imagelist').val($('#imagelist').val()+r.args.thumb+'|'+r.args.orig+';');
+				
+			},
+			error: function(e,t,et){
+//				console.log(e,t,et);
+			}
+		});
+	})
 	
 	$('#menu-accordion').accordion({header: 'h3', navigation: true});
-	
+	$('#show-file-dialog').live('click',function(){
+		var files = '';
+		var filelist = $('#imagelist').val().split(';');
+		$.each(filelist,function(){
+			var tmp = this.split('|');
+			if(tmp[0]){
+				files += '<a id="file-link" title="Click to remove this file" href="'+this+'">'+tmp[1].replace('files/','')+'</a><br />';
+			}
+		});
+		nanobyte.displayMessage(files,'Files Uploaded');
+	});
+	$('#file-link').live('click',function(){
+		$('#imagelist').val($('#imagelist').val().replace($(this).attr('href')+';',''));
+		$(this).remove();
+	});
 //	$('table.sortable tbody').livequery(function(){
 ////		console.log('load!')
 //		$(this).sortable({

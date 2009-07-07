@@ -17,7 +17,7 @@ class Module{
 		global $core;
 		$this->dbh = DBCreator::GetDbObject();
 		$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE `module`=:mod";
-		$this->insert = "INSERT INTO ".DB_PREFIX."_modules (`name`, `module`, `status`) values (:name, :mod, :status)";
+		$this->insert = "INSERT INTO ".DB_PREFIX."_modules (name, module, status) values (:name, :mod, :status)";
 		$this->modify = "UPDATE ".DB_PREFIX."_modules set `status`=status XOR 1 WHERE `module`=:mod";
 		$this->name = str_replace('modules/', '', $path);
 		$this->modpath = './modules/'.$this->name.'/';
