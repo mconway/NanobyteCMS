@@ -105,11 +105,12 @@ EOF;
 		$list = array();
 		foreach ($modsList as $module){
 			$s = $module->status == 1 ?  'Disable' : 'Enable';
-			$options = array();
-			$options['image'] = '16';
-			$options['class'] = 'action-link';
-			$options['id'] = 'mod_'.$module->name;
-			$options['title'] = $s;
+			$options = array(
+				'image' => '16',
+				'class' => 'action-link noloader',
+				'id' => 'mod_'.$module->name,
+				'title' => $s
+			);
 			$list[] = array(
 				'title'=>$module->conf->title, 
 				'version'=>$module->conf->version.'-'.$module->conf->status, 
@@ -117,9 +118,7 @@ EOF;
 				'enabled'=>"<center><img src='".THEME_PATH."/images/{$module->status}-25.png'/></center>",
 				'actions'=> Core::l($s,'admin/module/'.strtolower($s).'/'.$module->name,$options).' | '
 			);
-			$options['id'] = "";
-			$options['title'] = 'Info';
-			$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,$options);
+			$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,array('id'=>'','title'=>'Info', 'class'=>'action-link','image'=>'16'));
 		}
 		$smartyVars = array(
 			'pager'=>BaseController::Paginate(LIMIT, count($modsList), 'admin/module/list/', $page),

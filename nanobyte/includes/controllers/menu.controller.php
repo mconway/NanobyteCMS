@@ -24,22 +24,22 @@ class MenuController extends BaseController{
 		return array('form'=>$form->toArray()); 
 	}
 	
-	public static function addMenuItemForm(){
-		global $smarty;
+	public static function addMenuItemForm($menuID){
 		$perms = new Perms();
 		$perms->GetNames();
+		$menu = new Menu('main');
+		$fields = array('path'=>'linkpath','title'=>'linktext','class'=>'class','id'=>'styleid');
 		for($i=0; $i<5; $i++){
-			$items[$i] = array(
-				'path'=>'<input type="text" size="15" value="" name="'.$i.'_linkpath"/>',
-				'title'=>'<input type="text" size="15" value="" name="'.$i.'_linktext"/>',
-			);
+			foreach($fields as $field=>$text){
+				$items[$i][$field] = '<input type="text" size="15" value="" name="tb_'.$i.'_'.$text.'"/>';
+			}
 			foreach($perms->names as $pname){
-				$items[$i][$pname] = '<input type="checkbox" name="'.$i.'_'.$pname.'[]" value="'.$pname.'" '.$checked.'/>';
+				$items[$i][$pname] = '<input type="checkbox" name="cb_'.$i.'_'.$pname.'[]" value="'.$pname.'"/>';
 			}
 		}	
 		$options['image'] = '24';
-		$links = array('back'=>Core::l('back','admin/menu',$options));
-		$smarty->assign(array('sublinks'=>$links,'list'=>$items,'extra'=>'<input type="submit" value="Submit" name="submit"/>','self'=>'admin/menu/add'));
+//		$links = array('back'=>Core::l('back','admin/menu',$options)); 'sublinks'=>$links,
+		return array('list'=>$items,'extra'=>'<input type="submit" value="Submit" name="submit"/>','formAction'=>'admin/menu/add/'.$menuID);
 	}
 	
 	public static function admin(&$argsArray){
@@ -55,20 +55,32 @@ class MenuController extends BaseController{
 		if(isset($args[1])){
 			switch($args[1]){
 				case 'add':
-					if(isset($_POST['submit'])){
+					if(isset($_POST['submit']) && !isset($args[2])){
 						if(self::addMenu()){
 							$core->setMessage('Your changes have been saved.','info');
 							$jsonObj->callback = 'nanobyte.closeParentTab';
 							$jsonObj->args = 'input[name=submit][value=Submit]';
 						}
+					}elseif(isset($args[2]) && is_numeric($args[2])){
+						if (isset($_POST['submit'])){
+							if(self::writeMenu($args[2],$_POST)){
+								$core->setMessage('Your changes have been saved.','info');
+								$jsonObj->callback = 'nanobyte.closeParentTab';
+								$jsonObj->args = 'input[name=submit][value=Submit]';
+								break;
+							}
+						}
+						$smarty->assign(self::addMenuItemForm($args[2]));
+						$content = $smarty->fetch('list.tpl');
 					}else{ //no menu is specified, so lets create a new one
-						$smarty->assign(self::AddMenu());
+						$smarty->assign(self::addMenu());
 						$content = $smarty->fetch('form.tpl');
 					}
 					break;
 				case 'delete':
 					if($args[2] && $args[3]){
 						if(Admin::deleteObject('menu_links','id',$args[3])){
+							$jsonObj->callback = 'nanobyte.deleteRows';
 							$jsonObj->args = $args[3];
 						}
 	//					parent::Redirect();
@@ -80,9 +92,9 @@ class MenuController extends BaseController{
 					}
 					break;
 				case 'edit':
-					if($args[2]){
+					if(isset($args[2])){
 						if (isset($_POST['submit'])){
-							if(self::writeMenu()){
+							if(self::writeMenu($args[2],$_POST)){
 								$core->setMessage('Your changes have been saved.','info');
 								$jsonObj->callback = 'nanobyte.closeParentTab';
 								$jsonObj->args = 'input[name=submit][value=Submit]';
@@ -175,7 +187,7 @@ class MenuController extends BaseController{
 		}		
 		$options['image'] = '24';
 		$options['class'] = 'action-link';
-		$links = array('add'=>Core::l('add','admin/menu/add/'.$mid,$options));
+		$links = array('add'=>Core::l('add','admin/menu/add/'.$mid,array('image'=>'24','class'=>'action-link-tab','title'=>'Add Links to menu')));
 		return array(
 			'sublinks'=>$links,
 			'list'=>$items,
@@ -184,22 +196,26 @@ class MenuController extends BaseController{
 		);
 	}
 	
-	public static function writeMenu($id=null){
-		unset($_POST['submit']);
-		foreach($_POST as $key=>$item){
+	public static function writeMenu($id,$data){
+		unset($data['submit']);
+		foreach($data as $key=>$item){
 			$tmp = explode('_',$key); //$key is type_id_name
 			if ($tmp[0] == 'cb'){ //check to see if the item is a checkbox or a textbox
 				$array[$tmp[1]]['viewableby'][] = $tmp[2]; //add checkboxes to the viewableby array
 			}else{
-				if($item != '' || $item != null){ //add all else to its own array bucket
+				if(!empty($item)){ //add all else to its own array bucket
 					$array[$tmp[1]][$tmp[2]] = $item;
 				}
 			}
 		}
-		$menu = new Menu();
-		$menu->data = $array;
-		$menu->commit($id);
-		return true;
+		if(isset($array)){
+			$menu = new Menu();
+			$menu->data = $array;
+			$menu->commit($id);
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 }

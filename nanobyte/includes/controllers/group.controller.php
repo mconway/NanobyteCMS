@@ -126,8 +126,8 @@
 				'class' => "action-link-tab"
 			);
 			$links = array('add'=>Core::l('add','admin/group/add',$options));
-			$options['title'] = 'Edit group';
-			$links['edit'] = Core::l('edit','admin/group/edit',$options);
+			$options['title'] = 'Edit Group Permissions';
+			$links['edit'] = Core::l('perms','admin/group/edit',$options);
 			// bind the params to smarty
 			return array(
 				'cb'=>true,

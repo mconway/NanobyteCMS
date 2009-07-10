@@ -78,8 +78,14 @@ a img{
 	color: #000;
 }
 #loading{
-	position: relative;
-	left: 15%;
+	position: absolute;
+	text-align: center;
+	width: 780px;
+	background-color: white;
+	opacity: .90;
+	display: none;
+	top: 150px;
+	z-index: 1001;
 }
 #messages{
 	background: #FFF none repeat scroll 0 0;

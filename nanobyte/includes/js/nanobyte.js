@@ -117,23 +117,12 @@ var nanobyte = {
 		var html = '<ul class="messages"><li class="'+cls+'">'+msg+'</li></ul>';
 		return html;
 	},
-	initLoader : function(){
-		$('#loading').dialog({
-			autoOpen: false,
-			modal: true,
-			title: 'Loading, Please wait..',
-			height: 50
-		});
-	},
 	showLoader : function(){
-		$('#content').fadeOut('fast',function(){
-			$('#loading').dialog('open');
-		});
+		$('#loading').css('height',$('#container').height()+5);
+		$('#loading').css('display','block');
 	},
 	hideLoader : function(){
-		$('#content').fadeIn('slow',function(){
-			$('#loading').dialog('close');
-		});
+		$('#loading').css('display','none');
 	},
 	deleteRows : function(rows){ // This will work on tables made by list.tpl with checkboxes only
 		var rowArray = rows.split('|');
@@ -169,6 +158,7 @@ var nanobyte = {
 	},
 	ajaxcall : function(event){
 		var classes = event.currentTarget.className.split(' ');
+		var noloader = false;
 //		window.location.hash = $(this).attr('href').replace();
 		$(this).addClass('active').parent().siblings('li').children('.active').removeClass('active');
 		$.each(classes,function(i,v){

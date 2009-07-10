@@ -40,9 +40,9 @@ class Menu{
 				':text'=>$item['linktext'],
 				':view'=>$item['viewableby'],
 				':class'=>$item['class'],
-				'sid'=>$item['styleid']
+				':sid'=>$item['styleid']
 			);
-			$id==true ? $array['id']=$key : $array[':menu']=$insert;
+			isset($id) ? $array[':id']=$key : $array[':menu']=$insert;
 			try{
 				$query->execute($array);
 			}catch(PDOException $e){

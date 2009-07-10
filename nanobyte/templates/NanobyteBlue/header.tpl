@@ -31,5 +31,5 @@
 	</div>
 	<div id="main">
 		<div id="loading" class="loading">
-			<img id="loadingImg" src="templates/Nanobyte/images/loading.gif"/>
+			<img id="loadingImg" src="templates/NanobyteBlue/images/loading.gif"/>
 		</div>

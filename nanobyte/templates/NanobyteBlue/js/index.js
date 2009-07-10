@@ -4,7 +4,7 @@
 var i = 0;
 
 $(document).ready(function(){
-	nanobyte.initLoader();
+//	nanobyte.initLoader();
 	
 	$.preloadImages('templates/NanobyteBlue/images/list-info.png','templates/NanobyteBlue/images/list-error.png');
 	
@@ -112,7 +112,8 @@ $(document).ready(function(){
 			add: function(event, ui) {
 		        $(this).tabs('select', '#' + ui.panel.id);
 				$('a[href=#'+ui.panel.id+']').after('<a class="tabClose" id="tab_'+ui.index+'"></a>');
-		    }
+		    },
+			spinner: '<img src="templates/NanobyteBlue/images/tab_loader.gif"/><i> Loading...</i>'
 		});
 	});
 	$('.tabClose').live('click',function(){
