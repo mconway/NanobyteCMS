@@ -156,6 +156,9 @@ a img{
 #iconmenu #a-alias{
 	background: url(../images/alias.png) no-repeat;
 }
+#iconmenu #a-syslog{
+	background: url(../images/systemlogs.png) no-repeat;
+}
 
 #sidebar-right{
 	padding: 5px 5px 0 5px ;

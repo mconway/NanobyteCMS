@@ -6,64 +6,63 @@ class AdminController extends BaseController{
 		//make construct check for perms, hash and then make object.
 	}
 	
-	public static function admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
-		
- 		self::ShowConfig();
-		$jsonObj->content =  $smarty->fetch('form.tpl');
+	public static function admin(){
+		$Core = parent::getCore();
+ 		self::ShowConfig($Core);
+		$Core->json_obj->content =  $Core->smarty->fetch('form.tpl');
 	}
 	
-	public static function display(&$argsArray){ //passed by call_user_func
-		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
+	public static function display(){ //passed by call_user_func
+		$Core = parent::getCore();
 		// Check user permissions
-	 	if (array_key_exists('hash',$_SESSION) && $_SESSION['hash'] == $user->SessionHash() && Core::AuthUser($user, 'access admin pages')){
-	 		$smarty->assign('page', array_key_exists(0,$args) ? $args[0] : 'Administration'); //Set Page Name
-	 		$smarty->assign('links', MenuController::GetMenu('admin',$user->group));  // Get the Admin Menu
-			if(!empty($args[0])){
-				if($core->autoload($args[0].'Controller',false)){
-					$class = $args[0].'Controller';
-				}elseif($core->autoload('Mod_'.$args[0],false)){
-					$class = 'Mod_'.$args[0];
+	 	if (array_key_exists('hash',$_SESSION) && $_SESSION['hash'] == $Core->user->SessionHash() && $Core->authUser('access admin pages')){
+	 		$Core->smarty->assign('page', isset($Core->args[0]) ? $Core->args[0] : 'Administration'); //Set Page Name
+	 		$Core->smarty->assign('links', MenuController::getMenu('admin',$Core->user->group));  // Get the Admin Menu
+			if(!empty($Core->args[0])){
+				if(parent::autoload($Core->args[0].'Controller',false)){
+					$class = $Core->args[0].'Controller';
+				}elseif(parent::autoload('Mod_'.$Core->args[0],false)){
+					$class = 'Mod_'.$Core->args[0];
 				}else{
-					$alias = $core->CheckAlias($args[0]);
+					$alias = $Core->checkAlias($Core->args[0]);
 					$class = $alias."Controller";
 //					Core::SetMessage($alias." ".$class);
 				}
-				call_user_func(array($class, 'Admin'),$argsArray);
+				call_user_func(array($class, 'Admin'),array(&$Core));
 			}else{
 				if (isset($_POST['save'])){
 					PostController::SavePost();
 				}
 //				$smarty->assign('users',Mod_Users::NewUsers());
 //				Mod_Stats::BrowserGraph();
-				$jsonObj->content = $smarty->fetch('admin.main.tpl');
+				$Core->json_obj->content = $Core->smarty->fetch('admin.main.tpl');
 			}
-			if(!$ajax){
+			if(!$Core->ajax){
 				parent::AddJs(THEME_PATH.'/js/admin.js');
 				parent::DisplayMessages(); // Get any messages
 				parent::GetHTMLIncludes(); // Get CSS and Script Files
-				$smarty->assign('content',$argsArray[4]->content);
-				$smarty->display('admin.tpl'); // Display the Admin Page
+				$Core->smarty->assign('content',$Core->json_obj->content);
+				$Core->smarty->display('admin.tpl'); // Display the Admin Page
 			}else{
-				$jsonObj->messages = BaseController::DisplayMessages();
-				print json_encode($argsArray[4]);
+				$Core->json_obj->messages = parent::displayMessages();
+				print json_encode($Core->json_obj);
 			}
 		}else{
-			Core::SetMessage('You do not have access to view this page!','error');
-			parent::Redirect('home',$ajax);
+			$Core->setMessage('You do not have access to view this page!','error');
+			parent::Redirect('home',$Core->ajax);
 		}
 	}
 	
 	public static function editConfig($params){
-		$params['dbuser'] = Admin::EncodeConfParams($params['dbuser']);
-		$params['dbpass'] = Admin::EncodeConfParams($params['dbpass']);
-		$params['smtp_user'] = Admin::EncodeConfParams($params['smtp_user']);
-		$params['smtp_pass'] = Admin::EncodeConfParams($params['smtp_pass']);
-		Admin::WriteConfig($params);
+		$params['dbuser'] = Admin::encodeConfParams($params['dbuser']);
+		$params['dbpass'] = Admin::encodeConfParams($params['dbpass']);
+		$params['smtp_user'] = Admin::encodeConfParams($params['smtp_user']);
+		$params['smtp_pass'] = Admin::encodeConfParams($params['smtp_pass']);
+		Admin::writeConfig($params);
 	}
 	
 	public static function showConfig(){
-		global $smarty, $core;
+		$Core = parent::getCore();
 		$perms = new Perms();
 		$perms->GetNames();
 		//create the tabs menu
@@ -72,14 +71,12 @@ class AdminController extends BaseController{
 		$form = new HTML_QuickForm('newuser','post','admin/settings');
 		
 		//get the site license
-		$fh = fopen('license', 'r');
-		$license = fread($fh, filesize('license'));
-		fclose($fh);
+		$license = file_get_contents('license');
 		
 		//set form defaults
 		$form->setdefaults(array(
-			'dbuser'=>$core->DecodeConfParams(DB_USER),
-			'dbpass'=>$core->DecodeConfParams(DB_PASS),
+			'dbuser'=>$Core->DecodeConfParams(DB_USER),
+			'dbpass'=>$Core->DecodeConfParams(DB_PASS),
 			'dbhost'=>DB_HOST,
 			'dbname'=>DB_NAME,
 			'dbprefix'=>DB_PREFIX,
@@ -105,8 +102,8 @@ class AdminController extends BaseController{
 			'smtp_auth'=>SMTP_AUTH,
 			'smtp_host'=>SMTP_SERVER,
 			'smtp_port'=>SMTP_PORT,
-			'smtp_user'=>$core->DecodeConfParams(SMTP_USER),
-			'smtp_pass'=>$core->DecodeConfParams(SMTP_PASS)
+			'smtp_user'=>$Core->DecodeConfParams(SMTP_USER),
+			'smtp_pass'=>$Core->DecodeConfParams(SMTP_PASS)
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
@@ -144,7 +141,7 @@ class AdminController extends BaseController{
 		$form->addElement('checkbox', 'use_html' ,'Compile Emails in HTML');
 		
 		$form->addElement('header','','Theme Settings');
-		$form->addElement('select', 'themepath', 'Select Theme', BaseController::GetThemeList());
+		$form->addElement('select', 'themepath', 'Select Theme', parent::GetThemeList());
 		
 		$form->addElement('header', '', 'User Settings');
 		$form->addElement('select', 'defaultgroup', 'Choose Default group for new Users', $perms->names);
@@ -160,13 +157,13 @@ class AdminController extends BaseController{
 		//If the form has already been submitted - validate the data
 		if($form->validate()){
 			$form->process(array('AdminController','EditConfig'));
-			Core::SetMessage('Settings have been saved successfully.','info');
-			BaseController::Redirect('admin');
+			$Core->SetMessage('Settings have been saved successfully.','info');
+			parent::redirect('admin');
 			exit;
 		}
 		//send the form to smarty
-		$smarty->assign('form', $form->toArray());
-		$smarty->assign('tabbed',$tablinks);
+		$Core->smarty->assign('form', $form->toArray());
+		$Core->smarty->assign('tabbed',$tablinks);
 		
 	}
 

@@ -1,19 +1,43 @@
 <?php
 
-class Perms{
+class Perms extends Core{
 	private $dbh;
+	private $permissions;
+	private $comments;
+	private $name;
+	private $names = '';
+	private $gid;
 	
 	public  function __construct($id=null){
 		$this->dbh = DBCreator::GetDbObject();
-		if ($id){
-			$query = $this->dbh->prepare("select name, comments, permissions from ".DB_PREFIX."_groups where `gid`=:id");
-			$query->execute(array(':id'=>$id));
-			$info = $query->fetch(PDO::FETCH_ASSOC);
+		if(isset($id)){
+			$select_query = $this->dbh->prepare("SELECT name, comments, perm_id, description FROM ".DB_PREFIX."_groups AS g LEFT JOIN ".DB_PREFIX."_group_perms AS gp ON gp.group_id=g.gid LEFT JOIN ".DB_PREFIX."_perms AS p ON p.id=gp.perm_id WHERE gid=:id");
+			$select_query->execute(array(':id'=>$id));
+			$this->permissions = $select_query->fetchAll(PDO::FETCH_OBJ);
 			$this->gid = $id;
-			$this->name = $info['name'];
-			$this->comments = $info['comments'];
-			$this->permissions = $info['permissions'];
+			$this->name = $this->permissions[0]->name;
+			$this->comments = $this->permissions[0]->comments;
+			$this->omg = "O HAI!";
 		}
+	}
+	
+	/**
+	 * Magic get method for private variables
+	 * @return mixed
+	 * @param mixed $name
+	 */
+	public function __get($name){
+		return $this->$name;
+	}
+
+	/**
+	 * Magic set method for private variables
+	 * @return void
+	 * @param string $name
+	 * @param mixed $value
+	 */
+	public function __set($name,$value){
+		$this->$name = $value;
 	}
 	
 	public function addGroup($params){
@@ -29,19 +53,62 @@ class Perms{
 		}
 	}
 	
-	public function commit(){
-		global $core;
-		foreach($this->data as $key=>$role){
-			$perm = implode(',',$role);
-			$query = $this->dbh->prepare("update ".DB_PREFIX."_groups set `permissions`=:perm where `name`=:name");
-			$query->bindParam(':perm', $perm);
-			$query->bindParam('name', $key);
+	public function addUserToGroup($uid,$group=DEFAULT_GROUP){
+		$select_query = $this->dbh->prepare("SELECT * FROM ".DB_PREFIX."_user_groups WHERE user_id=:uid");
+		try{
+			$select_query->execute(array(':uid'=>$uid));
+			if($select_query->rowCount()==1){
+				$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user_groups SET group_id =:gid WHERE user_id=:uid");
+			}else{
+				$query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user_groups (user_id, group_id) VALUES (:uid,:gid)");
+			}
 			try{
-				$query->execute();
+				$query->execute(array(':uid'=>$uid,':gid'=>$group));
 			}catch(PDOException $e){
-				$core->SetMessage('Unable to update '.$key.'. Error: '.$e->getMessage());
+		
+			}
+		}catch(PDOException $e){
+			
+		}
+	}
+	
+	public function commit(){ // FIX THIS
+		$Core = BaseController::getCore();
+		foreach($this->data as $key=>$role){ //foreach permission, add or delete a row to cms_group_perms
+//			$perm = implode(',',$role);
+			
+			$select_query = $this->dbh->prepare("SELECT * FROM ".DB_PREFIX."_group_perms WHERE perm_id=:perm AND group_id=(SELECT gid FROM ".DB_PREFIX."_groups WHERE name=:name)");
+			$query = $this->dbh->prepare("update ".DB_PREFIX."_group_perms set `perm_id`=:perm where `name`=:name");
+			$params = array(':perm'=>$perm,':name'=>$key);
+			try{
+				$select_query->execute($params);
+				
+			}catch(PDOException $e){
+				$Core->SetMessage('Unable to update '.$key.'. Error: '.$e->getMessage());
 			}
 		}
+	}
+	
+	public function createPerm($permissions,$cat='Nanobyte'){
+		if(!is_array($permissions)){
+			$permissions = array($permissions);
+		}
+		$insert_query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_perms (category, description) VALUES (:cat,:desc)");
+		foreach($permissions as $p){
+			try{
+				$insert_query->execute(array(':cat'=>strtolower($cat),':desc'=>strtolower($p)));
+			}catch(PDOException $e){
+				
+			}
+		}
+		
+		$update_query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_groups SET permissions=CONCAT_WS(',',permissions,:p) WHERE name='admin'");
+		try{
+			$update_query->execute(array(':p'=>implode(",",strtolower($permissions))));
+		}catch(PDOException $e){
+			
+		}
+		
 	}
 	
 	public function getAll(){
@@ -59,11 +126,22 @@ class Perms{
 				$this->names[$name['gid']] = $name['name'];
 		}
 	}
+
+	/**
+	 * Query the database for all permissions for a specified group
+	 * @return object Permissions
+	 * @param int $id
+	 */
+	public function getPermissionsForGroup($id){
+		$query = $this->dbh->prepare("select name, comments, permissions from ".DB_PREFIX."_groups where `gid`=:id");
+		$query->execute(array(':id'=>$id));
+		return $query->fetch(PDO::FETCH_OBJ);
+	}
 	
 	public function getPermissionsList(){
 		$permsQ = $this->dbh->prepare("select category, description from ".DB_PREFIX."_perms");
 		$permsQ->execute();
 		return $permsQ->fetchAll(PDO::FETCH_ASSOC);
 	}
-	
+
 }

@@ -24,49 +24,50 @@
 			return $form->toArray(); 
 		}
 		
-	    public static function admin(&$argsArray){
-			list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
+	    public static function admin(){
+			$Core = parent::getCore();
 			
 			$perms = new Perms();
-			switch($args[1]){
+			switch($Core->args[1]){
 				case 'add':
-					$smarty->assign('form',self::Add());
-					$content = $smarty->fetch('form.tpl');
+					$Core->smarty->assign('form',self::Add());
+					$content = $Core->smarty->fetch('form.tpl');
 					break;
 				case 'edit':
 					if(isset($_POST['submit'])){
 				 		self::Write($perms);
 					}else{					
-						self::Edit($perms,$smarty);
-						$content = $smarty->fetch('list.tpl');
-						$jsonObj->callback = 'Dialog';
+						$Core->smarty->assign(self::Edit($perms));
+						$content = $Core->smarty->fetch('list.tpl');
+						$Core->json_obj->callback = 'Dialog';
 					}
 					break;
 				case 'list': 
 					$perms->GetAll();
-					$smarty->assign(self::ListGroups($perms));
-					$content = $smarty->fetch('list.tpl');
+					$Core->smarty->assign(self::ListGroups($perms));
+					$content = $Core->smarty->fetch('list.tpl');
 					break;
 				case 'select':
-					switch($args[2]){
+					switch($Core->args[2]){
 						case 'delete':
-							$jsonObj->callback = 'nanobyte.deleteRows';
-							$jsonObj->args = implode('|',self::Delete());
+							$Core->json_obj->callback = 'nanobyte.deleteRows';
+							$Core->json_obj->args = implode('|',self::delete());
 							break;
 						default: 
 							break;
 					}
 					break;
 				default: //Need to set active tab
-					$tabs = array(Core::l('Users','admin/user/list'),Core::l('Groups','admin/group/list'));
-					$smarty->assign('tabs',$tabs);
-					if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
+					$tabs = array($Core->l('Users','admin/user/list'),$Core->l('Groups','admin/group/list'));
+					$Core->smarty->assign('tabs',$tabs);
+					if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 					break;
 			}
-			$jsonObj->content = $content;
+			$Core->json_obj->content = $content;
 		}
 	
 		public static function delete(){
+			$Core = parent::getCore();
 			if(isset($_POST['group'])){
 	 			$del = $_POST['group'];
 				$retArray = array();
@@ -74,20 +75,20 @@
 	 				$deleted = Admin::DeleteObject('groups', 'gid', $delete);
 					if ($deleted === true){
 						array_push($retArray,$delete);
-						Core::SetMessage('Group ID '.$delete.' has been deleted!', 'info');
+						$Core->setMessage('Group ID '.$delete.' has been deleted!', 'info');
 					}else{
-						Core::SetMessage('Unable to delete Group ID'.$delete.' , an error has occurred.', 'error');
+						$Core->setMessage('Unable to delete Group ID'.$delete.' , an error has occurred.', 'error');
 					}
 				}
 				return $retArray;
 	 		}else{
-	 			Core::SetMessage('You must choose one or more groups to delete!', 'error');
+	 			$Core->setMessage('You must choose one or more groups to delete!', 'error');
 	 		}
-			//BaseController::Redirect('admin/perms');
+			//parent::Redirect('admin/perms');
 			exit;
 		}	
 		
-		public static function edit($perms,&$smarty){
+		public static function edit(&$perms){
 			$permList = $perms->GetPermissionsList();
 			$perms->GetAll();
 			$i = 0;
@@ -100,11 +101,11 @@
 				}
 				$i++;
 			}
-			$smarty->assign(array(
+			return array(
 				'self'=>'admin/group/edit',
 				'list'=>$list,
 				'extra'=>'<input type="submit" value="Submit" name="submit"/>'
-			));
+			);
 		} 
 
 		public static function listGroups($perms){

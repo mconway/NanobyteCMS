@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * Created on May 9, 2008
  *
  * To change the template for this generated file go to
@@ -8,163 +8,65 @@
  
  class Core{
  	
-	public function __construct(){
-		$this->StartSession();
+	public $mods_enabled = array();
+	public $smarty;
+	public $json_obj;
+	public $ajax;
+	public $args;
+	public $user;
+	
+	public function __construct($start_session=false){
 		$this->EnabledMods();
+		if($start_session===true){
+			//Start the session and create any objects we need
+			$this->StartSession();
+		}
+		//Create the JSON Object
+		$this->json_obj = new Json();
+		//Create the Smary Object and set parameters
+		$this->smarty = new Smarty();
+		$this->smarty->template_dir = THEME_PATH;
+		$this->smarty->force_compile = true;
+		//Create the User Object
+		$this->user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user'],$this) : new User(0,$this);
+		//Other
+		$this->ajax = false;
+		$this->args = "";
 	}
 	
-	public static function autoload($c,$showMessage=true){
-		global $core;
-		
-		$foundClass = false;
-		if(!empty($c) && $c != 'Controller'){
-			if($c == 'HTML_QuickForm'){
-				@include 'HTML/QuickForm.php';
-				$foundClass = true;
-			}elseif(strcasecmp(substr($c,0,4),'Mod_')!=0){
-		 		if(file_exists("includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
-		 			return true;
-		    	}elseif (file_exists("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
-		    		return true;
-		 		}
-			}
-			if(array_key_exists(str_ireplace('controller','',str_ireplace('Mod_','',$c)),$core->modsEnabled) && !$foundClass){
-				if(substr($c,0,4)!=='Mod_'){
-					$c = 'Mod_'.str_ireplace('Controller','',$c);
-				}
-				if(file_exists("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php")) {
-					return true;
-		 		}
-			}
-			if(!$foundClass){
-	      		if($showMessage){
-	      			$core->SetMessage("Could not load class '{$c}'",'error');
-				}
-	      		return false;
-	   		}
+	/**
+	 * Magic get method for private variables
+	 * @return mixed
+	 * @param mixed $name
+	 */
+	public function __get($name){
+//		echo get_class($this);
+		if(get_class() != "Core"){
+			var_dump(get_class());
 		}
-	}
-	
-	public function decodeConfParams($param){
- 		return str_rot13(base64_decode($param));
- 	}
-
-	public function startSession(){
-		$sess = new SessionManager();
-		session_set_cookie_params(SESS_TTL);
-	    session_start();
-		$this->EnabledMods();
-		if(array_key_exists('Stats', $this->modsEnabled)){
-			$stats = new Mod_Stats();
-			$stats->commit();
-		}
-		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
-		
-	}
-	
- 	public function l($text, $path, $options=array()){
-		//return an HTML string
-		 if (CLEANURL){
- 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;
- 		}else{
- 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
- 		}
-		if(isset($options['image'])){
-			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" alt="'.$text.'"/>';
-		}
-		$class = isset($options['class']) ? $options['class'] : '';
-		$id = isset($options['id']) ? $options['id'] : '';
-		$title = isset($options['title']) ? $options['title'] : '';
-		$link = "<a href='{$url}' class='{$class}' id='{$id}' title='{$title}'>{$text}</a>";
-		return $link;
-	}
-	
-	public function setMessage($message=null, $type='status'){
-		if (!isset($_SESSION['messages'])){
-			$_SESSION['messages'] = array();
-		}
-		if (!isset($_SESSION['messages'][$type])){
-			$_SESSION['messages'][$type] = array();
-		}
-		$_SESSION['messages'][$type][] = $message;
-		return $_SESSION['messages'];
-	}
-	
-	public function getMessages($type=null, $clear=true){
-		$messages = $_SESSION['messages'];
-		if ($type){
-			if ($clear){
-				unset($_SESSION['messages'][$type]);
-			}
-			if (isset($messages[$type])){
-				return array($type => $messages[$type]);
-			}
-		}else{
-			if ($clear){
-				unset($_SESSION['messages']);
-			}
-			return $messages;
-		}
-		return array();
-	}
-	
-	public function authUser($user, $perm){
-			if (array_key_exists($perm, $user->permissions)){
-				return true;
-			}else{
-				return false;
-			}
+		return $this->$name;
 	}
 
- 	public function isSingle($item){
- 		if (count($item) == 1){
- 			return true;
- 		}else{
- 			return false;
- 		}
- 	}
-	
- 	public function url($path){
- 		if (CLEANURL){
- 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;;
- 		}else{
- 			//$url = explode('/',$path);
- 			//$script = array_shift($url);
- 			//$page = implode('/', $url);
- 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
- 		}
- 	}
-	
-	public function fileUpload($file){
-		$filename = $file['name']; // Get the name of the file (including file extension).
-		if(move_uploaded_file($file['tmp_name'],UPLOAD_PATH . $filename)){
-    		return true;
-   		}else{
-   			return false;
-		}
+	/**
+	 * Magic set method for private variables
+	 * @return void
+	 * @param string $name
+	 * @param mixed $value
+	 */
+	public function __set($name,$value){
+		$this->$name = $value;
 	}
 	
-	public function enabledMods(){
-		$modsList = Module::GetEnabled('module');
-		foreach($modsList as $mod){
-			$this->modsEnabled[$mod['name']] = true;
-			$m = new Module($mod['name']);
-			require_once($m->modpath.'Mod_'.$m->name.'.php');
+ 	public function arrayPathInsert(&$array, $path, $value){
+		$path_el = explode('|', $path);
+		$arr_ref =& $array;
+		$count = count($path_el);
+		for($i=0; $i<$count; $i++){
+			$arr_ref =& $arr_ref[$path_el[$i]];
 		}
-	}
+		$arr_ref = $value;
+    }
 	
-	public function checkAlias($alias){
-		$dbh = DBCreator::GetDBObject();
-		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
-		$query->execute(array(0=>$alias));
-		$result = $query->fetch();
-		if ($query->rowCount() == 1){
-			return $result[0];
-		}else{
-			return false;
-		}
-	}
- 
 	public function arraySearchRecursive($needle, $haystack, $inverse = false, $limit = 1) {
 		# Settings
 		$path = array ();
@@ -200,17 +102,119 @@
 //		return implode('|',$path);
 		return $path;
 	}
- 
- 	public function array_path_insert(&$array, $path, $value){
-		$path_el = explode('|', $path);
-		$arr_ref =& $array;
-		$count = count($path_el);
-		for($i=0; $i<$count; $i++){
-			$arr_ref =& $arr_ref[$path_el[$i]];
+	
+	public function authUser($perm){
+		
+		foreach($this->user->permissions->permissions as $permission){
+			file_put_contents('log.txt',var_export($permission->description,true)." ".count($this->user->permissions->permissions)."\n",FILE_APPEND);
+			if ($permission->perm_id==$perm || $permission->description==$perm){
+				return true;
+			}
+			continue;
 		}
-		$arr_ref = $value;
-    }
- 	
+		return false;
+	}
+	
+	public function checkAlias($alias){
+		$dbh = DBCreator::GetDBObject();
+		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
+		$query->execute(array(0=>$alias));
+		$result = $query->fetch();
+		if ($query->rowCount() == 1){
+			return $result[0];
+		}else{
+			return false;
+		}
+	}
+	
+	public function decodeConfParams($param){
+ 		return str_rot13(base64_decode($param));
+ 	}
+
+	public function enabledMods(){
+		$mods_list = Module::GetEnabled('module');
+		foreach($mods_list as $mod){
+			$this->mods_enabled[$mod['name']] = true;
+			$m = new Module($mod['name']);
+			//this is case sensetive. needs to be fixed?
+			require_once($m->modpath.'mod_'.$m->name.'.php');
+		}
+	}
+
+	public function fileUpload($file){
+		$filename = $file['name']; // Get the name of the file (including file extension).
+		if(move_uploaded_file($file['tmp_name'],UPLOAD_PATH . $filename)){
+    		return true;
+   		}else{
+   			return false;
+		}
+	}
+
+	public function getMessages($type=null, $clear=true){
+		$messages = $_SESSION['messages'];
+		if ($type){
+			if ($clear){
+				unset($_SESSION['messages'][$type]);
+			}
+			if (isset($messages[$type])){
+				return array($type => $messages[$type]);
+			}
+		}else{
+			if ($clear){
+				unset($_SESSION['messages']);
+			}
+			return $messages;
+		}
+		return array();
+	}
+
+	public function getSettings($setting){
+		$dbh = DBCreator::GetDbObject();
+		$query = $dbh->prepare("SELECT value FROM ".DB_PREFIX."_settings WHERE setting=:set");
+		$query->execute(array(':set'=>$setting));
+		if($query->rowCount()==1){
+			$tmp = $query->fetch(PDO::FETCH_ASSOC);
+			return $tmp['value'];
+		}else{
+			return false;
+		}
+	}
+
+	public function isEnabled($module){
+		if(!is_array($this->mods_enabled)){
+			var_dump($this->mods_enabled, $module);
+		}
+		if(array_key_exists($module, $this->mods_enabled)){
+			return true;
+		}
+		return false;
+	}
+
+	public function isSingle($item){
+ 		if (count($item) == 1){
+ 			return true;
+ 		}else{
+ 			return false;
+ 		}
+ 	}
+
+ 	public function l($text, $path, $options=array()){
+		//return an HTML string
+		 if (CLEANURL){
+ 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;
+ 		}else{
+ 			$url = PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
+ 		}
+		if(isset($options['image'])){
+			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" alt="'.$text.'"/>';
+		}
+		$class = isset($options['class']) ? $options['class'] : '';
+		$id = isset($options['id']) ? $options['id'] : '';
+		$title = isset($options['title']) ? $options['title'] : '';
+		$link = "<a href='{$url}' class='{$class}' id='{$id}' title='{$title}'>{$text}</a>";
+		return $link;
+	}
+	
 	public function saveSettings($value,$setting){
 		$dbh = DBCreator::GetDbObject();
 		$query = $dbh->prepare("UPDATE ".DB_PREFIX."_settings SET value=:val WHERE setting=:set");
@@ -222,7 +226,61 @@
 		}
 	}
 	
+	public function setMessage($message=null, $type='status'){
+		if (!isset($_SESSION['messages'])){
+			$_SESSION['messages'] = array();
+		}
+		if (!isset($_SESSION['messages'][$type])){
+			$_SESSION['messages'][$type] = array();
+		}
+		$_SESSION['messages'][$type][] = $message;
+		return $_SESSION['messages'];
+	}
+	
+	public function startSession(){
+		$sess = new SessionManager();
+		session_set_cookie_params(SESS_TTL);
+	    session_start();
+		if($this->isEnabled('stats')){
+			$stats = new Mod_Stats();
+			$stats->commit();
+		}
+		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
+	}
+	
+ 	public function url($path){
+ 		if (CLEANURL){
+ 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;;
+ 		}else{
+ 			//$url = explode('/',$path);
+ 			//$script = array_shift($url);
+ 			//$page = implode('/', $url);
+ 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.'index.php?page='.$path : SITE_DOMAIN.'/index.php?page='.$path;
+ 		}
+ 	}
+	
+	/**
+	 * Modified Var_Dump. Default behavior wraps var_dump in <pre> tags
+	 * Wraps argument in <pre> tags. If return is true, returns the data dump. If use_pre is false, will only return var_dump with newlines
+	 * @return mixed
+	 * @param mixed $mixed
+	 * @param boolean $return[optional]
+	 * @param boolean $use_pre[optional]
+	 */
+	public function vardump(&$mixed,$return=false,$use_pre=true){
+		ob_start();
+		var_dump($mixed);
+		$return_val = ob_get_clean();
+		if($use_pre===true){
+			$return_val = "<pre>".$return_val."</pre>";
+		}
+		if($return===true){
+			return $return_val;
+		}
+		echo $return_val;
+	} 
+
  }
  //ini_set('zlib.output_compression', 'On');
- spl_autoload_register(array('Core',"autoload"));
+
 ?>

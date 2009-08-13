@@ -2,6 +2,24 @@
 
 class Mod_Stats extends Module
 {
+	
+	function __construct($referrer=true){
+		$this->DB = DbCreator::GetDBObject();
+		
+		if($referrer){
+			$this->DB = DbCreator::GetDBObject();
+			$this->visitorIp = $_SERVER['REMOTE_ADDR'];
+			$this->visitorBrowser = $this->GetBrowserType();
+			$this->visitorHour = date("h");
+			$this->visitorMinute = date("i");
+			$this->visitorDay = date("d");
+			$this->visitorMonth = date("m");
+			$this->visitorYear = date("Y");
+			$this->visitorReferrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+			$this->visitorPage = $this->SelfURL();
+		}
+	}
+	
 	public static function Admin(&$argsArray){
 		StatsController::admin($argsArray);
 	}
@@ -27,23 +45,6 @@ class Mod_Stats extends Module
 		$plot->SetPlotType('pie');
 		$plot->DrawGraph();
 	}	
-	
-	function __construct($referrer=true){
-		$this->DB = DbCreator::GetDBObject();
-		
-		if($referrer){
-			$this->DB = DbCreator::GetDBObject();
-			$this->visitorIp = $_SERVER['REMOTE_ADDR'];
-			$this->visitorBrowser = $this->GetBrowserType();
-			$this->visitorHour = date("h");
-			$this->visitorMinute = date("i");
-			$this->visitorDay = date("d");
-			$this->visitorMonth = date("m");
-			$this->visitorYear = date("Y");
-			$this->visitorReferrer = $_SERVER['HTTP_REFERER'];
-			$this->visitorPage = $this->SelfURL();
-		}
-	}
 	
 	public function GetBrowserType () {
 		if (!empty($_SERVER['HTTP_USER_AGENT'])) 
@@ -102,7 +103,7 @@ class Mod_Stats extends Module
 	
 	public function CheckReferrer(){
 		$referrer = parse_url($this->visitorReferrer);
-		if ($referrer['scheme']."://".$referrer['host'] == SITE_DOMAIN){
+		if (isset($referrer['scheme']) && isset($referrer['host']) && $referrer['scheme']."://".$referrer['host'] == SITE_DOMAIN){
 			return false;
 		}else{
 			return true;
@@ -188,22 +189,23 @@ class Mod_Stats extends Module
 
 class StatsController extends BaseController{
 	
-	public static function admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
-			
-		switch($args[1]){
-			case 'list':
-				unset($args[array_search('ajax',$args)]);
-				$smarty->assign(self::listStats($args[2])); // Get the stats list
-				$content = $smarty->fetch('list.tpl'); // Display the list
-				break;
-			default:
-				$tabs = array($core->l('Site Statistics','admin/stats/list'));
-				$smarty->assign('tabs',$tabs);
-				if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
-				break;
+	public static function admin(){
+		$Core = parent::getCore();
+		if(isset($Core->args[1])){
+			switch($Core->args[1]){
+				case 'list':
+					unset($Core->args[array_search('ajax',$Core->args)]);
+					$Core->smarty->assign(self::listStats($Core->args[2])); // Get the stats list
+					$content = $Core->smarty->fetch('list.tpl'); // Display the list
+					break;
+			}
+		}else{
+			$tabs = array($Core->l('Site Statistics','admin/stats/list'));
+			$Core->smarty->assign('tabs',$tabs);
+			if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 		}
-		$jsonObj->content = $content;
+
+		$Core->json_obj->content = isset($content) ? $content : '';
 	}
 	
 	public static function listStats($page){
@@ -222,7 +224,7 @@ class StatsController extends BaseController{
 		
 		return array(
 			'list' => $statsArray['items'],
-			'pager' => BaseController::Paginate($statsArray['limit'], $statsArray['nbItems'], 'admin/stats/', $page),
+			'pager' => parent::Paginate($statsArray['limit'], $statsArray['nbItems'], 'admin/stats/', $page),
 			'extra' => $formTop
 		);
 	}

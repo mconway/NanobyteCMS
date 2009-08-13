@@ -9,7 +9,8 @@
  * Creates and stores a connection to the database and makes all database calls on the user table.
  * Handles password and account creation. Handles password resets and getting user data for display
  */
-class User{
+class User extends Core{
+	
 	/**
 	 * @var object
 	 */
@@ -37,10 +38,6 @@ class User{
 	/**
 	 * @var array
 	 */
-	public $patterns;
-	/**
-	 * @var array
-	 */
 	private $permissions;
 	/**
 	 * @var string
@@ -56,27 +53,32 @@ class User{
 	 * @return void
 	 * @param string/integer $id[optional]
 	 */
-	public function __construct($id=null){
+	public function __construct($id=null,&$Core=NULL){
+		if(!is_object($Core)){
+			$Core = new Core(false);
+		}
 		$this->dbh = DBCreator::GetDbObject();
-//		$this->patterns = array('%u'=>$this->name,'%p'=>$this->uePassword);
 		if($id==0){
 			$this->uid = 0;
 			$this->name = 'Guest';
-			$perms = $this->dbh->query("select name, permissions from ".DB_PREFIX."_groups where `gid`=3")->fetch(PDO::FETCH_ASSOC);
-			$this->permissions = array_flip(explode(',' , $perms['permissions']));
-			$this->group = $perms['name'];
+			$this->permissions = new Perms(3);
+			$this->group = $this->permissions->permissions[0]->name;
 		}elseif(isset($id)){
-			$user = $this->dbh->prepare("SELECT u.uid, u.username, u.email, u.joined, u.password, p.name, p.permissions FROM ".DB_PREFIX."_user AS u LEFT JOIN ".DB_PREFIX."_groups AS p ON u.gid=p.gid WHERE `uid`=:id");
-			$user->execute(array(':id'=>$id));
-			$row = $user->fetch(PDO::FETCH_ASSOC);
-			$this->uid = $row['uid'];
-			$this->name = $row['username'];
-			$this->email = $row['email'];
-			$this->joined = $row['joined'];
-			$this->password = $row['password'];
-			$this->salt = substr($row['password'], 3);	
-			$this->permissions = array_flip(explode(',' , $row['permissions']));
-			$this->group = $row['name'];
+			$dbh = $this->dbh->prepare("SELECT uid, username, email, joined, password, group_id FROM ".DB_PREFIX."_user LEFT JOIN ".DB_PREFIX."_user_groups ON uid=user_id WHERE uid=:id");
+			$dbh->execute(array(':id'=>$id));
+			$row = $dbh->fetch(PDO::FETCH_OBJ);
+			$this->uid = $row->uid;
+			$this->name = $row->username;
+			$this->email = $row->email;
+			$this->joined = $row->joined;
+			$this->password = $row->password;
+			$this->salt = substr($row->password, 3);	
+			$this->permissions = new Perms($row->group_id);
+			$this->group = $this->permissions->permissions[0]->name;
+			if($Core->isEnabled('UserProfile')){
+				$this->profile = new Mod_UserProfile($this->uid);
+			}
+			
 		}
 	}
 	
@@ -123,25 +125,26 @@ class User{
 	 * @param array $array
 	 */
 	public function create($array){
-		global $core;
+		$Core = BaseController::getCore();
 		$pw = $this->GetPassword($array['name'],$array['password']);
 		$result = $this->dbh->prepare("SELECT username, email FROM ".DB_PREFIX."_user WHERE username=:u OR email=:email");
 		$result->execute(array(':u'=>$array['name'],':email'=>$array['email']));
 		if ($result->rowCount() >= 1){
 			$row = $result->fetch(PDO::FETCH_ASSOC);
 			if($row['username'] == $array['name']){
-				$core->SetMessage('Error creating User: The username you have chosen already exists.');
+				$Core->SetMessage('Error creating User: The username you have chosen already exists.');
 				return false;
 			}elseif($row['email'] == $array['email']){
-				$core->SetMessage('Error creating User: The email you have entered is already in our system.');
+				$Core->SetMessage('Error creating User: The email you have entered is already in our system.');
 				return false;
 			}
 		}else{
-			$insert = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user (username, password, email, joined, gid) VALUES (:u, :p, :e, :t, :g)");	
+			$insert = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user (username, password, email, joined) VALUES (:u, :p, :e, :t)");	
 //			$profileq = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name");
 			try{
-				$insert->execute(array(':u'=>$array['name'],':p'=>$pw,':e'=>$array['email'],':t'=>time(),':g'=>DEFAULT_GROUP));
+				$insert->execute(array(':u'=>$array['name'],':p'=>$pw,':e'=>$array['email'],':t'=>time()));
 				if($insert->rowCount()==1){
+					$this->permissions->addUserToGroup($this->dbh->lastInsertId());
 					$this->__construct($this->dbh->lastInsertId());
 					$this->uePassword = $array['password'];
 					$email = new Email();
@@ -156,7 +159,7 @@ class User{
 				}
 //				$profileq->execute(array(':name'=>$array['name']));
 			} catch (PDOException $e) {
-				$core->SetMessage('Error creating User: ' . $e->getMessage().". Please contact the Webmaster");
+				$Core->SetMessage('Error creating User: ' . $e->getMessage().". Please contact the Webmaster");
 			}
 			return true;
 		}
@@ -258,7 +261,7 @@ class User{
 	 * @param integer $limit[optional]
 	 */
 	public function read($start=0, $limit=15){
-		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM ".DB_PREFIX."_user ORDER BY joined DESC LIMIT {$start},{$limit}";
+		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM ".DB_PREFIX."_user LEFT JOIN ".DB_PREFIX."_user_groups ON user_id=uid ORDER BY joined DESC LIMIT {$start},{$limit}";
 		$this->output = array();
 		$this->output['items'] = $this->dbh->query($query)->fetchAll();
 		//get the row count

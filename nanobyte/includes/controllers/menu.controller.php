@@ -7,6 +7,7 @@
 class MenuController extends BaseController{
 	
 	public static function addMenu(){
+		$Core = parent::getCore();
 		$form = new HTML_QuickForm('new-menu','post','admin/menu/add');
 		$form->addElement('header','','Create new Account');
 		$form->addElement('text', 'name', 'Menu Name', array('size'=>25, 'maxlength'=>50));
@@ -15,9 +16,9 @@ class MenuController extends BaseController{
 		if(isset($_POST['submit']) && $form->validate()){
 			$menu = new Menu();
 			$form->process(array($menu,'Create'));
-			Core::SetMessage('Your user account has been created!','info');
+			$Core->SetMessage('Your user account has been created!','info');
 			return true;
-			//BaseController::Redirect();
+			//parent::Redirect();
 			//exit;
 		}
 		//send the form to smarty
@@ -42,82 +43,82 @@ class MenuController extends BaseController{
 		return array('list'=>$items,'extra'=>'<input type="submit" value="Submit" name="submit"/>','formAction'=>'admin/menu/add/'.$menuID);
 	}
 	
-	public static function admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
+	public static function admin(){
+		$Core = parent::getCore();
 		
-		$tabs = array($core->l('Menus','admin/menu/list'));
-		$smarty->assign('tabs',$tabs);
-		$smarty->assign('showID',true);
-		if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
+		$tabs = array($Core->l('Menus','admin/menu/list'));
+		$Core->smarty->assign('tabs',$tabs);
+		$Core->smarty->assign('showID',true);
+		if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 		
 		$content = '';
 		
-		if(isset($args[1])){
-			switch($args[1]){
+		if(isset($Core->args[1])){
+			switch($Core->args[1]){
 				case 'add':
-					if(isset($_POST['submit']) && !isset($args[2])){
+					if(isset($_POST['submit']) && !isset($Core->args[2])){
 						if(self::addMenu()){
-							$core->setMessage('Your changes have been saved.','info');
-							$jsonObj->callback = 'nanobyte.closeParentTab';
-							$jsonObj->args = 'input[name=submit][value=Submit]';
+							$Core->setMessage('Your changes have been saved.','info');
+							$Core->json_obj->callback = 'nanobyte.closeParentTab';
+							$Core->json_obj->args = 'input[name=submit][value=Submit]';
 						}
-					}elseif(isset($args[2]) && is_numeric($args[2])){
+					}elseif(isset($Core->args[2]) && is_numeric($Core->args[2])){
 						if (isset($_POST['submit'])){
-							if(self::writeMenu($args[2],$_POST)){
-								$core->setMessage('Your changes have been saved.','info');
-								$jsonObj->callback = 'nanobyte.closeParentTab';
-								$jsonObj->args = 'input[name=submit][value=Submit]';
+							if(self::writeMenu($Core->args[2],$_POST)){
+								$Core->setMessage('Your changes have been saved.','info');
+								$Core->json_obj->callback = 'nanobyte.closeParentTab';
+								$Core->json_obj->args = 'input[name=submit][value=Submit]';
 								break;
 							}
 						}
-						$smarty->assign(self::addMenuItemForm($args[2]));
-						$content = $smarty->fetch('list.tpl');
+						$Core->smarty->assign(self::addMenuItemForm($Core->args[2]));
+						$content = $Core->smarty->fetch('list.tpl');
 					}else{ //no menu is specified, so lets create a new one
-						$smarty->assign(self::addMenu());
-						$content = $smarty->fetch('form.tpl');
+						$Core->smarty->assign(self::addMenu());
+						$content = $Core->smarty->fetch('form.tpl');
 					}
 					break;
 				case 'delete':
-					if($args[2] && $args[3]){
-						if(Admin::deleteObject('menu_links','id',$args[3])){
-							$jsonObj->callback = 'nanobyte.deleteRows';
-							$jsonObj->args = $args[3];
+					if($Core->args[2] && $Core->args[3]){
+						if(Admin::deleteObject('menu_links','id',$Core->args[3])){
+							$Core->json_obj->callback = 'nanobyte.deleteRows';
+							$Core->json_obj->args = $Core->args[3];
 						}
 	//					parent::Redirect();
-					}elseif($args[2]){
-						$menu = new Menu($args[2]);
+					}elseif($Core->args[2]){
+						$menu = new Menu($Core->args[2]);
 						$menu->delete();
-						$jsonObj->callback = 'nanobyte.deleteRows';
-						$jsonObj->args = $menu->menu[0]['mid'].'|';
+						$Core->json_obj->callback = 'nanobyte.deleteRows';
+						$Core->json_obj->args = $menu->menu[0]['mid'].'|';
 					}
 					break;
 				case 'edit':
-					if(isset($args[2])){
+					if(isset($Core->args[2])){
 						if (isset($_POST['submit'])){
-							if(self::writeMenu($args[2],$_POST)){
-								$core->setMessage('Your changes have been saved.','info');
-								$jsonObj->callback = 'nanobyte.closeParentTab';
-								$jsonObj->args = 'input[name=submit][value=Submit]';
+							if(self::writeMenu($Core->args[2],$_POST)){
+								$Core->setMessage('Your changes have been saved.','info');
+								$Core->json_obj->callback = 'nanobyte.closeParentTab';
+								$Core->json_obj->args = 'input[name=submit][value=Submit]';
 							}
 						}else{
-							$smarty->assign(self::listMenuItems($args[2]));
-							$content = $smarty->fetch('list.tpl');
+							$Core->smarty->assign(self::listMenuItems($Core->args[2]));
+							$content = $Core->smarty->fetch('list.tpl');
 						}
 					}else{
-						$core->setMessage('You must specify a menu!', 'error');
+						$Core->setMessage('You must specify a menu!', 'error');
 					}
 					break;
 				case 'list':
-					$smarty->assign(self::listMenus());
-					$content = $smarty->fetch('list.tpl');
+					$Core->smarty->assign(self::listMenus());
+					$content = $Core->smarty->fetch('list.tpl');
 			}
 		}
 
-		$jsonObj->content = $content;
+		$Core->json_obj->content = $content;
 	}
 	
 	public static function getMenu($name, $permission){
-		global $smarty;
+		$Core = parent::getCore();
 		$premenu = new Menu($name);
 		$menu = array();
 		foreach ($premenu->menu as $preitem){

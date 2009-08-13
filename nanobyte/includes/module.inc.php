@@ -1,57 +1,49 @@
 <?php
-/*
+/**
  * Created Aug 6th
  * XML structure based on that of Mike Branski's Modularity Documents
  * conf params: Author (email and URL) | Title | Version | Status | Site | Description
  * 
  * 	call_user_func(array('Foo', 'bar') , $params );
-		
  *		Database: Module | Status 
 */
 
 class Module{
+	
 	private $dbh;
 	public $modpath;
 	
-	function __construct($path){
-		global $core;
+	function __construct($path=null){
+//		$Core = BaseController::getCore();
 		$this->dbh = DBCreator::GetDbObject();
-		$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE `module`=:mod";
-		$this->insert = "INSERT INTO ".DB_PREFIX."_modules (name, module, status) values (:name, :mod, :status)";
-		$this->modify = "UPDATE ".DB_PREFIX."_modules set `status`=status XOR 1 WHERE `module`=:mod";
-		$this->name = str_replace('modules/', '', $path);
-		$this->modpath = './modules/'.$this->name.'/';
-		if (file_exists($this->modpath.$this->name.'.xml')){
-			$this->conf = simplexml_load_file($this->modpath.$this->name.'.xml');
-			if ($this->GetStatus()){
-				return true;
+		if(isset($path)){
+			//set up some generic queries
+			$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE `module`=:mod";
+			$this->insert = "INSERT INTO ".DB_PREFIX."_modules (name, module, status) values (:name, :mod, :status)";
+			$this->modify = "UPDATE ".DB_PREFIX."_modules set `status`=status XOR 1 WHERE `module`=:mod";
+			$this->name = str_replace('modules/', '', $path);
+			$this->modpath = './modules/'.$this->name.'/';
+			if (file_exists($this->modpath.$this->name.'.xml')){
+				$this->conf = simplexml_load_file($this->modpath.$this->name.'.xml');
+				if ($this->GetStatus()){
+					return true;
+				}else{
+					$this->Add();
+					$this->status = 0;
+				}
+				//if (!empty($this->conf->author->attributes())){
+					//do something with the attributes
+				//}
 			}else{
-				$this->Add();
-				$this->status = 0;
+	//			$Core->SetMessage('Configuration file '.$this->modpath.$this->name.'.xml is unreadable or does not exist!', 'error');
 			}
-			//if (!empty($this->conf->author->attributes())){
-				//do something with the attributes
-			//}
-		}else{
-			$core->SetMessage('Configuration file '.$this->modpath.$this->name.'.xml is unreadable or does not exist!', 'error');
 		}
+
 		
 	}
 	
-	public function Commit(){
-		//set status to 1/0
-		$qUpdate = $this->dbh->prepare($this->modify);
-		$qUpdate->bindValue(':mod',$this->modpath);
-		$qUpdate->execute();
-		if($qUpdate->rowCount() == 1){
-			return true;
-		}else{
-			return false;
-		}
-	}
-	
-	public function Add(){
-		global $core;
+	public function add(){
+		$Core = BaseController::getCore();
 		$qSelect = $this->dbh->prepare($this->select);
 		$qSelect->bindParam(':mod', $this->modpath);
 		$qSelect->execute();
@@ -63,35 +55,26 @@ class Module{
 				$qInsert->bindValue(':status', 0);
 				$qInsert->execute();
 			}catch(PDOException $e){
-				$core->SetMessage('Could not add Module '.$this->conf->title.' to the database. Error: '.$e->getMessage(), 'error');
+				$Core->SetMessage('Could not add Module '.$this->conf->title.' to the database. Error: '.$e->getMessage(), 'error');
 			}
 		}else{
 			return false;
 		}
 	}
 	
-	public static function RegBlock($params){
-		global $core;
-		$dbh = DBCreator::GetDbObject();
-		$qselect = $dbh->prepare("SELECT name FROM ".DB_PREFIX."_blocks WHERE name=:name");
-		$qselect->bindParam(':name',$params['name']);
-		$qselect->execute();
-		if($qselect->rowCount() == 0){
-			try{
-				$qInsert = $dbh->prepare("INSERT INTO ".DB_PREFIX."_blocks (`name`, `providedby`, `position`, `status`, `options`) values (:name, :mod, :pos, :stat, :opt)");
-				$qInsert->bindParam(':name', $params['name']);
-				$qInsert->bindParam(':mod', $params['module']);
-				$qInsert->bindValue(':pos', 0);
-				$qInsert->bindValue(':stat', 0);
-				$qInsert->bindValue(':opt', $params['options']);
-				$qInsert->execute();
-			}catch(PDOException $e){
-				$core->SetMessage('Could not add Block '.$params['name'].' to the database. Error: '.$e->getMessage(), 'error');
-			}
+	public function commit(){
+		//set status to 1/0
+		$qUpdate = $this->dbh->prepare($this->modify);
+		$qUpdate->bindValue(':mod',$this->modpath);
+		$qUpdate->execute();
+		if($qUpdate->rowCount() == 1){
+			return true;
+		}else{
+			return false;
 		}
 	}
-
-	public function GetStatus(){
+	
+	public function getStatus(){
 		$qSelect = $this->dbh->prepare("SELECT `status` FROM ".DB_PREFIX."_modules WHERE `module`=:mod");
 		$qSelect->bindParam(':mod',$this->modpath);
 		$qSelect->execute();
@@ -104,7 +87,7 @@ class Module{
 		}
 	}
 	
-	public static function GetEnabled($type){
+	public static function getEnabled($type){
 		$dbh = DBCreator::GetDbObject();
 		$sort = $type =='block' ? "ORDER BY position DESC" : "";
 		$qSelect = $dbh->prepare("SELECT name FROM ".DB_PREFIX."_{$type}s WHERE `status`=1 {$sort}");
@@ -112,7 +95,7 @@ class Module{
 		return $qSelect->fetchAll(PDO::FETCH_ASSOC);
 	} 
 	
-	public static function GetBlocks($enabled=null){
+	public static function getBlocks($enabled=null){
 		$where = $enabled ? "WHERE `status`=1" : "";
 		$dbh = DBCreator::GetDbObject();
 		$qSelect = $dbh->prepare("SELECT * FROM ".DB_PREFIX."_blocks $where ORDER BY position, weight ASC");
@@ -120,16 +103,6 @@ class Module{
 		return $qSelect->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	public function updateBlockStatus($id){
-		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_blocks set `status`=status XOR 1 WHERE id=:id");
-		$query->execute(array(':id'=>$id));
-		if($query->rowCount()==1){
-			return true;
-		}else{
-			return false;
-		}
-	}
-	
 	public function moveBlock(&$args){
 		$weight = ($args[1] == 'up' || $args[1]=='down') ? "weight={$args[3]}" : '';
 		$position = $args[1] == 'position' ? "position={$args[3]}" : '';
@@ -144,6 +117,37 @@ class Module{
 		}
 	}
 
+	public static function regBlock($params){
+		$Core = BaseController::getCore();
+		$dbh = DBCreator::GetDbObject();
+		$qselect = $dbh->prepare("SELECT name FROM ".DB_PREFIX."_blocks WHERE name=:name");
+		$qselect->bindParam(':name',$params['name']);
+		$qselect->execute();
+		if($qselect->rowCount() == 0){
+			try{
+				$qInsert = $dbh->prepare("INSERT INTO ".DB_PREFIX."_blocks (`name`, `providedby`, `position`, `status`, `options`) values (:name, :mod, :pos, :stat, :opt)");
+				$qInsert->bindParam(':name', $params['name']);
+				$qInsert->bindParam(':mod', $params['module']);
+				$qInsert->bindValue(':pos', 0);
+				$qInsert->bindValue(':stat', 0);
+				$qInsert->bindValue(':opt', $params['options']);
+				$qInsert->execute();
+			}catch(PDOException $e){
+				$Core->SetMessage('Could not add Block '.$params['name'].' to the database. Error: '.$e->getMessage(), 'error');
+			}
+		}
+	}
+
+	public function updateBlockStatus($id){
+		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_blocks set `status`=status XOR 1 WHERE id=:id");
+		$query->execute(array(':id'=>$id));
+		if($query->rowCount()==1){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
 }
 
 

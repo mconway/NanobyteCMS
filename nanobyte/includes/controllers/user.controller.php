@@ -5,79 +5,79 @@ class UserController extends BaseController{
 	public static function addPerm($perm){
 		foreach($_POST['user'] as $u){
 			$user = new User($u);
-			$user->group = $perm;
-			$user->commit();
+			$user->permissions->addUserToGroup($user->uid,$perm);
 		}
 	}
 	
-	public static function admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
+	public static function admin(){
+		$Core = parent::getCore();
 		
 		$content = '';
-		if(isset($args[1])){
-			switch($args[1]){
+		if(isset($Core->args[1])){
+			switch($Core->args[1]){
 				case 'edit':
-					$smarty->assign('form',self::Edit($args[2]));
-					$content = $smarty->fetch('form.tpl');
+					$Core->smarty->assign('form',self::Edit($Core->args[2]));
+					$content = $Core->smarty->fetch('form.tpl');
 					if(isset($_POST['submit'])){
-						$jsonObj->callback = 'nanobyte.closeParentTab';
-						$jsonObj->args = 'input[name=submit][value=Save Changes]';
+						$Core->json_obj->callback = 'nanobyte.closeParentTab';
+						$Core->json_obj->args = 'input[name=submit][value=Save Changes]';
 					}
-					$jsonObj->title = "Edit user";
+					$Core->json_obj->title = "Edit user";
 					break;
 				case 'add':
-					$smarty->assign('form',self::RegForm($core,true));
-					$content = $smarty->fetch('form.tpl');
-					$jsonObj->title = "Add new user";
+					$Core->smarty->assign('form',self::RegForm($Core,true));
+					$content = $Core->smarty->fetch('form.tpl');
+					$Core->json_obj->title = "Add new user";
 					break;
 				case 'select':
-					switch($args[2]){
+					switch($Core->args[2]){
 						case 'delete':
-							self::DeleteUserRequest($user,$jsonObj);
+							self::DeleteUserRequest($Core);
 							break;
 						default: 
 							if(isset($_POST['user'])){
-								self::AddPerm($args[2]);
-								Core::SetMessage('Group "'.ucfirst($args[2]).'" has been added to the selected users!','info');
-								$jsonObj->callback = 'nanobyte.changeGroup';
-								$jsonObj->args = implode('|',$_POST['user']);
+								self::AddPerm($Core->args[2]);
+								$Core->setMessage('Group "'.ucfirst($Core->args[2]).'" has been added to the selected users!','info');
+								$Core->json_obj->callback = 'nanobyte.changeGroup';
+								$Core->json_obj->args = implode('|',$_POST['user']);
 							}else{
-								Core::SetMessage('You must select a user!','error');
+								$Core->setMessage('You must select a user!','error');
 							}
 							break;
 					}
 					break;
 				case 'list':
-					$smarty->assign(self::ListUsers($smarty, $user, $args[2]));
-					$content = $smarty->fetch('list.tpl'); 
+					$Core->smarty->assign(self::ListUsers($Core));
+					$content = $Core->smarty->fetch('list.tpl'); 
 					break;
 				case 'details':
-					$content = self::GetDetails($args[2]);
+					$content = self::GetDetails($Core->args[2]);
 					break;
 				case 'email':
 					$email = new Email();
-					$smarty->assign('form',parent::emailForm('admin/user/email',$email->getEmailData('register')));
-					$content = $smarty->fetch('form.tpl');
+					$Core->smarty->assign('form',parent::emailForm('admin/user/email',$email->getEmailData('register')));
+					$content = $Core->smarty->fetch('form.tpl');
 				default: 
-					$tabs = array(Core::l('Users','admin/user/list'),Core::l('Groups','admin/group/list'));
-					$smarty->assign('tabs',$tabs);
-					if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
+					$tabs = array($Core->l('Users','admin/user/list'),$Core->l('Groups','admin/group/list'));
+					$Core->smarty->assign('tabs',$tabs);
+					if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 					break;
 			}
 		}else{
 			$tabs = array(Core::l('Users','admin/user/list'),Core::l('Groups','admin/group/list'),Core::l('Email','admin/user/email'));
-			$smarty->assign('tabs',$tabs);
-			if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
+			$Core->smarty->assign('tabs',$tabs);
+			if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 		}
-		$jsonObj->content = $content;
+		$Core->json_obj->content = $content;
 	}
 	
 	public static function checkEmail($email, $confirm){
+		$Core = parent::getCore();
 		if($email != $confirm){
-			Core::SetMessage('Your email addresses did not match!', 'error');
+			$Core->setMessage('Your email addresses did not match!', 'error');
 			return false;
 		}elseif(!UserController::DomainExists($email)){
-			Core::SetMessage('Invalid Email Address', 'error');
+			$Core->setMessage('Invalid Email Address', 'error');
 			return false;
 		}else{
 			return true;
@@ -85,11 +85,12 @@ class UserController extends BaseController{
 	}
 	
 	public static function checkPass($pass, $confirm=null){
+		$Core = parent::getCore();
 		if($pass == '' || strlen($pass) < 6){
-			Core::SetMessage('Passwords must be at least 6 characters and cannot contain spaces.','error');
+			$Core->SetMessage('Passwords must be at least 6 characters and cannot contain spaces.','error');
 			return false;
 		}elseif ($confirm !== null && $pass !== $confirm){
-			Core::SetMessage('Your passwords did not match', 'error');
+			$Core->SetMessage('Your passwords did not match', 'error');
 			return false;
 		}else{
 			return true;
@@ -97,15 +98,17 @@ class UserController extends BaseController{
 	}
 	
 	public static function checkUser($user){
+		$Core = parent::getCore();
 		if ($user == '' || strlen($user) < 4){
-			Core::SetMessage('Usernames must be at least 4 Characters, and cannot contain spaces.','error');
+			$Core->etMessage('Usernames must be at least 4 Characters, and cannot contain spaces.','error');
 			return false;
 		}else{
 			return true;
 		}
 	}
 	
-	public static function deleteUserRequest(&$user,&$jsonObj){
+	public static function deleteUserRequest(){
+		$Core = parent::getCore();
  		if (isset($_GET['uid'])){
  			$delUser[] = $_GET['uid'];
  		}elseif(isset($_POST['user'])){
@@ -113,43 +116,44 @@ class UserController extends BaseController{
  		}
  		if(isset($delUser)){
 	 		foreach($delUser as $delete){
-	 			if ($user->uid != $delete){
-	 				$jsonObj->callback = 'nanobyte.deleteRows';
- 					if (Admin::DeleteObject('user', 'uid', $delete) === true){
-						Core::SetMessage('User '.$delete.' has been deleted!', 'info');
-						$jsonObj->args .= $delete."|";
+	 			if ($Core->user->uid != $delete){
+	 				$Core->json_obj->callback = 'nanobyte.deleteRows';
+ 					if (Admin::deleteObject('user', 'uid', $delete) === true){
+						$Core->setMessage('User '.$delete.' has been deleted!', 'info');
+						$Core->json_obj->args .= $delete."|";
 					} else {
-						Core::SetMessage('Unable to delete user '.$delete.' , an error has occurred.', 'error');
+						$Core->setMessage('Unable to delete user '.$delete.' , an error has occurred.', 'error');
 					}
  				}else{
- 					Core::SetMessage('You are not allowed to delete yourself!', 'error');
+ 					$Core->setMessage('You are not allowed to delete yourself!', 'error');
 	 			}
  			}	
  		}else{
- 			Core::SetMessage('You must choose a user(s) to delete!', 'error');
+ 			$Core->setMessage('You must choose a user(s) to delete!', 'error');
  		}
 	}
 	
-	public static function display(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
-			switch($args[0]){ // What sub page are we trying to view
+	public static function display(){
+		$Core = parent::getCore();
+		$content = "";
+			switch($Core->args[0]){ // What sub page are we trying to view
 				case 'details': // view user details - THIS IS NOT THE PROFILE PAGE
-					$content = self::GetDetails($args['1']);
+					$content = self::GetDetails($Core->args['1']);
 					break;
 				case 'edit':
-					if ($core->AuthUser($user, 'edit user accounts') || $user->uid === $args[1]){
-						self::EditUser($args[1]);
-						$content = $smarty->fetch('form.tpl');
+					if ($Core->AuthUser($user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
+						self::EditUser($Core->args[1]);
+						$content = $Core->smarty->fetch('form.tpl');
 					}else{
 						$core->SetMessage('You do not have access to this page!','error');
 					}
 					parent::DisplayMessages();
 					parent::GetHTMLIncludes();
-					$smarty->display('index.tpl');
+					$Core->smarty->display('index.tpl');
 					break;	
 				case 'commit': // Save User Details
 					if (isset($_POST['commit'])){
-						self::EditUser($args[1]);
+						self::EditUser($Core->args[1]);
 						parent::Redirect();
 					}elseif(isset($_POST['delete'])){
 						AdminController::DeleteUserRequest();
@@ -158,11 +162,12 @@ class UserController extends BaseController{
 					break;
 				case 'login': // Log in a user
 					self::Login($_POST['user'], $_POST['pass']);
-					if($user->success===true){
-						$core->SetMessage('Authentication Successful!','info');
-						$content = 'reload';
+					if($Core->user->success===true){
+						$Core->setMessage('Authentication Successful!','info');
+						$Core->json_obj->callback = 'reload';
 					}else{
-						Core::SetMessage('Username or Password is incorrect','error');
+						$Core->json_obj->callback = 'reset';
+						$Core->setMessage('Username or Password is incorrect','error');
 					}
 					break;
 					
@@ -172,17 +177,17 @@ class UserController extends BaseController{
 					break;
 				case 'register': // Sign up as a new user
 					if(isset($_POST['submit'])){
-						$jsonObj->callback = 'nanobyte.closeParentTab';
-						$jsonObj->args = 'input[name=submit][value=Submit]';
+						$Core->json_obj->callback = 'nanobyte.closeParentTab';
+						$Core->json_obj->args = 'input[name=submit][value=Submit]';
 					}
-					$smarty->assign('form',self::RegForm($argsArray));
-					$content = $smarty->fetch('form.tpl');
+					$Core->smarty->assign('form',self::RegForm($Core));
+					$content = $Core->smarty->fetch('form.tpl');
 					break;
-				case "reset_pw":
-					$smarty->assign('form',self::ResetPassword($user));
+				case 'reset_pw':
+					$Core->smarty->assign('form',self::ResetPassword($Core->user));
 					$content = $smarty->fetch('form.tpl');
-					$jsonObj->callback = 'Dialog';
-					$jsonObj->title = 'Reset Password';
+					$Core->json_obj->callback = 'Dialog';
+					$Core->json_obj->title = 'Reset Password';
 					break;
 //				case 'profiles':
 //					self::ShowProfile($args[1]);
@@ -192,21 +197,21 @@ class UserController extends BaseController{
 //					break;
 				default: // If no sub page is specified
 					if ($user->uid == 0){ //User is not logged in
-						$smarty->assign('noSess', true);
+						$Core->smarty->assign('noSess', true);
 					}else{
 //						self::ShowProfile($user->uid);
 					}
 					break;
 			}	
-			if(!$ajax){
+			if(!$Core->ajax){
 				parent::DisplayMessages(); // Get any messages
 				parent::GetHTMLIncludes(); // Get CSS and Script Files
-				$smarty->assign('content',$content);
-				$smarty->display('user.tpl'); // Display the Page
+				$Core->smarty->assign('content',$content);
+				$Core->smarty->display('user.tpl'); // Display the Page
 			}else{
-				$jsonObj->content = $content;
-				$jsonObj->messages = parent::DisplayMessages();
-				print json_encode($jsonObj);
+				$Core->json_obj->content = $content;
+				$Core->json_obj->messages = parent::DisplayMessages();
+				print json_encode($Core->json_obj);
 			}
 	}
 	
@@ -220,6 +225,7 @@ class UserController extends BaseController{
     } 
 	
 	public static function edit($id){
+		$Core = parent::getCore();
 		$edituser = new User($id);
 //		$profile = new UserProfile($edituser->uid);
 		//create the form object 
@@ -259,12 +265,12 @@ class UserController extends BaseController{
 				$edituser->email = $values['email'];
 			}
 			if ($edituser->commit() === true){
-				Core::SetMessage('Your Information has been updated!','info');
+				$Core->SetMessage('Your Information has been updated!','info');
 			}else{
-				Core::SetMessage('Your Information was not updated!','error');
+				$Core->SetMessage('Your Information was not updated!','error');
 			}
 
-//			BaseController::Redirect();
+//			parent::Redirect();
 			return;
 		}
 		//send the form to smarty
@@ -276,11 +282,15 @@ class UserController extends BaseController{
 		return $user->uid .'|'. $user->name .'|'.$user->email.'|'.$user->joined.'|'.$user->group;
 	}
 	
-	public static function listUsers(&$smarty,&$user,$page=1){
+	public static function listUsers(){
+		$Core = parent::getCore();
+		$smarty = $Core->smarty;
+		$user = $Core->user;
+		$page = isset($Core->args[2]) ? $Core->args[2] : 1;
 		$perms = new Perms();
 		$perms->GetNames();
 		//create list
-		$user->Read(BaseController::GetStart($page,10), 10, $page); //array of objects
+		$user->Read(parent::GetStart($page,10), 10, $page); //array of objects
 		$list = array();
 		$options = array(
 			'image' => '16',
@@ -295,7 +305,7 @@ class UserController extends BaseController{
 				'id'=>$u['uid'], 
 				'name'=>Core::l($u['username'], 'user/'.$u['uid']), 
 				'email'=>$u['email'], 
-				'group'=>$perms->names[$u['gid']],
+				'group'=>$perms->names[$u['group_id']],
 				'actions'=>Core::l('info','admin/user/details/'.$u['uid'],$options).' | '.Core::l('edit','admin/user/edit/'.$u['uid'],$options)
 			));
 		}
@@ -314,7 +324,7 @@ class UserController extends BaseController{
 		// bind the params to smarty
 		
 		$smartyArray = array(
-			'pager'=>BaseController::Paginate($user->output['limit'], $user->output['nbItems'], 'admin/user/list/', $page),
+			'pager'=>parent::Paginate($user->output['limit'], $user->output['nbItems'], 'admin/user/list/', $page),
 			'sublinks'=>$links,
 			'cb'=>true,
 			'formAction'=>'admin/user/select',
@@ -327,40 +337,41 @@ class UserController extends BaseController{
 	}
 	
 	public static function login($username,$pass){
-		global $user;
-		$user->Login($_POST['user'], $pass);
+		$Core = parent::getCore();
+		$Core->user->Login($_POST['user'], $pass);
 	}
 	
 	public static function logout(){
-		global $user;
-			$user->Logout();
-			if (!isset($_SESSION['hash'])){
-				Core::SetMessage('You are now logged out', 'status');
-			}else{
-				Core::SetMessage('You are still logged in! Please try again.', 'error');
-			}
+		$Core = parent::getCore();
+		$Core->user->Logout();
+		if (!isset($_SESSION['hash'])){
+			$Core->SetMessage('You are now logged out', 'status');
+		}else{
+			$Core->SetMessage('You are still logged in! Please try again.', 'error');
+		}
 	}
 	
 	public static function newUser($username, $pw, $cp, $e, $ce){
-		global $user;
+		$Core = parent::getCore();
+		$user = $Core->user;
 		if (self::CheckUser($username) && self::CheckPass($pw, $cp) && self::CheckEmail($e, $ce)){
 			$newUser = $user->CreateUser($username, $pw, $e);
 			if (!$newUser){
-				Core::SetMessage ('This username Already Exists', 'error');
+				$Core->SetMessage ('This username Already Exists', 'error');
 				return false;
 			}else{
-				Core::SetMessage('New user has been created!', 'info');
+				$Core->SetMessage('New user has been created!', 'info');
 				UserController::Redirect();
 				return true;
 			}
 		}else{
-			Core::SetMessage('Error Creating User. Please try again later.', 'error');
+			$Core->SetMessage('Error Creating User. Please try again later.', 'error');
 			return false;
 		}
 	}
 	
-	public static function regForm(&$core,$redirect=null){
-		
+	public static function regForm($redirect=null){
+		$Core = parent::getCore();
 		//create the form object 
 		$form = new HTML_QuickForm('newuser','post','user/register');
 		//create form elements
@@ -387,15 +398,17 @@ class UserController extends BaseController{
 		if(array_key_exists('submit',$_POST) && $form->validate()){
 			$newUser = new User();
 			if($newUser->Create($form->exportValues())){
-				$core->SetMessage('Your user account has been created!','info');
+				$Core->SetMessage('Your user account has been created!','info');
 			}
-//			BaseController::Redirect();
+//			parent::Redirect();
 		}
 		//send the form to smarty
 		return $form->toArray(); 
 	}
 	
-	public static function resetPassword(&$user){
+	public static function resetPassword(){
+		$Core = parent::getCore();
+		$user = $Core->user;
 		$form = new HTML_QuickForm('resetpw','post','user/reset_pw');
 		//create form elements
 		$form->addElement('header','','Request New Password');

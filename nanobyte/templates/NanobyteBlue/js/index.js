@@ -11,35 +11,12 @@ $(document).ready(function(){
 	$('#loginform').dialog({
 		autoOpen : false,
 		title: 'Please Log In',
-//		show: 'puff',
-//		hide: 'puff',
 		height: 220,
 		width: 400,
 		modal: true,
 		closeOnEscape: false,
 		buttons: {
-			'Log In' : function(){
-				if(nanobyte.initValidate($('#loginform form'))===true){
-					$.ajax({
-						url : $('#loginform form').attr('action')+'/ajax',
-						data: $('#loginform form').serialize(),
-						type: 'post',
-						dataType: 'json',
-						success: function(r){
-							if(r.messages){
-								nanobyte.showInlineMessage(r.messages);
-								if(r.content=='reload'){
-									setTimeout('window.document.location.reload()',2000);
-								}else{
-									$('#loginform form')[0].reset();
-								}
-							}
-						}
-					})
-				}else{
-					return false;
-				}
-			}
+			'Log In' : function(){nanobyte.submitForm($('#loginform form'));}
 		}
 	});
 	$('#menu-login').click(function(){
@@ -94,7 +71,6 @@ $(document).ready(function(){
 		}
 		return false;
 	});
-	
  	$("#accordion").accordion({ header: "h3" });
 	$('.tabs').livequery(function(){
 		$(this).tabs({
@@ -102,18 +78,22 @@ $(document).ready(function(){
 				type: 'POST',
 				data: 'actions=/ajax'
 			} ,
-			select : function(event, ui){
-				nanobyte.lastUI = nanobyte.ui;
-				nanobyte.ui = ui;
-			},
+//			select : function(event, ui){
+//				nanobyte.lastUI = nanobyte.ui;
+//				nanobyte.ui = ui;
+//			},
 			fx : {
 				opacity : 'toggle'
 			},
-			add: function(event, ui) {
+			add: function(e, ui) {
 		        $(this).tabs('select', '#' + ui.panel.id);
 				$('a[href=#'+ui.panel.id+']').after('<a class="tabClose" id="tab_'+ui.index+'"></a>');
 		    },
-			spinner: '<img src="templates/NanobyteBlue/images/tab_loader.gif"/><i> Loading...</i>'
+			spinner: '<img src="templates/NanobyteBlue/images/tab_loader.gif"/><i> Loading...</i>',
+			load: function(e, ui){
+				nanobyte.lastUI = nanobyte.ui;
+				nanobyte.ui = ui;
+			}
 		});
 	});
 	$('.tabClose').live('click',function(){
@@ -146,7 +126,6 @@ $(document).ready(function(){
 	$('a[title]').livequery(function(){
 		$(this).attr('tabtitle',$(this).attr('title')).tooltip({showURL: false});
 	});
-
 	$('input[type=file]').live('change',function(){
 		var me = $(this);
 		var myID = me.attr('id');
@@ -173,7 +152,6 @@ $(document).ready(function(){
 			}
 		});
 	})
-	
 	$('#menu-accordion').accordion({header: 'h3', navigation: true});
 	$('#show-file-dialog').live('click',function(){
 		var files = '';
@@ -200,6 +178,16 @@ $(document).ready(function(){
 //		});
 //		$('td, th').each(function(){ $(this).css('width',$(this).width()); });
 //	});
+	$('form input').livequery(function(){
+		$(this).keypress(function(e){
+			if(e.which==13){
+				nanobyte.submitForm($(this).parents('form:first'));
+			}
+		})
+	})
+	$('a.thickbox').livequery(function(){
+		tb_init('a.thickbox');
+	})
 })
 
 

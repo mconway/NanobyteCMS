@@ -27,7 +27,13 @@ var nanobyte = {
 				type: 'post',
 				success: function(r){
 					if(r.callback){
-						eval(r.callback+'("'+r.args+'")');
+						if(r.callback=='reload'){
+							setTimeout('window.document.location.reload()',2000);
+						}else if(r.callback=='reset'){
+							form.get(0).reset();
+						}else{
+							eval(r.callback+'("'+r.args+'")');
+						}
 					}else if(!nanobyte.empty(r.content)){
 						$("#content").html(r.content).prepend(r.tabs).fadeIn('slow');
 					}
@@ -81,7 +87,7 @@ var nanobyte = {
 	},
 	initValidate : function(form){
 		var errors = false;
-		form.children('.required').each(function(){
+		form.find('.required').each(function(){
 			if ($(this).children('input').val() == ''){
 				$(this).children('input').focus().animate({backgroundColor:'#ffff80'}).keypress(function(){
 					$(this).animate({

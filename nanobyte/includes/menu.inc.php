@@ -20,7 +20,8 @@ class Menu{
 	}
 	
 	public function commit($insert=null){
-		global $core;
+		$Core = BaseController::getCore();
+		
 		if($insert){
 			$query = $this->dbh->prepare("insert into ".DB_PREFIX."_menu_links (menu, linkpath, linktext, viewableby, class, styleid) values (:menu,:path,:text,:view,:class,:sid)");
 		}else{
@@ -46,35 +47,35 @@ class Menu{
 			try{
 				$query->execute($array);
 			}catch(PDOException $e){
-				$core->SetMessage('Unable to update item #'.$key.'. Error: '.$e->getMessage());
+				$Core->SetMessage('Unable to update item #'.$key.'. Error: '.$e->getMessage());
 			}
 		}
 	}
 	
 	public function create($postData){
-		global $core;
+		$Core = BaseController::getCore();
 		$query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_menus SET name=:name,canDelete=1");
 		$query->execute(array(':name'=>$postData['name']));
 		if($query->rowCount()==1){
-			$core->SetMessage('The menu was created successfully!','info');
+			$Core->SetMessage('The menu was created successfully!','info');
 		}else{
-			$core->SetMessage('There was an error creating this menu','error');
+			$Core->SetMessage('There was an error creating this menu','error');
 		}
 	}
 	
 	public function delete(){
-		global $core;
+		$Core = BaseController::getCore();
 		$query = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_menus WHERE name=:name");
 		$query->execute(array(':name'=>$this->name));
 		if($query->rowCount()==1){
-			$core->SetMessage('The menu was deleted successfully!','info');
+			$Core->SetMessage('The menu was deleted successfully!','info');
 		}else{
-			$core->SetMessage('There was an error deleting this menu','error');
+			$Core->SetMessage('There was an error deleting this menu','error');
 		}
 	}
 	
 	public function getAll(){
-		global $core;
+		$Core = BaseController::getCore();
 		$query = $this->dbh->prepare("select mid, name, canDelete, parent_id from ".DB_PREFIX."_menus ORDER BY parent_id ASC");
 		$query->execute();
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);

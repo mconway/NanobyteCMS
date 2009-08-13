@@ -4,48 +4,51 @@
  * Created Aug 6th
  */
  
- class ModuleController{
+ class ModuleController extends BaseController{
 
-	public static function admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
+	public static function admin(){
+		$Core = parent::getCore();
 		
 		$tabs = array();
+		$content = '';
 		array_push($tabs, Core::l('Modules','admin/module/list'));
 		array_push($tabs, Core::l('Blocks','admin/block/list'));
-		$smarty->assign('tabs',$tabs);
-		if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
-		switch($args[1]){ 
-			//We call the same function for Disable and Enable.
-			case 'enable':  
-			case 'disable':
-				self::UpdateStatus($args,$jsonObj);
-				break;
-			// Default is to display the module list
-			case 'list':
-				$func = 'List'.$args[0];
-				$smarty->assign(self::$func($args[1]));
-				$content = $smarty->fetch('list.tpl');
-				break;
-			case 'details':
-				$module = new Module($args[2]);
-				$content = <<<EOF
-				Author: {$module->conf->author}<br/>
-				URL: {$module->conf->author->attributes()->url}<br/>
-				Email: {$module->conf->author->attributes()->email}<br/>
+		$Core->smarty->assign('tabs',$tabs);
+		if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
+		if(isset($Core->args[1])){
+			switch($Core->args[1]){ 
+				//We call the same function for Disable and Enable.
+				case 'enable':  
+				case 'disable':
+					self::UpdateStatus($Core->args,$Core->json_obj);
+					break;
+				// Default is to display the module list
+				case 'list':
+					$func = 'List'.$Core->args[0];
+					$Core->smarty->assign(self::$func($Core->args[1]));
+					$content = $Core->smarty->fetch('list.tpl');
+					break;
+				case 'details':
+					$module = new Module($Core->args[2]);
+					$content = <<<EOF
+					Author: {$module->conf->author}<br/>
+					URL: {$module->conf->author->attributes()->url}<br/>
+					Email: {$module->conf->author->attributes()->email}<br/>
 EOF;
-				$jsonObj->callback = 'Dialog';
-				$jsonObj->title = 'Module Information for: '.ucfirst($args[2]);
-				break;
-			case 'down':
-			case 'up':
-			//$args[1] = up/down $args[2] = id $args[3] = weight
-			$module = new Module();
-			if($module->moveBlock($args)){
-				$jsonObj->callback = 'nanobyte.moveRow';
-				$jsonObj->args = 'block_'.$args[2].'|'.$args[1];
+					$Core->json_obj->callback = 'Dialog';
+					$Core->json_obj->title = 'Module Information for: '.ucfirst($Core->args[2]);
+					break;
+				case 'down':
+				case 'up':
+				//$Core->args[1] = up/down $Core->args[2] = id $Core->args[3] = weight
+				$module = new Module();
+				if($module->moveBlock($Core->args)){
+					$Core->json_obj->callback = 'nanobyte.moveRow';
+					$Core->json_obj->args = 'block_'.$Core->args[2].'|'.$Core->args[1];
+				}
 			}
+			$Core->json_obj->content = $content;
 		}
-		$jsonObj->content = $content;
 	}
 
 	public static function getAll(){
@@ -57,26 +60,49 @@ EOF;
 	}
 	
 	public static function getBlocks($filter=null){
-		global $smarty;
+		$Core = parent::getCore();
 		$enabled = Module::GetBlocks($filter);
 		foreach($enabled as $block){
 			$position = explode("_",$block['position']);
 			$blockobj = call_user_func(array('Mod_'.$block['providedby'], $block['name'].'_Block'));
 			if (isset($blocks[$position[0]])){
-				$blocks[$position[0]] .= $smarty->fetch($blockobj->template);
+				$blocks[$position[0]] .= $Core->smarty->fetch($blockobj->template);
 			}else{
-				$blocks[$position[0]] = $smarty->fetch($blockobj->template);
+				$blocks[$position[0]] = $Core->smarty->fetch($blockobj->template);
 			}
 		}
-		$smarty->assign('blocks', $blocks);
+		$Core->smarty->assign('blocks', $blocks);
 	}
 	
-	public static function installModule($mod){
-		$module = new Module($mod);
-		call_user_func(array('Mod_'.$mod, 'Install'));
+	public static function installModule(&$module){
+		$Core = parent::getCore();
+		require_once($module->modpath."Mod_".$module->name.'.php');
+		$mod_class = 'Mod_'.$module->name;
+		$m = new $mod_class($Core);
+		$m->install();
+
+		if(isset($m->setup['menus'])){
+			if(!isset($m->setup['menus']['menu'])){
+				foreach($m->setup['menus'] as $menu){
+					$menu_obj = new Menu($menu['menu']);
+					$menu_obj->data = array($menu);
+					$menu_obj->commit($menu_obj->menu[0]['mid']);
+				}
+			}else{
+				$menu_obj = new Menu($m->setup['menus']['menu']);
+				$menu_obj->data = array($m->setup['menus']);
+				$menu_obj->commit($menu_obj->menu[0]['mid']);
+			}
+		}
+		
+		if(isset($m->setup['permissions'])){
+			$perms = new Perms();
+			$perms->createPerm($m->setup['permissions'],$module->name);
+		}
 	}
 	
 	public static function listBlock(){
+		$Core = parent::getCore();
 		$blocks = Module::GetBlocks();
 		
 		$options['image'] = '16';
@@ -91,12 +117,12 @@ EOF;
 			$block['status'] = "<center><img src='".THEME_PATH."/images/{$block['status']}-25.png'/></center>";
 		}
 		
-		$smartyVars = array(
+		$Core->smartyVars = array(
 			'list'=>$blocks,
 			'formAction'=>'admin/blocks',
 			'tableclass' => 'sortable'
 		);
-		return $smartyVars;
+		return $Core->smartyVars;
 	}
 	
 	public static function listModule($page){
@@ -120,39 +146,42 @@ EOF;
 			);
 			$list[count($list)-1]['actions'] .= Core::l('Info','admin/module/details/'.$module->name,array('id'=>'','title'=>'Info', 'class'=>'action-link','image'=>'16'));
 		}
-		$smartyVars = array(
-			'pager'=>BaseController::Paginate(LIMIT, count($modsList), 'admin/module/list/', $page),
+		$smarty_vars = array(
+			'pager'=>parent::Paginate(LIMIT, count($modsList), 'admin/module/list/', $page),
 			'list'=>$list,
 		);
 		
-		return $smartyVars;
+		return $smarty_vars;
 	}
 	
-	public static function updateStatus($args,&$jsonObj){
-		global $core;
-		if($args[0]=='block'){
+	public static function uninstallModule(&$module){
+		
+	}
+	
+	public static function updateStatus(){
+		$Core = parent::getCore();
+		if($Core->args[0]=='block'){
 			$module = new Module();
-			if($module->updateBlockStatus($args[2])){
-				$jsonObj->callback = 'nanobyte.changeLink';
-				$str = $args[1] == 'enable' ? 'disable' : 'enable';
-				$jsonObj->args = $args[1]."|".$str."|a_block_".$args[2]."|status";
+			if($module->updateBlockStatus($Core->args[2])){
+				$Core->json_obj->callback = 'nanobyte.changeLink';
+				$str = $Core->args[1] == 'enable' ? 'disable' : 'enable';
+				$Core->json_obj->args = $Core->args[1]."|".$str."|a_block_".$Core->args[2]."|status";
 			}
 		}else{
-			$module = new Module($args[2]);
+			$module = new Module($Core->args[2]);
 			if($module->Commit()){
-				$core->EnabledMods();
-				$core->SetMessage(strtoupper($module->name). ' has been '.$args[1].'d.','info');
-				if ($args[1] == "enable"){
-					require_once($module->modpath."Mod_".$module->name.'.php');
-					call_user_func(array('Mod_'.$module->name, 'Install'));
+				$Core->enabledMods();
+				$Core->SetMessage(strtoupper($module->name). ' has been '.$Core->args[1].'d.','info');
+				if ($Core->args[1] == "enable"){
+					self::InstallModule($module);
 				}else{
 					call_user_func(array('Mod_'.$module->name, 'Uninstall'));
 				}
-				$jsonObj->callback = 'nanobyte.changeLink';
-				$str = $args[1] == 'enable' ? 'disable' : 'enable';
-				$jsonObj->args = $args[1]."|".$str."|mod_".$module->name."|enabled";
+				$Core->json_obj->callback = 'nanobyte.changeLink';
+				$str = $Core->args[1] == 'enable' ? 'disable' : 'enable';
+				$Core->json_obj->args = $Core->args[1]."|".$str."|mod_".$module->name."|enabled";
 			}else{
-				$core->SetMessage("An Error was encountered while trying to {$args[1]}".strtoupper($module->name),'error');
+				$Core->SetMessage("An Error was encountered while trying to {$Core->args[1]}".strtoupper($module->name),'error');
 			}
 		}
 //		UserController::Redirect();

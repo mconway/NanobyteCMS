@@ -61,21 +61,21 @@ class Mod_Menu{
 class Block_Menu extends Mod_Menu{
 	
 	function __construct(){
-		global $smarty;
+		global $Core;
 		BaseController::AddJs('modules/posts/js/posts.js');
 		$this->template = '../../modules/menu/menu.tpl';
-		$smarty->assign('menusblock',$this->buildMenus());
+		$Core->smarty->assign('menusblock',$this->buildMenus());
 	}
 	
 	public function buildMenus(){
-		global $user;
+		global $Core;
 		
 		$p = new Mod_Menu();
 		$menus = $p->read();
 		
 		$menuArray = array();
 		foreach($menus as $menu){
-			if(strpos($menu['viewableby'],$user->group)!==false){
+			if(strpos($menu['viewableby'],$Core->user->group)!==false){
 				if(!isset($menu['linktext'])){
 					$menuArray[$menu['name']]['settings'] = $menu;
 				}

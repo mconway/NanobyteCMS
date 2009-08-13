@@ -21,7 +21,7 @@
    						{/if}
 						{$element.label}
 					</div>
-					<div class="element {if $element.required} required {/if}">{$element.html}</div>
+					<div class="element {if $element.required} required{/if}">{$element.html}</div>
 					{if $element.error}
 					<div class="formerror">{$element.error}</div>
 					{/if}

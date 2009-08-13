@@ -80,8 +80,8 @@ class Mod_Content{
 	 * @return 
 	 * @param object $argsArray
 	 */
-	public static function display(&$argsArray){
-		ContentController::Display($argsArray);
+	public static function display(&$arg_array){
+		ContentController::Display($arg_array);
 	}
 	
 	/**
@@ -218,74 +218,75 @@ class ContentController extends BaseController{
 	 * @return 
 	 * @param object $argsArray
 	 */
-	public static function admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
+	public static function admin(&$arg_array){
+		list($Core) = $arg_array;
 		
 		$contents = new Mod_Content();
 		$contents->GetTypes();
 		$tabs = array();
 		foreach($contents->types as $key=>$tab){
-			array_push($tabs, Core::l($tab,'admin/content/'.$key));
+			array_push($tabs, $Core->l($tab,'admin/content/'.$key));
 		}
-		if(isset($args[1])){
-			if(is_numeric($args[1])){
-				$smarty->assign(self::GetList($args[1],$args[2]));
+		if(isset($Core->args[1])){
+			if(is_numeric($Core->args[1])){
+				$Core->smarty->assign(self::getList($Core->args[1],$Core->args[2]));
 			}else{
-				switch($args[1]){
+				switch($Core->args[1]){
 					case 'delete':
 						self::Delete();
-						$jsonObj->callback = 'nanobyte.deleteRows';
-						$jsonObj->args = implode('|',$_POST['content']);
+						$Core->json_obj->callback = 'nanobyte.deleteRows';
+						$Core->json_obj->args = implode('|',$_POST['content']);
 						break;
 					case 'add':
-						if(isset($args[2]) && $args[2]=='image'){
-							$jsonObj->args = parent::handleImage($_FILES[key($_FILES)],'80');
+						if(isset($Core->args[2]) && $Core->args[2]=='image'){
+							$Core->json_obj->args = parent::handleImage($_FILES[key($_FILES)],'80');
 							$content = '';
-							print json_encode($jsonObj); exit;
+							print json_encode($Core->json_obj);
+							exit;
 						}elseif(isset($_POST['submit'])){
 							self::form();
-							$jsonObj->callback = 'nanobyte.closeParentTab';
-							$jsonObj->args = 'input[name=submit][value=Save]';
+							$Core->json_obj->callback = 'nanobyte.closeParentTab';
+							$Core->json_obj->args = 'input[name=submit][value=Save]';
 						}else{
-							$smarty->assign(self::form());
-							$content = $smarty->fetch('form.tpl');
+							$Core->smarty->assign(self::form());
+							$content = $Core->smarty->fetch('form.tpl');
 						}
 						break;
 					case 'edit':
-						if(!isset($args[2])){
+						if(!isset($Core->args[2])){
 							Core::SetMessage('You did not specify content to edit!','error');
 //							BaseController::Redirect('admin/posts');
-						}elseif(isset($args[3]) && $args[3]=='image'){
-							$jsonObj->args = parent::handleImage($_FILES[key($_FILES)],'80');
+						}elseif(isset($Core->args[3]) && $Core->args[3]=='image'){
+							$Core->json_obj->args = parent::handleImage($_FILES[key($_FILES)],'80');
 							$content = '';
-							print json_encode($jsonObj); exit;
+							print json_encode($Core->json_obj); exit;
 						}else{
 							if(isset($_POST['submit'])){
-								$jsonObj->callback = 'nanobyte.closeParentTab';
-								$jsonObj->args = 'input[name=submit][value=Save]';
+								$Core->json_obj->callback = 'nanobyte.closeParentTab';
+								$Core->json_obj->args = 'input[name=submit][value=Save]';
 							}
-							self::Edit($args[2]);
-							$content = $smarty->fetch('form.tpl');
+							self::Edit($Core->args[2]);
+							$content = $Core->smarty->fetch('form.tpl');
 						}
 						break;	
 					case 'addtype':
 						$content = '';
-						if($args[2]=='addtype'){
-							$smarty->assign('form',ContentController::Form_Settings_AddType());
-							$content .= $smarty->fetch('form.tpl');
+						if($Core->args[2]=='addtype'){
+							$Core->smarty->assign('form',ContentController::Form_Settings_AddType());
+							$content .= $Core->smarty->fetch('form.tpl');
 						}
 						$options['id'] = 'addtype';
-						$content .= Core::l('Add Content Type', 'admin/content/settings/addtype', $options);
+						$content .= $Core->l('Add Content Type', 'admin/content/settings/addtype', $options);
 						break;
 					case 'settings':
-						$smarty->assign('form',self::formSettings());
-						$content = $smarty->fetch('form.tpl');
+						$Core->smarty->assign('form',self::formSettings());
+						$content = $Core->smarty->fetch('form.tpl');
 						break;
 					case 'enable':
 					case 'disable':
-						$content = new Mod_Content($args[2]);
-						$jsonObj->callback = 'nanobyte.changeLink';
-						$jsonObj->args = $args[1]."|".($args[1]=='disable'?'enable':'disable')."|c_".$content->pid."|published";
+						$content = new Mod_Content($Core->args[2]);
+						$Core->json_obj->callback = 'nanobyte.changeLink';
+						$Core->json_obj->args = $Core->args[1]."|".($Core->args[1]=='disable'?'enable':'disable')."|c_".$content->pid."|published";
 						if($content->toggleStatus()){
 							
 						}
@@ -294,13 +295,13 @@ class ContentController extends BaseController{
 			}
 		}
 		//If File is not set, get the post list and display
-		$smarty->assign('tabs',$tabs);
-		if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
+		$Core->smarty->assign('tabs',$tabs);
+		if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 		if (!isset($content)){ 
-			$content =  $smarty->fetch('list.tpl');
+			$content =  $Core->smarty->fetch('list.tpl');
 		}
 		
-		$jsonObj->content = $content;
+		$Core->json_obj->content = $content;
 		
 	}
 	
@@ -328,32 +329,31 @@ class ContentController extends BaseController{
 	 * @return 
 	 * @param object $argsArray
 	 */
-	public static function display(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj) = $argsArray;
-		
-		if(empty($args)){
-			$smarty->assign('posts',self::DisplayContent(1));
-		}elseif(!$args[1]){
-			self::View($args[0]);
-			$content = $smarty->fetch('post.tpl');
-		}elseif($args[1]=='comments'){
-			switch($args[2]){
+	public static function display(){
+		$Core = parent::getCore();
+		if(empty($Core->args)){
+			$Core->smarty->assign('posts',self::displayContent(1));
+		}elseif(!isset($Core->args[1]) || empty($Core->args[1])){
+			self::View($Core->args[0]);
+			$content = $Core->smarty->fetch('post.tpl');
+		}elseif($Core->args[1]=='comments'){
+			switch($Core->args[2]){
 				case 'add':
-					self::CommentsForm($args[0]);
-					$smarty->fetch('form.tpl');
+					self::CommentsForm($Core->args[0]);
+					$Core->smarty->fetch('form.tpl');
 					break;
 				case 'view':
 					break;
 			}
 		}
-		if(!$ajax){
+		if(!$Core->ajax){
 			parent::DisplayMessages();
 			parent::GetHTMLIncludes(); // Get style and JS
-			$smarty->display('index.tpl'); //Display the page
+			$Core->smarty->display('index.tpl'); //Display the page
 		}else{
-			$jsonObj->content = $content;
-			$jsonObj->messages = parent::DisplayMessages();
-			print json_encode($jsonObj);
+			$Core->json_obj->content = $content;
+			$Core->json_obj->messages = parent::DisplayMessages();
+			print json_encode($Core->json_obj);
 		}
 	}
 	
@@ -407,9 +407,9 @@ class ContentController extends BaseController{
 	 * @param object $id
 	 */
 	public static function edit($id){
-		global $smarty;
+		global $Core;
 		$content = new Mod_Content($id);
-		$smarty->assign(self::Form($content));
+		$Core->smarty->assign(self::Form($content));
 	}
 	
 	/**
@@ -418,7 +418,7 @@ class ContentController extends BaseController{
 	 * @param object $content[optional]
 	 */
 	public static function form(&$content=null){
-		global $user;
+		global $Core;
 		$func = $content ? 'edit/'.$content->pid : 'add';
 		$tablinks = array('Main','Image Functions','Publishing Options');
 		//Create the form object
@@ -462,7 +462,7 @@ class ContentController extends BaseController{
 		$form->addElement('checkbox','published','Publish');
 		
 		$form->addElement('hidden','pid');
-		$form->addElement('hidden','author', $user->name);
+		$form->addElement('hidden','author', $Core->user->name);
 		$form->addElement('hidden','created',time());
 				
 		$form->addElement('submit', 'submit', 'Save');
@@ -516,14 +516,14 @@ class ContentController extends BaseController{
 
 		//If the form has already been submitted - validate the data
 		if(isset($_POST['submit']) && $form->validate()){
-			global $core;
+			global $Core;
 //			foreach($form->exportValues() as $val){
 //				$core->saveSettings($val,$setting);
 //			}
-			if($core->saveSettings($form->exportValue('type'),'defaultContentType')){
-				$core->setMessage("Settings saved Successfully!", 'info');
+			if($Core->saveSettings($form->exportValue('type'),'defaultContentType')){
+				$Core->setMessage("Settings saved Successfully!", 'info');
 			}else{
-				$core->setMessage("Unable to save settings.","error");
+				$Core->setMessage("Unable to save settings.","error");
 			}
 		
 		}
@@ -648,7 +648,7 @@ class ContentController extends BaseController{
 	 * @param object $pid
 	 */
 	public static function view($pid){
-		global $smarty;
+		global $Core;
 		$post = self::GetContent($pid);
 //		$num = count($post->comments->all);
 //		$comments = array();
@@ -671,7 +671,7 @@ class ContentController extends BaseController{
 //		}
 ////		CommentsController::CommentsForm($pid);
 //		array_push($comments,$smarty->fetch('form.tpl'));
-		$smarty->assign('post', $data);
+		$Core->smarty->assign('post', $data);
 //		$smarty->assign('comments', $comments);
 	}
 
