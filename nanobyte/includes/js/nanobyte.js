@@ -239,6 +239,17 @@ var nanobyte = {
 			$('#'+id).find('td.weight').text(parseInt($('#'+id).find('td.weight').text())-1);
 		}
 		return false;
+	},
+	addThumbnail : function(myID,r){
+		if($('#thumbnail').length == 0){
+			$('#'+myID).after("<div id='thumbnail'><img src='"+r.args.thumb+"'/><input type='hidden' name='imagelist' id='imagelist'/></div>");
+			$('#thumbnail').append("<br/><a id='show-file-dialog'>Show all files </a>(<span id='file-count'>1</span>)");
+		}else{
+			$('#thumbnail img').attr('src',r.args.thumb);
+			$('#file-count').text(parseInt($('#file-count').text())+1);
+		}
+//		nanobyte.showInlineMessage(r.messages);
+		$('#imagelist').val($('#imagelist').val()+r.args.thumb+'|'+r.args.orig+';');
 	}
 }
 

@@ -28,7 +28,7 @@
 		$this->smarty->template_dir = THEME_PATH;
 		$this->smarty->force_compile = true;
 		//Create the User Object
-		$this->user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user'],$this) : new User(0,$this);
+		$this->user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);
 		//Other
 		$this->ajax = false;
 		$this->args = "";
@@ -137,7 +137,7 @@
 			$this->mods_enabled[$mod['name']] = true;
 			$m = new Module($mod['name']);
 			//this is case sensetive. needs to be fixed?
-			require_once($m->modpath.'mod_'.$m->name.'.php');
+//			require_once($mod->modpath.'mod_'.$mod->name.'.php');
 		}
 	}
 
@@ -184,7 +184,7 @@
 		if(!is_array($this->mods_enabled)){
 			var_dump($this->mods_enabled, $module);
 		}
-		if(array_key_exists($module, $this->mods_enabled)){
+		if(array_key_exists(strtolower($module), $this->mods_enabled)){
 			return true;
 		}
 		return false;
@@ -241,10 +241,6 @@
 		$sess = new SessionManager();
 		session_set_cookie_params(SESS_TTL);
 	    session_start();
-		if($this->isEnabled('stats')){
-			$stats = new Mod_Stats();
-			$stats->commit();
-		}
 		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
 	}
 	

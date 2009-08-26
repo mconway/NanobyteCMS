@@ -53,10 +53,7 @@ class User extends Core{
 	 * @return void
 	 * @param string/integer $id[optional]
 	 */
-	public function __construct($id=null,&$Core=NULL){
-		if(!is_object($Core)){
-			$Core = new Core(false);
-		}
+	public function __construct($id=null){
 		$this->dbh = DBCreator::GetDbObject();
 		if($id==0){
 			$this->uid = 0;
@@ -75,10 +72,6 @@ class User extends Core{
 			$this->salt = substr($row->password, 3);	
 			$this->permissions = new Perms($row->group_id);
 			$this->group = $this->permissions->permissions[0]->name;
-			if($Core->isEnabled('UserProfile')){
-				$this->profile = new Mod_UserProfile($this->uid);
-			}
-			
 		}
 	}
 	
@@ -201,11 +194,11 @@ class User extends Core{
 	 * Get the last page access time of a user
 	 * @return void
 	 */
-	public function getAccessTime(){
-		$query = $this->dbh->prepare("SELECT `online` FROM ".DB_PREFIX."_user where `uid`=:uid");
+	public function getAccessTime($id=0){
+		$query = $this->dbh->prepare("SELECT online FROM ".DB_PREFIX."_user where `uid`=:uid");
 		$query->execute(array(':uid'=>$id));
 		$row = $query->fetch(PDO::FETCH_ASSOC);
-		$this->accessTime = $row['online'];
+		$this->access_time = $row['online'];
 	}
 
 	/**

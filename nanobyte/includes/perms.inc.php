@@ -17,7 +17,6 @@ class Perms extends Core{
 			$this->gid = $id;
 			$this->name = $this->permissions[0]->name;
 			$this->comments = $this->permissions[0]->comments;
-			$this->omg = "O HAI!";
 		}
 	}
 	
@@ -74,17 +73,18 @@ class Perms extends Core{
 	
 	public function commit(){ // FIX THIS
 		$Core = BaseController::getCore();
-		foreach($this->data as $key=>$role){ //foreach permission, add or delete a row to cms_group_perms
-//			$perm = implode(',',$role);
-			
-			$select_query = $this->dbh->prepare("SELECT * FROM ".DB_PREFIX."_group_perms WHERE perm_id=:perm AND group_id=(SELECT gid FROM ".DB_PREFIX."_groups WHERE name=:name)");
-			$query = $this->dbh->prepare("update ".DB_PREFIX."_group_perms set `perm_id`=:perm where `name`=:name");
-			$params = array(':perm'=>$perm,':name'=>$key);
-			try{
-				$select_query->execute($params);
-				
-			}catch(PDOException $e){
-				$Core->SetMessage('Unable to update '.$key.'. Error: '.$e->getMessage());
+		
+		$insert_query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_group_perms (perm_id,group_id) VALUES (:role,(SELECT gid FROM ".DB_PREFIX."_groups WHERE name=:name))");
+		$delete_query = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_group_perms");
+		$delete_query->execute();
+		foreach($this->data as $group_name=>$roles){ //foreach permission, add or delete a row to cms_group_perms
+			foreach($roles as $role){
+				$params = array(':role'=>$role,':name'=>$group_name);
+				try{
+					$insert_query->execute($params);
+				}catch(PDOException $e){
+					$Core->setMessage('Unable to update '.$group_name.'. Error: '.$e->getMessage());
+				}
 			}
 		}
 	}
@@ -111,11 +111,11 @@ class Perms extends Core{
 		
 	}
 	
-	public function getAll(){
-		$groups = $this->dbh->prepare("select * from ".DB_PREFIX."_groups");
+	public function getAllGroups(){
+		$groups = $this->dbh->prepare("SELECT * FROM ".DB_PREFIX."_groups");
 		$groups->execute();
 		$all = $groups->fetchAll(PDO::FETCH_ASSOC);
-		$this->all = $all;
+		$this->groups = $all;
 	}
 	
 	public function getNames(){
@@ -133,15 +133,15 @@ class Perms extends Core{
 	 * @param int $id
 	 */
 	public function getPermissionsForGroup($id){
-		$query = $this->dbh->prepare("select name, comments, permissions from ".DB_PREFIX."_groups where `gid`=:id");
+		$query = $this->dbh->prepare("SELECT gp.id, group_id, perm_id, description FROM ".DB_PREFIX."_group_perms AS gp LEFT JOIN ".DB_PREFIX."_perms AS p ON gp.perm_id=p.id WHERE group_id=:id");
 		$query->execute(array(':id'=>$id));
-		return $query->fetch(PDO::FETCH_OBJ);
+		return $query->fetchAll(PDO::FETCH_OBJ);
 	}
 	
 	public function getPermissionsList(){
-		$permsQ = $this->dbh->prepare("select category, description from ".DB_PREFIX."_perms");
+		$permsQ = $this->dbh->prepare("SELECT id,category, description FROM ".DB_PREFIX."_perms");
 		$permsQ->execute();
-		return $permsQ->fetchAll(PDO::FETCH_ASSOC);
+		return $permsQ->fetchAll(PDO::FETCH_OBJ);
 	}
 
 }

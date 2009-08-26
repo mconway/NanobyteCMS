@@ -14,29 +14,32 @@ require_once './includes/config.inc.php';
 
 // Make the Core Object (Ghetto Bootstrap)
 $Core = BaseController::getCore();
-//$perms = new Perms(1);
-//echo $Core->vardump($perms); exit;
+
+if($Core->isEnabled('stats')){
+	$stats = new Mod_Stats();
+	$stats->commit();
+}
 
 // Add the main CSS styles for inclusion
-BaseController::AddCss('includes/js/jquery.jcarousel.css');
-BaseController::AddCss('includes/js/tango/skin.css');
-BaseController::AddCss('includes/js/jquery.tooltip.css');
+BaseController::addCss('includes/js/jquery.jcarousel.css');
+BaseController::addCss('includes/js/tango/skin.css');
+BaseController::addCss('includes/js/jquery.tooltip.css');
 
 //Add Global JS Files
-BaseController::AddJs('includes/js/jquery.js');
-BaseController::AddJs('includes/js/livequery.js');
-BaseController::AddJs('includes/js/jquery-ui-1.7.2.custom.js');
-BaseController::AddJs('includes/js/jquery.jcarousel.js');
-BaseController::AddJs('includes/js/pause.js');
-BaseController::AddJs('includes/js/ajaxfileupload.js');
-BaseController::AddJs('includes/js/jquery.tooltip.js');
+BaseController::addJs('includes/js/jquery.js');
+BaseController::addJs('includes/js/livequery.js');
+BaseController::addJs('includes/js/jquery-ui-1.7.2.custom.js');
+BaseController::addJs('includes/js/jquery.jcarousel.js');
+BaseController::addJs('includes/js/pause.js');
+BaseController::addJs('includes/js/ajaxfileupload.js');
+BaseController::addJs('includes/js/jquery.tooltip.js');
 //BaseController::AddJs('includes/js/jquery.qtip.js');
-BaseController::AddJs('includes/js/nanobyte.js');
-BaseController::AddJs('includes/contrib/nicedit/nicEdit.js');
+BaseController::addJs('includes/js/nanobyte.js');
+BaseController::addJs('includes/contrib/nicedit/nicEdit.js');
 //BaseController::AddJs('http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js');
 
 //Include Theme Specified CSS and JS
-BaseController::GetThemeIncludes();
+BaseController::getThemeIncludes();
 
 //Assign Global Site Variables to Smarty
 $Core->smarty->assign('sitename',SITE_NAME);
@@ -79,7 +82,7 @@ if(!CMS_INSTALLED){
 		$Core->args = array_values($Core->args);
 	}
 	$class = 'InstallController';
-	call_user_func(array($class,'Display'),array(&$Core));
+	call_user_func(array($class,'Display'));
 }else{
 	//Create a new User, or use an Already logged in User Object from the Session, then update teh access time
 	

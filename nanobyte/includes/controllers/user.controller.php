@@ -136,19 +136,21 @@ class UserController extends BaseController{
 	public static function display(){
 		$Core = parent::getCore();
 		$content = "";
+		if(isset($Core->args[0])){
+//			if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 			switch($Core->args[0]){ // What sub page are we trying to view
 				case 'details': // view user details - THIS IS NOT THE PROFILE PAGE
-					$content = self::GetDetails($Core->args['1']);
+					$content = self::GetDetails($Core->args[1]);
 					break;
 				case 'edit':
-					if ($Core->AuthUser($user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
-						self::EditUser($Core->args[1]);
+					if ($Core->authUser($user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
+						self::editUser($Core->args[1]);
 						$content = $Core->smarty->fetch('form.tpl');
 					}else{
-						$core->SetMessage('You do not have access to this page!','error');
+						$Core->setMessage('You do not have access to this page!','error');
 					}
-					parent::DisplayMessages();
-					parent::GetHTMLIncludes();
+					parent::displayMessages();
+					parent::getHTMLIncludes();
 					$Core->smarty->display('index.tpl');
 					break;	
 				case 'commit': // Save User Details
@@ -189,30 +191,35 @@ class UserController extends BaseController{
 					$Core->json_obj->callback = 'Dialog';
 					$Core->json_obj->title = 'Reset Password';
 					break;
-//				case 'profiles':
-//					self::ShowProfile($args[1]);
-//					parent::DisplayMessages(); // Get Messages
-//					parent::GetHTMLIncludes(); //Get CSS and Scripts
-//					$smarty->display('user.tpl'); // Display the Page
-//					break;
-				default: // If no sub page is specified
-					if ($user->uid == 0){ //User is not logged in
+				case 'profiles':
+				default:
+					if ($Core->user->uid == 0){ //User is not logged in
 						$Core->smarty->assign('noSess', true);
-					}else{
-//						self::ShowProfile($user->uid);
+					}
+					if($Core->authUser('view user profiles') && is_numeric($Core->args[0])){
+						$content = self::showprofile($Core->args[0]);
 					}
 					break;
-			}	
-			if(!$Core->ajax){
-				parent::DisplayMessages(); // Get any messages
-				parent::GetHTMLIncludes(); // Get CSS and Script Files
-				$Core->smarty->assign('content',$content);
-				$Core->smarty->display('user.tpl'); // Display the Page
-			}else{
-				$Core->json_obj->content = $content;
-				$Core->json_obj->messages = parent::DisplayMessages();
-				print json_encode($Core->json_obj);
 			}
+		}else{
+			if ($Core->user->uid == 0){ //User is not logged in
+				$Core->smarty->assign('noSess', true);
+			}else{
+				if($Core->authUser('view user profiles')){
+					$content =  self::showProfile($Core->user->uid);
+				}
+				
+			}
+		}
+		if(!$Core->ajax){
+			parent::DisplayMessages(); // Get any messages
+			parent::GetHTMLIncludes(); // Get CSS and Script Files
+			$Core->smarty->display('user.tpl'); // Display the Page
+		}else{
+			$Core->json_obj->content = $content;
+			$Core->json_obj->messages = parent::DisplayMessages();
+			print json_encode($Core->json_obj);
+		}
 	}
 	
 	public static function domainExists($email,$record = 'MX') {  
@@ -423,6 +430,16 @@ class UserController extends BaseController{
 			}
 		}
 		return $form->toArray();
+	}
+
+	public static function showProfile($id){
+		$Core = parent::getCore();
+		if($Core->isEnabled('UserProfile')){
+			$profile = new Mod_UserProfile($id);
+			return $profile->display();
+		}else{
+			return array('content'=>'User profiles are not enabled.');
+		}
 	}
 
 }

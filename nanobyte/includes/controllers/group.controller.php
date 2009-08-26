@@ -16,9 +16,12 @@
 			$form->addRule('name', 'A Group Name is required.', 'required');
 			//If the form has already been submitted - validate the data
 			if(isset($_POST['submit']) && $form->validate()){
+				$Core = parent::getCore();
 				$perms = new Perms();
 				$form->process(array($perms,'AddGroup'));
-				Core::SetMessage('Your group has been created successfully.','info');
+				$Core->setMessage('Your group has been created successfully.','info');
+				$Core->json_obj->callback = 'nanobyte.closeParentTab';
+				$Core->json_obj->args = 'input[name=submit][value=Submit]';
 			}
 			//send the form to smarty
 			return $form->toArray(); 
@@ -26,7 +29,7 @@
 		
 	    public static function admin(){
 			$Core = parent::getCore();
-			
+			$content = '';
 			$perms = new Perms();
 			switch($Core->args[1]){
 				case 'add':
@@ -43,8 +46,8 @@
 					}
 					break;
 				case 'list': 
-					$perms->GetAll();
-					$Core->smarty->assign(self::ListGroups($perms));
+					$perms->getAllGroups();
+					$Core->smarty->assign(self::listGroups($perms));
 					$content = $Core->smarty->fetch('list.tpl');
 					break;
 				case 'select':
@@ -89,20 +92,32 @@
 		}	
 		
 		public static function edit(&$perms){
-			$permList = $perms->GetPermissionsList();
-			$perms->GetAll();
+			$perms_list = $perms->GetPermissionsList();
+			$perms->GetAllGroups();
+			$list = array();
 			$i = 0;
-			foreach($permList as $group){
-				$list[$i] = array();
-				$list[$i]['description'] = $group['description'];
-				foreach($perms->all as $pset){
-					$checked = strpos($pset['permissions'],$group['description']) !== false ? 'checked="checked"' : '';
-					$list[$i][$pset['name']] = '<input type="checkbox" name="'.$pset['name'].'[]" value="'.$group['description'].'" '.$checked.'/>';
+			foreach($perms_list as $p){
+				$list[$i] = array('description'=>$p->description);
+				foreach($perms->groups as $group){
+					$list[$i][$group['name']] = "<input type='checkbox' name='{$group['name']}[]' value='{$p->id}'/>";
+					if(!isset($group_perms[$group['gid']])){
+						$group_perms[$group['gid']] = $perms->getPermissionsForGroup($group['gid']);
+					}
+					if(empty($group_perms[$group['gid']])){
+						$list[$i][$group['name']] = "<input type='checkbox' name='{$group['name']}[]' value='{$p->id}'/>";
+						continue;
+					}
+					foreach($group_perms[$group['gid']] as $gp){
+						if($gp->description == $p->description){
+							$list[$i][$group['name']] = "<input type='checkbox' name='{$group['name']}[]' value='{$p->id}' checked />";
+							break;
+						}
+					}
 				}
 				$i++;
 			}
 			return array(
-				'self'=>'admin/group/edit',
+				'formAction'=>'admin/group/edit',
 				'list'=>$list,
 				'extra'=>'<input type="submit" value="Submit" name="submit"/>'
 			);
@@ -111,7 +126,7 @@
 		public static function listGroups($perms){
 			//create list
 			$list = array();
-			foreach($perms->all as $group){
+			foreach($perms->groups as $group){
 				array_push($list,array(
 					'id'=>$group['gid'],
 					'name'=>$group['name'],

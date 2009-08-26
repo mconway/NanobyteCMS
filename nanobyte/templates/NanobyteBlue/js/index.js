@@ -72,6 +72,7 @@ $(document).ready(function(){
 		return false;
 	});
  	$("#accordion").accordion({ header: "h3" });
+	$('#profile-tabs').tabs();
 	$('.tabs').livequery(function(){
 		$(this).tabs({
 			ajaxOptions: { 
@@ -126,6 +127,7 @@ $(document).ready(function(){
 	$('a[title]').livequery(function(){
 		$(this).attr('tabtitle',$(this).attr('title')).tooltip({showURL: false});
 	});
+	
 	$('input[type=file]').live('change',function(){
 		var me = $(this);
 		var myID = me.attr('id');
@@ -135,20 +137,15 @@ $(document).ready(function(){
             fileElementId:'image',
             dataType: 'json',
             success: function (r, status){
-//				console.log(r)
-				if($('#thumbnail').length == 0){
-					$('#'+myID).after("<div id='thumbnail'><img src='"+r.args.thumb+"'/><input type='hidden' name='imagelist' id='imagelist'/></div>");
-					$('#thumbnail').append("<br/><a id='show-file-dialog'>Show all files </a>(<span id='file-count'>1</span>)");
+				if(!r.callback){
+					nanobyte.addThumbnail(myID,r);
 				}else{
-					$('#thumbnail img').attr('src',r.args.thumb);
-					$('#file-count').text(parseInt($('#file-count').text())+1);
+					eval(r.callback+'("'+r.args.thumb+'")');
 				}
-//				nanobyte.showInlineMessage(r.messages);
-				$('#imagelist').val($('#imagelist').val()+r.args.thumb+'|'+r.args.orig+';');
 				
 			},
 			error: function(e,t,et){
-//				console.log(e,t,et);
+				console.log(e,t,et);
 			}
 		});
 	})
@@ -189,5 +186,7 @@ $(document).ready(function(){
 		tb_init('a.thickbox');
 	})
 })
-
+function changeAvatar(r){
+	$('#profile-info').find('img#avatar').attr('src',r);
+}
 

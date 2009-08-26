@@ -21,34 +21,34 @@ class BaseController{
 
 	public static function autoload($c,$show_message=true){
 		$found_class = false;
-		if(!empty($c) && $c != 'Controller'){
-			if($c == 'HTML_QuickForm'){
+		$c = strtolower($c);
+		if(!empty($c) && $c != 'controller'){
+			if($c == 'html_quickform'){
 				@include 'HTML/QuickForm.php';
 				$found_class = true;
-			}elseif(strcasecmp(substr($c,0,4),'Mod_')!=0){
+			}elseif(strcasecmp(substr($c,0,4),'mod_')!=0){
 		 		if(file_exists("includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
 		 			return true;
 		    	}elseif (file_exists("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {
 		    		return true;
 		 		}
 			}
-//			if(!$found_class){
+			if(!$found_class){
 				$Core = self::getCore();
-				if(array_key_exists(str_ireplace('controller','',str_ireplace('Mod_','',$c)),$Core->mods_enabled) && !$found_class){
-					if(substr($c,0,4)!=='Mod_'){
-						$c = 'Mod_'.str_ireplace('Controller','',$c);
+				if(array_key_exists(str_ireplace('controller','',str_ireplace('mod_','',$c)),$Core->mods_enabled)){
+					if(substr($c,0,4)!=='mod_'){
+						$c = 'mod_'.str_ireplace('controller','',$c);
 					}
-					if(file_exists("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('Mod_','',$c)."/".strtolower($c).".php")) {
+					if(file_exists("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php") && require_once("./modules/".str_ireplace('mod_','',$c)."/".strtolower($c).".php")) {
 						return true;
 			 		}
-				}
-				if(!$found_class){
+				}else{
 		      		if($show_message){
 		      			$Core->setMessage("Could not load class '{$c}'",'error');
 					}
 		      		return false;
 		   		}
-//			}
+			}
 		}
 	}
 	
@@ -246,7 +246,7 @@ class BaseController{
 		$error = BaseController::VerifyFile($image);
 		if ($error == false){
 			if (Core::FileUpload($image) == true){
-				Core::SetMessage('Your file upload was successful, view the file <a href="' . UPLOAD_PATH . $filename . '" title="Your File">here</a>','info');
+//				Core::SetMessage('Your file upload was successful, view the file <a href="' . UPLOAD_PATH . $filename . '" title="Your File">here</a>','info');
 			}else{
 				Core::SetMessage('There was an error during the file upload.  Please try again.','error');
 			}

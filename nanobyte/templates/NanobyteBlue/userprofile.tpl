@@ -1,28 +1,32 @@
-<div style="width:35%; height: 100%; background-color: black; float: left;">
+<div id="profile-info">
 	<div class="fields"><h2>{$name|capitalize}</h2></div>
-	<div class="fields">{$avatar}</div>
+	<div class="fields"><img id="avatar" src="{$avatar}"/></div>
 	<div class="fields">Location:{$location|capitalize}</div>
 	<div class="fields">Email: <a href="mailto:{$email}">{$email}</a></div>
 	<div class="fields">Last Login: {$lastlogin}</div>
-	<div class="fields"><img src="./templates/images/{$online}.png"/> {$online|capitalize}</div>
+	<div class="fields"><img src="./templates/NanobyteBlue/images/{$online}.png"/> {$online|capitalize}</div>
 </div>
 
-<div id="container-1">
-	<!--<ul id="uitabs">
-		<li><a href="#fragment-1"><span></span></a></li>
-		<li><a href="#fragment-2"><span></span></a></li>
-		<li><a href="#fragment-3"><span></span></a></li>
-	</ul>-->
-	<div id="fragment-1">
+<!--<div id="profile-tabs">
+	<ul id="uitabs">
+		<li><a href="#profile-about"><span>About Me</span></a></li>
+		<li><a href="user/profiles/edit/11/ajax"><span>Edit Profile</span></a></li>
+		<li><a href="#profile-3"><span>Tab 3</span></a></li>
+	</ul>
+	<div id="profile-about">
 		<div>
 			<h2>About Me:</h2>
 			{$about}
 		</div>
 	</div>
-	<!--<div id="fragment-2">
-		<div></div>
-	</div>
-	<div id="fragment-3">
-		
-	</div>-->
+
+</div>-->
+
+<div id="profile-tabs" class="tabs" class="ui-tabs">
+	<ul id="uitabs">
+		{foreach from=$tabs item=link}
+			<li class="tab">{$link}</li>
+		{/foreach}
+	</ul>
+
 </div>

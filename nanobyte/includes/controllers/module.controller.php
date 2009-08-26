@@ -64,6 +64,8 @@ EOF;
 		$enabled = Module::GetBlocks($filter);
 		foreach($enabled as $block){
 			$position = explode("_",$block['position']);
+			$module = 'Mod_'.$block['providedby'];
+			$tmp = new $module;
 			$blockobj = call_user_func(array('Mod_'.$block['providedby'], $block['name'].'_Block'));
 			if (isset($blocks[$position[0]])){
 				$blocks[$position[0]] .= $Core->smarty->fetch($blockobj->template);
