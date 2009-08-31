@@ -6,6 +6,9 @@ var nanobyte = {
 	lastUI: {index: 0},
 	submitForm : function(form){
 		if(this.initValidate(form)===true){
+			if (CKEDITOR && CKEDITOR.instances.ckeditor) {
+				form.find('textarea').val(CKEDITOR.instances.ckeditor.getData());			
+			}
 			var data = form.serialize()+'&submit=true';
 			
 //			if(form.find('input[type=file]').length > 0){
@@ -19,7 +22,7 @@ var nanobyte = {
 //					}
 //				});
 //			}
-			
+
 			$.ajax({
 				url: form.attr('action')+'/ajax',
 				data: data,

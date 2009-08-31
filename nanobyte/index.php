@@ -28,6 +28,8 @@ BaseController::addCss('includes/js/jquery.tooltip.css');
 //Add Global JS Files
 BaseController::addJs('includes/js/jquery.js');
 BaseController::addJs('includes/js/livequery.js');
+//BaseController::addJs('includes/contrib/wymeditor/jquery.wymeditor.js');
+BaseController::addJs('includes/contrib/ckeditor/ckeditor.js');
 BaseController::addJs('includes/js/jquery-ui-1.7.2.custom.js');
 BaseController::addJs('includes/js/jquery.jcarousel.js');
 BaseController::addJs('includes/js/pause.js');
@@ -35,7 +37,7 @@ BaseController::addJs('includes/js/ajaxfileupload.js');
 BaseController::addJs('includes/js/jquery.tooltip.js');
 //BaseController::AddJs('includes/js/jquery.qtip.js');
 BaseController::addJs('includes/js/nanobyte.js');
-BaseController::addJs('includes/contrib/nicedit/nicEdit.js');
+//BaseController::addJs('includes/contrib/nicedit/nicEdit.js');
 //BaseController::AddJs('http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js');
 
 //Include Theme Specified CSS and JS

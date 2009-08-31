@@ -103,7 +103,8 @@ class AdminController extends BaseController{
 			'smtp_host'=>SMTP_SERVER,
 			'smtp_port'=>SMTP_PORT,
 			'smtp_user'=>$Core->DecodeConfParams(SMTP_USER),
-			'smtp_pass'=>$Core->DecodeConfParams(SMTP_PASS)
+			'smtp_pass'=>$Core->DecodeConfParams(SMTP_PASS),
+			'allowed_html_tags'=>ALLOWED_HTML_TAGS
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
@@ -115,6 +116,7 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'limit', 'Default Limit on Table Lists', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'home', 'Default Home Page', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('text', 'allowed_html_tags', 'Allowed HTML Tags', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
 //		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
 		
@@ -153,13 +155,13 @@ class AdminController extends BaseController{
 		$form->addElement('submit', 'submit', 'Submit');
 		//apply form prefilters
 		$form->applyFilter('__ALL__', 'trim');
-		$form->applyFilter('__ALL__', 'strip_tags');
+//		$form->applyFilter('__ALL__', 'strip_tags');
 		//If the form has already been submitted - validate the data
 		if($form->validate()){
 			$form->process(array('AdminController','EditConfig'));
 			$Core->SetMessage('Settings have been saved successfully.','info');
-			parent::redirect('admin');
-			exit;
+//			parent::redirect('admin');
+//			exit;
 		}
 		//send the form to smarty
 		$Core->smarty->assign('form', $form->toArray());

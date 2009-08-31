@@ -361,8 +361,17 @@ class BaseController{
 			$orig_y = imagesy($orig);
 			$thumb_y = round(($orig_y * $thumb_x) / $orig_x);
 			
-			// create the thumb image, and scale the original into it.
+			// create the thumb image, and scale the original into it. try to keep transparent bg
 			$thumb = imagecreatetruecolor($thumb_x, $thumb_y);
+			$clr_trnsprnt = imagecolortransparent($orig, imagecolorallocate($orig,0,0,0));
+			$i_trnprt   = imagecolorallocate($thumb, $clr_trnsprnt['red'], $clr_trnsprnt['green'], $clr_trnsprnt['blue']);
+			
+			imagefill($thumb, 0, 0, $i_trnprt);
+	 
+	        // Set the background color for new image to transparent
+	        imagecolortransparent($thumb, $i_trnprt);
+	
+			imagealphablending($thumb, false);
 			imagecopyresampled($thumb, $orig, 0, 0, 0, 0, $thumb_x, $thumb_y, $orig_x, $orig_y);
 
 			//write the 2 images to disk.

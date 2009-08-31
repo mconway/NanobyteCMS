@@ -315,7 +315,7 @@ table tbody td.actions{
 }
 div.label{
 	float:left;
-	width:150px;
+	width:100px;
 	font-weight: bold;
 }
 div.formbutton{
@@ -465,7 +465,7 @@ a{
  * Profile Styles
  */
 #profile-info{
-	width: 260px;
+	width: 160px;
 	height: 100%; 
 	float: left;
 	min-height: 400px;
@@ -474,7 +474,7 @@ a{
 }
 
 #profile-tabs{
-	width: 500px;
+	width: 600px;
 	position: relative;
 	float: right;
 	min-height: 400px;

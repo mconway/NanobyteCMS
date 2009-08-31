@@ -4,7 +4,7 @@
 		
 		public function __construct($id){
 			$this->dbh = DBCreator::GetDbObject();
-			$query = $this->dbh->prepare("select user.username, user.email, user.lastlogin, profile.avatar, profile.location, profile.about from ".DB_PREFIX."_user AS user LEFT JOIN ".DB_PREFIX."_user_profiles AS profile ON user.uid = profile.uid where profile.uid=:id"); 
+			$query = $this->dbh->prepare("select user.username, user.email, user.lastlogin, profile.avatar, profile.location, profile.about, profile.facebook, profile.twitter from ".DB_PREFIX."_user AS user LEFT JOIN ".DB_PREFIX."_user_profiles AS profile ON user.uid = profile.uid where profile.uid=:id"); 
 			$query->bindParam(':id', $id);
 			$query->execute();
 			$row = $query->fetch(PDO::FETCH_ASSOC);
@@ -15,6 +15,8 @@
 			$this->location = $row['location'];
 			$this->about = $row['about'];
 			$this->lastlogin = $row['lastlogin'];
+			$this->facebook = $row['facebook'];
+			$this->twitter = $row['twitter'];
 			$this->online = $this->checkOnline();
 		}
 		
@@ -27,10 +29,12 @@
 		public function commit(){
 			$Core = BaseController::getCore();
 			//better to make empty profile on user creation
-			$sql = $this->dbh->prepare("update ".DB_PREFIX."_user_profiles set `avatar`=:av, `location`=:loc, `about`=:about where `uid`=:uid");
+			$sql = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user_profiles SET avatar=:av, location=:loc, about=:about, facebook=:fb, twitter=:twit WHERE uid=:uid");
 			$sql->bindParam(':av', $this->avatar);
 			$sql->bindParam(':loc', $this->location);
 			$sql->bindParam(':about', $this->about);
+			$sql->bindParam(':fb', $this->facebook);
+			$sql->bindParam(':twit', $this->twitter);
 			$sql->bindParam(':uid', $this->uid);
 			try{
 				$sql->execute();
@@ -43,8 +47,6 @@
 			}catch(PDOException $e){
 				$Core->SetMessage('Error updating user profile: ' . $e->getMessage(), 'error');
 			}
-			
-	
 		}
 	
 		public function display(){
@@ -91,19 +93,25 @@
 			$form->setDefaults(array(
 				'avatar'=>$this->avatar,
 				'location'=>$this->location,
+				'facebook'=>$this->facebook,
+				'twitter'=>$this->twitter,
 				'about'=>$this->about
 			));
 			 	
 			$form->addElement('header','','User Profile Information');
 			$form->addElement('file', 'avatar', 'Upload Avatar', array('id'=>'image'));
 			$form->addElement('text', 'location', 'Location',array('size'=>25, 'maxlength'=>15));
-			$form->addElement('textarea', 'about', 'About Me',array('rows'=>10,'cols'=>40));
+			$form->addElement('text', 'facebook', 'Facebook ID',array('size'=>25, 'maxlength'=>20));
+			$form->addElement('text', 'twitter', 'Twitter Username',array('size'=>25, 'maxlength'=>20));
+			$form->addElement('textarea', 'about', 'About Me',array('rows'=>10,'cols'=>40,'id'=>'ckeditor'));
 			$form->addElement('submit', 'submit', 'Save Changes');
 
 			if(isset($_POST['submit']) && $form->validate()){
 				$values = $form->exportValues();
 				$this->location = $values['location'];
-				$this->about = $values['about'];
+				$this->about = strip_tags($values['about'],ALLOWED_HTML_TAGS);
+				$this->facebook = $values['facebook'];
+				$this->twitter = $values['twitter'];
 				$this->commit();
 				
 				return;
@@ -117,9 +125,9 @@
 		}
 		
 		public function showProfile(){
-			return array(
+			$array =  array(
 				'name'=>$this->name,
-				'email'=>$this->email,
+//				'email'=>$this->email,
 				'avatar'=>$this->avatar,
 				'location'=>$this->location,
 				'lastlogin'=>date('G:i m.d.y T',$this->lastlogin),
@@ -127,6 +135,15 @@
 				'file'=>'userprofile.tpl',
 				'online'=>$this->online
 			);
+			
+			if(!empty($this->facebook)){
+				$array['facebook'] = "http://www.facebook.com/profile.php?id=".$this->facebook;
+			}
+			if(!empty($this->twitter)){
+				$array['twitter'] = "http://www.twitter.com/".$this->twitter;
+			}
+			
+			return $array;
 		}
 	
 		public function uninstall(){

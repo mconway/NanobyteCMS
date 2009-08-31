@@ -52,14 +52,14 @@ $(document).ready(function(){
 		return false;
 	});
 	$('#forgot_pw a').click(nanobyte.ajaxcall)
-/*
-	$('textarea').livequery(function(){
-		nicEditors.allTextAreas({
-			fullPanel: true,
-			iconsPath : 'includes/contrib/nicedit/nicEditorIcons.gif'
-		}); 
-	});
-*/
+
+	$('textarea#ckeditor').livequery(function(){
+		if(CKEDITOR && CKEDITOR.instances.ckeditor){
+			CKEDITOR.instances.ckeditor.destroy();
+		}
+		CKEDITOR.replace('ckeditor');
+	})
+
 	$('input[name=submit]').live('click',function(){
 		nanobyte.submitForm($(this).parents('form'));
 		return false;

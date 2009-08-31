@@ -1,5 +1,5 @@
 <div id="mainAdmin">
-	<div id="groupContainer1" class="groupWrapper">
+	{*}<div id="groupContainer1" class="groupWrapper">
 		<div id="one" class="groupItem">
 			<div class="itemHeader" id="item_{$i}"><h2 class='title'>Newest Users</h2><span class="toggle"><img src="templates/NanobyteBlue/images/disable-16.png"/></span></div>
 			<div class="itemContent">
@@ -25,6 +25,8 @@
 			<div class="itemContent">
 				
 			</div>
-		</div>
+		</div>{*}
+		
+		Please select an action from the menu above.
 	</div>
 </div>

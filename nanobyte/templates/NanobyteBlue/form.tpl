@@ -21,7 +21,8 @@
    						{/if}
 						{$element.label}
 					</div>
-					<div class="element {if $element.required} required{/if}">{$element.html}</div>
+					{if $element.type == 'textarea'}<br />{/if}
+					<div class="element {if $element.required} required{/if}" {if $element.type=='textarea'}style="margin-left:0"{/if} >{$element.html}</div>
 					{if $element.error}
 					<div class="formerror">{$element.error}</div>
 					{/if}

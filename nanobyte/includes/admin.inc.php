@@ -72,6 +72,8 @@ define("SMTP_SERVER",'{$params['smtp_host']}');
 define("SMTP_PORT",'{$params['smtp_port']}');
 define("SMTP_USER",'{$params['smtp_user']}');
 define("SMTP_PASS",'{$params['smtp_pass']}');
+
+define('ALLOWED_HTML_TAGS','{$params['allowed_html_tags']}');
 ?>
 EOF;
 		file_put_contents('./includes/config.inc.php', $conf);
