@@ -39,7 +39,7 @@
 						break;	
 					case 'fileperm':
 						clearstatcache();
-						if($req['perms'] >= substr(fileperms($req['path'],-3))){
+						if($req['perms'] >= substr(fileperms($req['path']),-3)){
 							$req['status'] = $true;
 						}else{
 							$req['status'] = $false;

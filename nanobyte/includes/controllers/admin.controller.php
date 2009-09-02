@@ -61,14 +61,14 @@ class AdminController extends BaseController{
 		Admin::writeConfig($params);
 	}
 	
-	public static function showConfig(){
+	public static function showConfig($form_action='admin/settings'){
 		$Core = parent::getCore();
 		$perms = new Perms();
 		$perms->GetNames();
 		//create the tabs menu
 		$tablinks = array('Global Settings','DB Settings','File Settings', 'Email Settings', 'Theme Settings', 'User Settings', 'License');
 		//create the form object 
-		$form = new HTML_QuickForm('newuser','post','admin/settings');
+		$form = new HTML_QuickForm('newuser','post',$form_action);
 		
 		//get the site license
 		$license = file_get_contents('license');
@@ -157,9 +157,10 @@ class AdminController extends BaseController{
 		$form->applyFilter('__ALL__', 'trim');
 //		$form->applyFilter('__ALL__', 'strip_tags');
 		//If the form has already been submitted - validate the data
-		if($form->validate()){
+		if(isset($_POST['submit'])&&$form->validate()){
 			$form->process(array('AdminController','EditConfig'));
 			$Core->SetMessage('Settings have been saved successfully.','info');
+			return true;
 //			parent::redirect('admin');
 //			exit;
 		}

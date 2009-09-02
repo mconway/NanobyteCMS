@@ -1,108 +1,78 @@
 <?php
 	class InstallController extends BaseController{
 		
-		public static function Display(&$argsArray){
-			list($args,$ajax,$smarty,$jsonObj,$core) = $argsArray;
+		public static function Display(){
+			$Core = parent::getCore();
 			
 			$Install = new Install();
-			switch($args[0]){
-				case 'cancel':
-					break;
-				case 'step1':
-					if(array_key_exists('submit',$_POST)){
-						if(array_key_exists('agree',$_POST) && $_POST['agree']==0){
-							if($ajax){
-								$jsonObj->callback = 'nanobyte.redirect';
-								$jsonObj->args = 'install/cancel';
-								break;
-							}else{
-								BaseController::Redirect('install/cancel');
-								break;
-							}
-						}
-					}
-					$smarty->assign('self',"install/step2");
-
-					$Install->CheckRequirements();
-					if($Install->continue === true){
-						$smarty->assign('extra','<input type="submit" name="submit" value="Next" />');
-					}
-					$smarty->assign('list',$Install->requirements);
-					$content = $smarty->fetch('list.tpl');
-					
-					break;
-				case 'step2':
-					$smarty->assign('self',"Step 2 - Database Settings");
-					
-					require_once('HTML/QuickForm.php');
-					
-					$form = new HTML_Quickform('newuser','post','admin/settings');
-					
-					$form->setdefaults(array(
-						'dbuser'=>$core->DecodeConfParams(DB_USER),
-						'dbpass'=>$core->DecodeConfParams(DB_PASS),
-						'dbhost'=>DB_HOST,
-						'dbname'=>DB_NAME,
-						'dbprefix'=>DB_PREFIX
-					));
-					
-					$form->addElement('header','','Database Settings');
-					$form->addElement('text', 'dbuser', 'DB Username', array('size'=>25, 'maxlength'=>60));
-					$form->addElement('password', 'dbpass', 'DB Password', array('size'=>25, 'maxlength'=>60));
-					$form->addElement('text', 'dbhost', 'DB Host', array('size'=>25, 'maxlength'=>60));
-					$form->addElement('text', 'dbname', 'DB Name', array('size'=>25, 'maxlength'=>60));
-					$form->addElement('text', 'dbprefix', 'DB Prefix', array('size'=>25, 'maxlength'=>60));
-					
-					$form->addElement('submit', 'submit', 'Submit');
-					//apply form prefilters
-					$form->applyFilter('__ALL__', 'trim');
-					$form->applyFilter('__ALL__', 'strip_tags');
-					//If the form has already been submitted - validate the data
-					if(array_key_exists('dbhost',$_POST)){
-						if($form->validate()){
-							$form->process(array('AdminController','EditConfig'));
-							Core::SetMessage('Settings have been saved successfully.','info');
-						}						
-					}
-					//send the form to smarty
-					$smarty->assign('form', $form->toArray());
-					$content = $smarty->fetch('form.tpl');
-					break;
-				default:
-					$smarty->assign('self','Beginning Nanobyte Installation');
-					$core->SetMessage('Beginning Installation','info');
-					$content = <<<EOF
-					The Nanobyte CMS has not been installed on this domain yet. You have been redirected to this page to begin the installation!
-					Please begin by accepting the license agreement.<br/><br/><form name='license' method='post' action='install/step1'><textarea cols="80" rows="25" readonly>
+			if(isset($Core->args[0])){
+				$content = call_user_func(array('self',$Core->args[0]),new Install());
+			}else{
+				$Core->smarty->assign('self','Beginning Nanobyte Installation');
+				$Core->SetMessage('Beginning Installation','info');
+				$content = <<<EOF
+				The Nanobyte CMS has not been installed on this domain yet. You have been redirected to this page to begin the installation!
+				Please begin by accepting the license agreement.<br/><br/><form name='license' method='post' action='install/step1'><textarea cols="80" rows="25" readonly>
 EOF;
-					$fh = fopen('license', 'r');
-					$content.= fread($fh, filesize('license'));
-					fclose($fh);
-					$content .= "</textarea><br/>
-					<label>I Agree</label> <input type='radio' name='agree' value='1' />  
-					<label>I Disagree</label> <input type='radio' name='agree' value='0' /> <br/>
-					<input type='submit' name='submit' value='Continue'/>";
-					break;
+				$fh = fopen('license', 'r');
+				$content.= fread($fh, filesize('license'));
+				fclose($fh);
+				$content .= "</textarea><br/>
+				<label>I Agree</label> <input type='radio' name='agree' value='1' />  
+				<label>I Disagree</label> <input type='radio' name='agree' value='0' /> <br/>
+				<input type='submit' name='continue' value='Continue'/>";
 			}
-			$smarty->assign('content',$content);
+			$Core->smarty->assign('content',$content);
 //			$jsonObj->content = $smarty->fetch('index.tpl');
-			if(!$ajax){
+			if(!$Core->ajax){
 				parent::DisplayMessages(); // Get any messages
 				parent::GetHTMLIncludes(); // Get CSS and Script Files
-				$smarty->display('index.tpl'); // Display the Page
+				$Core->smarty->display('index.tpl'); // Display the Page
 			}else{
-				$jsonObj->content = $content;
-				$jsonObj->messages = parent::DisplayMessages();
-				print json_encode($jsonObj);
+				$Core->json_obj->content = $content;
+				$Core->json_obj->messages = parent::displayMessages();
+				print json_encode($Core->json_obj);
 			}
-			
 		}
 		
-		public static function DisplayStep1(&$Install){
+		public static function step1(&$Install){
+			$Core = parent::getCore();
+			if(array_key_exists('submit',$_POST)){
+				if(array_key_exists('agree',$_POST) && $_POST['agree']==0){
+					if($Core->ajax){
+						$Core->json_obj->callback = 'nanobyte.redirect';
+						$Core->json_obj->args = 'install/cancel';
+						break;
+					}else{
+						BaseController::Redirect('install/cancel');
+						break;
+					}
+				}
+			}
+			$Core->smarty->assign('formAction',"install/step2");
+
 			$Install->CheckRequirements();
-			$smarty->assign('list',$Install->requirements);
-			return $smarty->fetch('list.tpl');
-		} 
-		
+			if($Install->continue === true){
+				$Core->smarty->assign('extra','<input type="submit" name="next" value="Next" />');
+			}
+			$Core->smarty->assign('list',$Install->requirements);
+			$content = $Core->smarty->fetch('list.tpl');
+			return $content;
+		}
+	
+		public static function step2(&$Install){
+			$Core = parent::getCore();
+			$Core->smarty->assign('self',"Step 2 - Database Settings");
+			
+			AdminController::ShowConfig('install/step2');
+
+			$content = $Core->smarty->fetch('form.tpl');
+			return $content;
+		}
+	
+		public static function step3(&$Install){
+			$Core = parent::getCore();
+			
+		}
 	}
 ?>
