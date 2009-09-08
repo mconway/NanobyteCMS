@@ -19,6 +19,7 @@ $(document).ready(function(){
 			'Log In' : function(){nanobyte.submitForm($('#loginform form'));}
 		}
 	});
+	
 	$('#menu-login').click(function(){
 		$('#loginform').dialog('open');
 		return false;
@@ -60,8 +61,8 @@ $(document).ready(function(){
 		CKEDITOR.replace('ckeditor');
 	})
 
-	$('input[name=submit]').live('click',function(){
-		nanobyte.submitForm($(this).parents('form'));
+	$('input[type=submit]').live('click',function(){
+		nanobyte.submitForm($(this).parents('form'),$(this));
 		return false;
 	});
 	$('input[name=cancel]').live('click',function(){

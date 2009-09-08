@@ -14,12 +14,16 @@
 	public $ajax;
 	public $args;
 	public $user;
+	public $cms_installed = true;
 	
 	public function __construct($start_session=false){
-		$this->EnabledMods();
 		if($start_session===true){
 			//Start the session and create any objects we need
 			$this->StartSession();
+		}
+		if(CMS_INSTALLED){
+			$this->EnabledMods();
+			$this->user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);
 		}
 		//Create the JSON Object
 		$this->json_obj = new Json();
@@ -28,7 +32,7 @@
 		$this->smarty->template_dir = THEME_PATH;
 		$this->smarty->force_compile = true;
 		//Create the User Object
-		$this->user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);
+		
 		//Other
 		$this->ajax = false;
 		$this->args = "";

@@ -63,8 +63,10 @@ class AdminController extends BaseController{
 	
 	public static function showConfig($form_action='admin/settings'){
 		$Core = parent::getCore();
-		$perms = new Perms();
-		$perms->GetNames();
+		if(CMS_INSTALLED){
+			$perms = new Perms();
+			$perms->GetNames();
+		}
 		//create the tabs menu
 		$tablinks = array('Global Settings','DB Settings','File Settings', 'Email Settings', 'Theme Settings', 'User Settings', 'License');
 		//create the form object 
@@ -104,7 +106,8 @@ class AdminController extends BaseController{
 			'smtp_port'=>SMTP_PORT,
 			'smtp_user'=>$Core->DecodeConfParams(SMTP_USER),
 			'smtp_pass'=>$Core->DecodeConfParams(SMTP_PASS),
-			'allowed_html_tags'=>ALLOWED_HTML_TAGS
+			'allowed_html_tags'=>ALLOWED_HTML_TAGS,
+			'cms_installed'=>CMS_INSTALLED
 		));
 		//create form elements
 		$form->addElement('header','','Global Site Settings');
@@ -117,6 +120,7 @@ class AdminController extends BaseController{
 		$form->addElement('text', 'limit', 'Default Limit on Table Lists', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'home', 'Default Home Page', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('text', 'allowed_html_tags', 'Allowed HTML Tags', array('size'=>25, 'maxlength'=>60));
+		$form->addElement('hidden', 'cms_installed', '', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
 //		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
 		

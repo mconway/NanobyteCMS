@@ -11,6 +11,7 @@
 		{foreach from=$js item=script}
 			<script type="text/javascript" src="{eval var=$script}"></script>
 		{/foreach*}
+		<script type="text/javascript">{$extraScript}</script>
 	</head>
 	<body>
 	<div id="header">

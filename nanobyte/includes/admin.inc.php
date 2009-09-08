@@ -61,7 +61,7 @@ define("PEAR_PATH", '{$params['pearpath']}');
 define("LIMIT", '{$params['limit']}');
 define("HOME","{$params['home']}");
 
-define("CMS_INSTALLED",true);
+define("CMS_INSTALLED",'{$params['cms_installed']}');
 
 define("EMAIL_FROM",'{$params['from_name']}');
 define("EMAIL_SUBJECT",'{$params['subject']}');
@@ -79,4 +79,10 @@ EOF;
 		file_put_contents('./includes/config.inc.php', $conf);
 	}
 
+	public static function toggleCMSInstalled($flag){
+		$tmp = file_get_contents('includes/config.inc.php');
+		$bool = $flag=='true' ? '0' : '1';
+		$tmp = str_replace('define("CMS_INSTALLED",\''.$bool.'\');','define("CMS_INSTALLED",\''.$flag.'\');',$tmp);
+		file_put_contents('includes/config.inc.php',$tmp);
+	}
 }

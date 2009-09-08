@@ -2,6 +2,7 @@
 //print_r(get_loaded_extensions());
 
     class Install{
+    	
 		public function __construct(){
 			$this->requirements = array(
 				array(
@@ -20,6 +21,7 @@
 				)
 			);
 			$this->continue = true;
+			$this->dbh = DBCreator::GetDbObject();
 		}
 		
 		public function CheckRequirements(){
@@ -64,6 +66,21 @@
 			}
 		}
 		
+		public function installDB(){
+			$patterns = array(
+				'/\*\*\*DBPREFIX\*\*\*/'
+			);
+			$replace = array(
+				DB_PREFIX
+			);
+			$tmp = file_get_contents('includes/sql/nanobyte.mysql');
+			$sql = "CREATE DATABASE ".DB_NAME.";\n".preg_replace($patterns,$replace,$tmp);
+			$create_query = $this->dbh->query($sql);
+			if($create_query->errorCode()=='00000'){
+				return true;
+			}
+			return false;
+		}
 		
     }
 ?>

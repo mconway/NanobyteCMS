@@ -377,10 +377,10 @@ class UserController extends BaseController{
 		}
 	}
 	
-	public static function regForm($redirect=null){
+	public static function regForm($form_action='user/register',$redirect=null){
 		$Core = parent::getCore();
 		//create the form object 
-		$form = new HTML_QuickForm('newuser','post','user/register');
+		$form = new HTML_QuickForm('newuser','post',$form_action);
 		//create form elements
 		$form->addElement('header','','Create new Account');
 		$form->addElement('text', 'name', 'Username', array('size'=>25, 'maxlength'=>15));

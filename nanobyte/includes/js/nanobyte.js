@@ -4,24 +4,13 @@
 var nanobyte = {
 	ui: {index: 0},
 	lastUI: {index: 0},
-	submitForm : function(form){
+	submitForm : function(form,me){
 		if(this.initValidate(form)===true){
 			if (CKEDITOR && CKEDITOR.instances.ckeditor) {
 				form.find('textarea').val(CKEDITOR.instances.ckeditor.getData());			
 			}
-			var data = form.serialize()+'&submit=true';
-			
-//			if(form.find('input[type=file]').length > 0){
-//				$.ajaxFileUpload({
-//					url:form.attr('action')+'/ajax',
-//	                secureuri:false,
-//	                fileElementId:'fileToUpload',
-//	                dataType: 'json',
-//	                success: function (data, status){
-//						console.log('File Uploaded!');
-//					}
-//				});
-//			}
+			var data = form.serialize()+'&'+me.attr('name')+'=true';
+//			var data = form.serialize()+'&submit=true';
 
 			$.ajax({
 				url: form.attr('action')+'/ajax',
@@ -42,6 +31,7 @@ var nanobyte = {
 					}
 					nanobyte.showInlineMessage(r.messages);
 					$(this).dialog('close');
+					return true;
 				}
 			});
 		}else{
