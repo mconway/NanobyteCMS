@@ -43,7 +43,7 @@
       $data = '';
       // Fetch session data from the selected database
       $time = time();
-      $sql = $this->DB->prepare("select `session_data` from `cms_sessions` where `session_id` = :id and `expires` > :time");
+      $sql = $this->DB->prepare("SELECT session_data FROM ".DB_PREFIX."_sessions WHERE session_id = :id and expires > :time");
       $sql->bindParam(':id',$id);
       $sql->bindParam(':time',$time);
       $sql->execute();                           
@@ -58,17 +58,17 @@
    function write( $id, $data ) {
       // Build query                
       $time = time() + $this->life_time;
-      $sql = $this->DB->prepare("replace `cms_sessions` (`session_id`,`session_data`,`expires`) values(:id, :data, :time)");
+      $sql = $this->DB->prepare("REPLACE ".DB_PREFIX."_sessions (session_id,session_data,expires) values(:id, :data, :time)");
       $sql->bindParam(':id',$id);
       $sql->bindParam(':data',$data);
       $sql->bindParam(':time',$time);
       $sql->execute();
-      return TRUE;
+      return true;
    }
 
    function destroy( $id ) {
       // Build query
-      $sql = $this->DB->prepare("delete from `cms_sessions` where `session_id` = :id");
+      $sql = $this->DB->prepare("DELETE from ".DB_PREFIX."_sessions where session_id = :id");
       $sql->bindParam(':id',$id);
       $sql->execute();
       return true;
@@ -77,7 +77,7 @@
    function gc() {
       // Garbage Collection
       // Build DELETE query.  Delete all records who have passed the expiration time
-      $sql = $this->DB->prepare("delete from `cms_sessions` where `expires` < UNIX_TIMESTAMP();");
+      $sql = $this->DB->prepare("DELETE FROM ".DB_PREFIX."_sessions where expires < UNIX_TIMESTAMP();");
       $sql->execute();
       // Always return TRUE
       return true;

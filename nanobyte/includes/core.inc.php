@@ -21,7 +21,7 @@
 			//Start the session and create any objects we need
 			$this->StartSession();
 		}
-		if(CMS_INSTALLED){
+		if(CMS_INSTALLED=='1'){
 			$this->EnabledMods();
 			$this->user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);
 		}
@@ -242,7 +242,9 @@
 	}
 	
 	public function startSession(){
-		$sess = new SessionManager();
+		if(CMS_INSTALLED=='1'){
+			$sess = new SessionManager();
+		}
 		session_set_cookie_params(SESS_TTL);
 	    session_start();
 		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 

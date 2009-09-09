@@ -20,7 +20,7 @@ class DBCreator{
 			$db_pdo = array();
 		}
 		if (array_key_exists(DB_NAME, $db_pdo) == false){
-			$dsn = 'mysql:dbname=' . DB_NAME .';host='. DB_HOST;
+			$dsn = 'mysql:dbname='.DB_NAME.';host='.DB_HOST;
 			try {
 				$pdo = new PDO($dsn, Core::DecodeConfParams(DB_USER), Core::DecodeConfParams(DB_PASS));
 				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

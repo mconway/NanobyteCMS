@@ -21,7 +21,6 @@
 				)
 			);
 			$this->continue = true;
-			$this->dbh = DBCreator::GetDbObject();
 		}
 		
 		public function CheckRequirements(){
@@ -67,6 +66,7 @@
 		}
 		
 		public function installDB(){
+			$this->dbh = DBCreator::GetDbObject();
 			$patterns = array(
 				'/\*\*\*DBPREFIX\*\*\*/'
 			);
@@ -74,7 +74,7 @@
 				DB_PREFIX
 			);
 			$tmp = file_get_contents('includes/sql/nanobyte.mysql');
-			$sql = "CREATE DATABASE ".DB_NAME.";\n".preg_replace($patterns,$replace,$tmp);
+			$sql = preg_replace($patterns,$replace,$tmp);
 			$create_query = $this->dbh->query($sql);
 			if($create_query->errorCode()=='00000'){
 				return true;

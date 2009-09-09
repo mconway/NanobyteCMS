@@ -81,7 +81,7 @@ EOF;
 
 	public static function toggleCMSInstalled($flag){
 		$tmp = file_get_contents('includes/config.inc.php');
-		$bool = $flag=='true' ? '0' : '1';
+		$bool = $flag===true ? '0' : '1';
 		$tmp = str_replace('define("CMS_INSTALLED",\''.$bool.'\');','define("CMS_INSTALLED",\''.$flag.'\');',$tmp);
 		file_put_contents('includes/config.inc.php',$tmp);
 	}

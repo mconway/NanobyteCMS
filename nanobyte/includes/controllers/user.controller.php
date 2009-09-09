@@ -405,8 +405,9 @@ class UserController extends BaseController{
 		if(array_key_exists('submit',$_POST) && $form->validate()){
 			$newUser = new User();
 			if($newUser->Create($form->exportValues())){
-				$Core->SetMessage('Your user account has been created!','info');
+				return true;
 			}
+			return false;
 //			parent::Redirect();
 		}
 		//send the form to smarty

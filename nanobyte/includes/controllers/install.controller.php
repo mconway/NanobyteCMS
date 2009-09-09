@@ -3,7 +3,7 @@
 		
 		const SCRIPT = 'var i = 25;
 				$(document).ready(function(){
-					$("#main").prepend(\'<br/><div id="progressbar"><div id="pb-text"><span>0</span><span>/4</span></div></div><br/>\');
+					$("#main").prepend(\'<br/><div id="progressbar"><div id="pb-text"><span>0</span><span>/</span><span>4</span></div></div><br/>\');
 					$("#progressbar").progressbar();
 					$("form input[type=submit]").livequery(function(){
 						$(this).click(increaseProgressBar)
@@ -16,9 +16,12 @@
 					})
 				});
 				function increaseProgressBar(){
-					$("#progressbar").progressbar("option", "value", i);
-					i += 25;
-					$("#pb-text").children("span:first-child").text((i/25)-1);	
+					var step = parseInt($("#pb-text").children("span:first-child").text())+1;
+					if(step <= parseInt($("#pb-text").children("span:last-child").text())){
+						$("#pb-text").children("span:first-child").text(step);
+						$("#progressbar").progressbar("option", "value", i);
+						i += 25;
+					}
 				}
 				';
 		
@@ -111,8 +114,16 @@ EOF;
 	
 		public static function step4(){
 			$Core = parent::getCore();
-			$Core->smarty->assign('form',UserController::regForm('install/step4'));
-			return $Core->smarty->fetch('form.tpl');
+			$ret_val = UserController::regForm('install/step4');
+			if(is_array($ret_val)){
+				$Core->smarty->assign('form',$ret_val);
+				return $Core->smarty->fetch('form.tpl');
+			}elseif($ret_val === true){
+				$Core->SetMessage('Your user account has been created!','info');
+				Admin::toggleCMSInstalled(true);
+				return "Installation is complete! Click <a href='".SITE_DOMAIN."/".PATH."'>here</a> to go to your site!";
+			}
+			
 		}
 	
 		public static function createDatabase(&$Install){

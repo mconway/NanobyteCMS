@@ -179,7 +179,7 @@ $(document).ready(function(){
 	$('form input').livequery(function(){
 		$(this).keypress(function(e){
 			if(e.which==13){
-				nanobyte.submitForm($(this).parents('form:first'));
+				nanobyte.submitForm($(this).parents('form:first'),$(this).parents('form:first').find('input[type-submit]'));
 			}
 		})
 	})
