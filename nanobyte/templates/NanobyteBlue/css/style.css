@@ -205,6 +205,10 @@ div.contentheader, .groupItem .itemHeader{
 .block{
 	width:188px;
 }
+.block_body{
+	background-color: #F9F9F9;
+	padding: 3px;
+}
 .content-block, .block, .groupItem{
 	background-color:#E6E6E6;
 	padding: 5px;

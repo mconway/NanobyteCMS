@@ -64,6 +64,7 @@ class Block_Menu extends Mod_Menu{
 		global $Core;
 		BaseController::AddJs('modules/posts/js/posts.js');
 		$this->template = '../../modules/menu/menu.tpl';
+		$this->title = 'Menu';
 		$Core->smarty->assign('menusblock',$this->buildMenus());
 	}
 	

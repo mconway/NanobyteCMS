@@ -31,6 +31,12 @@ var nanobyte = {
 					}
 					nanobyte.showInlineMessage(r.messages);
 					$(this).dialog('close');
+					
+					//this is a temp fix for installer
+					if(typeof r.block_title == 'string' && typeof r.block_body == 'string') {
+						updateBlock(r.block_title,r.block_body);
+					} 
+					
 					return true;
 				}
 			});

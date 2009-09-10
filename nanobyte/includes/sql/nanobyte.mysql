@@ -1,3 +1,20 @@
+DROP TABLE IF EXISTS `***DBPREFIX***_blocks`;
+DROP TABLE IF EXISTS `***DBPREFIX***_content_types`;
+DROP TABLE IF EXISTS `***DBPREFIX***_email`;
+DROP TABLE IF EXISTS `***DBPREFIX***_user_groups`;
+DROP TABLE IF EXISTS `***DBPREFIX***_user`;
+DROP TABLE IF EXISTS `***DBPREFIX***_group_perms`;
+DROP TABLE IF EXISTS `***DBPREFIX***_groups`;
+DROP TABLE IF EXISTS `***DBPREFIX***_perms`;
+DROP TABLE IF EXISTS `***DBPREFIX***_menus`;
+DROP TABLE IF EXISTS `***DBPREFIX***_menu_links`;
+DROP TABLE IF EXISTS `***DBPREFIX***_sessions`;
+DROP TABLE IF EXISTS `***DBPREFIX***_settings`;
+DROP TABLE IF EXISTS `***DBPREFIX***_url_alias`;
+DROP TABLE IF EXISTS `***DBPREFIX***_modules`;
+DROP TABLE IF EXISTS `***DBPREFIX***_stats`;
+DROP TABLE IF EXISTS `***DBPREFIX***_user_profiles`;
+
 CREATE TABLE IF NOT EXISTS `***DBPREFIX***_blocks` (
   `id` int(11) NOT NULL auto_increment,
   `name` text NOT NULL,

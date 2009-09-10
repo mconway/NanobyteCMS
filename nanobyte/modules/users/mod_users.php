@@ -28,7 +28,7 @@
 	}
 	class Block_UsersOnline extends Mod_Users{
 		function __construct(){
-			global $Core;
+			$Core = BaseController::getCore();
 			BaseController::AddCss('modules/users/usersonline.css');
 			$this->users = self::GetUsersOnline();
 			$this->template = '../../modules/users/templates/usersonline.tpl';
@@ -36,15 +36,16 @@
 			$count = count($this->users);
 			$userstr = $count != 1 ? "$count users currently online:" : "$count user currently online:";
 			$Core->smarty->assign('userstr',$userstr);
+			$this->title = 'Users Online';
 		}
 	}
 	
 	class Block_NewUsers extends Mod_Users{
 		function __construct(){
-			global $smarty;
 			$this->users = self::NewUsers();
 			$this->template = '../../modules/users/templates/newusers.tpl';
-			$smarty->assign('newusers',$this->users);
+			$Core->smarty->assign('newusers',$this->users);
+			$this->title = 'Users Online';
 		}
 	}
     

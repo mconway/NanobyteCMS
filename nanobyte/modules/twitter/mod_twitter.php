@@ -43,7 +43,7 @@
 			$smarty_vars = array('twitter'=>$twit_user,'twit_limit'=>$twit_limit);
 			$Core->smarty->assign($smarty_vars);
 			$this->template = '../../modules/twitter/templates/twitterstatus.tpl';
-			
+			$this->title = $twit_user."'s Status";
 		}
 	}
 ?>

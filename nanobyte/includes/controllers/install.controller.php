@@ -23,12 +23,16 @@
 						i += 25;
 					}
 				}
+				function updateBlock(title,body){
+					$(".block_title").children("h2").text(title);
+					$(".block_body").text(body);
+				}
 				';
 		
 		public static function Display(){
 			$Core = parent::getCore();
 			
-			$Core->smarty->assign('extraScript',self::SCRIPT);
+
 			
 			$Install = new Install();
 			if(isset($Core->args[0])){
@@ -36,7 +40,18 @@
 			}else{
 				$content = self::license();
 			}
-			$Core->smarty->assign('content',$content);
+			//Set block elements
+			$Core->smarty->assign(array(
+				'block_title'=>'Licensing',
+				'block_body'=>'Please read and agree to the terms of the software license.'
+			));
+			$Core->smarty->assign(array(
+				'extraScript'=>self::SCRIPT,
+				'content'=>$content,
+				//We need to create an empty block. instead of the riggamaroll of trying to add it to a the database, 
+				//and use module controller, we are going to force it manually.
+				'blocks'=> array('rightsidebar'=>$Core->smarty->fetch('block.tpl'))
+			));
 //			$jsonObj->content = $smarty->fetch('index.tpl');
 			if(!$Core->ajax){
 				parent::DisplayMessages(); // Get any messages
@@ -89,6 +104,8 @@ EOF;
 			}
 			$Core->smarty->assign('list',$Install->requirements);
 			$content = $Core->smarty->fetch('list.tpl');
+			$Core->json_obj->block_title = 'Step 1';
+			$Core->json_obj->block_body = 'Checking Requirements.. You may continue if there are no errors here.';
 			return $content;
 		}
 	
@@ -99,6 +116,10 @@ EOF;
 			AdminController::ShowConfig('install/step3');
 
 			$content = $Core->smarty->fetch('form.tpl');
+			
+			$Core->json_obj->block_title = 'Step 2';
+			$Core->json_obj->block_body = 'Generate Configuration: Please be sure to enter as much information as possible about your setup. Database configuration and Global Settings are required!';
+			
 			return $content;
 		}
 	
@@ -109,18 +130,29 @@ EOF;
 				return;
 			}
 			$content = "We will now create the database and required tables. Click the create database button to continue.<br /><form action='install/createDatabase'><input type='button' id='createdb' value='Create Database'/></form>";
+			
+			$Core->json_obj->block_title = 'Step 3';
+			$Core->json_obj->block_body = 'Generate the database. Click the Create database button to proceed. WARNING: This will drop all existing tables with the same db_prefix as specified in step 2!';
+			
 			return $content;
 		}
 	
 		public static function step4(){
 			$Core = parent::getCore();
+			
 			$ret_val = UserController::regForm('install/step4');
 			if(is_array($ret_val)){
+				$Core->json_obj->block_title = 'Step 4';
+				$Core->json_obj->block_body = 'Create admin user: Please enter credentials used by the site admin. This will be the first account created and will be granted FULL ACCESS to the site.';
 				$Core->smarty->assign('form',$ret_val);
 				return $Core->smarty->fetch('form.tpl');
 			}elseif($ret_val === true){
+				$Core->json_obj->block_title = 'Installation Complete!';
+				$Core->json_obj->block_body = 'Installation of the Nanobyte CMS has been completed.';
 				$Core->SetMessage('Your user account has been created!','info');
 				Admin::toggleCMSInstalled(true);
+				$user = new User(1);
+				$user->permissions->addUserToGroup($user->uid,'1');
 				return "Installation is complete! Click <a href='".SITE_DOMAIN."/".PATH."'>here</a> to go to your site!";
 			}
 			

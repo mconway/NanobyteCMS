@@ -67,10 +67,14 @@ EOF;
 			$module = 'Mod_'.$block['providedby'];
 			$tmp = new $module;
 			$blockobj = call_user_func(array('Mod_'.$block['providedby'], $block['name'].'_Block'));
+			$Core->smarty->assign(array(
+				'block_title' => $blockobj->title,
+				'block_body' => $Core->smarty->fetch($blockobj->template)
+			));
 			if (isset($blocks[$position[0]])){
-				$blocks[$position[0]] .= $Core->smarty->fetch($blockobj->template);
+				$blocks[$position[0]] .= $Core->smarty->fetch('block.tpl');
 			}else{
-				$blocks[$position[0]] = $Core->smarty->fetch($blockobj->template);
+				$blocks[$position[0]] = $Core->smarty->fetch('block.tpl');
 			}
 		}
 		$Core->smarty->assign('blocks', $blocks);
