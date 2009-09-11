@@ -18,13 +18,14 @@ class Mod_Gallery{
 		$this->dbh = DBCreator::GetDbObject();
 		$this->template = '../../modules/gallery/templates/gallery.tpl';
 		$Core = BaseController::getCore();
-		$Core->saveSettings('templates/NanobyteBlue/images','thumbs_list');
+		//$Core->saveSettings('templates/NanobyteBlue/images','thumbs_list');
+		$this->thumbs_dir = $Core->getSettings('thumbs_dir');
 	}
 	
 	public function display(){
 		$Core = BaseController::getCore();
 		$Core->smarty->assign('thumbs_list',$this->read());
-		var_dump($this->read());
+		//var_dump($this->read());
 		return $Core->smarty->display($this->template);	
 	}
 	
@@ -46,7 +47,6 @@ class Mod_Gallery{
 	 */
 	public function read(){
 		$Core = BaseController::getCore();
-		$thumbs_dir = $Core->getSettings('thumbs_dir');
 		$thumbs_list = glob('templates/NanobyteBlue/images/*');
 		return $thumbs_list;
 	}
@@ -61,6 +61,11 @@ class Mod_Gallery{
 	public static function gallery_block(){
 		$block = new Block_Menu();
 		return $block;
+	}
+	
+	public function generateThumbs(){
+		//thumbs named image-thumb.ext
+		//use FILES instead? FILES/gallery/thumbs FILES/gallery/albums
 	}
 	
 }

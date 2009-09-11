@@ -44,10 +44,13 @@ BaseController::addJs('includes/js/nanobyte.js');
 BaseController::getThemeIncludes();
 
 //Assign Global Site Variables to Smarty
-$Core->smarty->assign('sitename',SITE_NAME);
-$Core->smarty->assign('logo',SITE_LOGO);
-$Core->smarty->assign('feedurl', $Core->url('rss'));
-$Core->smarty->assign('siteslogan', SITE_SLOGAN);
+$Core->smarty->assign(array(
+	'sitename'=>SITE_NAME,
+	'logo'=>SITE_LOGO,
+	'feedurl'=>$Core->url('rss'),
+	'siteslogan'=>SITE_SLOGAN
+));
+
 if(isset($_GET['file']) && isset($_GET['type']) && COMPRESS){
 	BaseController::getCacheFile($_GET['file'],$_GET['type']);
 	exit;
@@ -139,9 +142,11 @@ if(!CMS_INSTALLED){
 			}else{
 				header("HTTP/1.1 404 Not Found");
 				$error = new Error(404,$script);
-				$Core->smarty->assign('error_code',$error->error_code);
-				$Core->smarty->assign('explanation',$error->explanation);
-				$Core->smarty->assign('server_url',$error->server_url);
+				$Core->smarty->assign(array(
+					'error_code'=>$error->error_code,
+					'explanation'=>$error->explanation,
+					'server_url'=>$error->server_url
+				));
 				BaseController::getHTMLIncludes();
 				$jsonObj->content = $Core->smarty->fetch('error.tpl'); //this needs a controller
 				if($Core->ajax){
