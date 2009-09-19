@@ -14,7 +14,7 @@ class Menu{
 		if($name){
 			$query = $this->dbh->prepare("select menus.mid, menus.name, links.id, links.linkpath, links.linktext, links.viewableby, links.class, links.styleid from ".DB_PREFIX."_menus AS menus LEFT JOIN ".DB_PREFIX."_menu_links AS links ON menus.mid=links.menu where menus.name=:name");
 			$query->execute(array(':name'=>$name));
-			$this->menu = $query->fetchAll(PDO::FETCH_ASSOC);
+			$this->menu = $query->fetchAll(PDO::FETCH_OBJ);
 			$this->name = $name;
 		}
 	}

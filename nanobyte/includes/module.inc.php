@@ -74,6 +74,19 @@ class Module{
 		}
 	}
 	
+	public function disableBlocks(){
+		$query = $this->dbh->prepare("SELECT id FROM ".DB_PREFIX."_blocks WHERE providedby=:parent AND status=:status");
+		try{
+			$query->execute(array(':parent'=>ucfirst($this->name),'status'=>'1'));
+			while($row = $query->fetch(PDO::FETCH_OBJ)){
+				$this->updateBlockStatus($row->id);
+			}
+		}catch(PDOException $e){
+			$Core->SetMessage('Could not disable Blocks. Error: '.$e->getMessage(), 'error');
+		}
+
+	}
+	
 	public function getStatus(){
 		$qSelect = $this->dbh->prepare("SELECT `status` FROM ".DB_PREFIX."_modules WHERE `module`=:mod");
 		$qSelect->bindParam(':mod',$this->modpath);

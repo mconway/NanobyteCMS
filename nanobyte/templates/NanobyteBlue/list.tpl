@@ -10,26 +10,22 @@
 		<table cellspacing="0" {if $tableclass}class='{$tableclass}'{/if}>
 			<thead>
 				<tr>
-					{if $cb == true}<th><input type="checkbox" value=""/></th>{/if}
+					<th {if $cb !== true}style="display:none"{/if}><input type="checkbox" value=""/></th>
 					{foreach from=$list.0 key=key item=item}
-						{if $key!='id' || $showID==true}
-							{strip}
-								<th>{$key|capitalize}</th>
-							{/strip}
-						{/if}
+						{strip}
+							<th {if $key=='id' && $showID!=true}style="display:none"{/if}>{$key|capitalize}</th>
+						{/strip}
 					{/foreach}
 				</tr>
 			</thead>
 			<tbody {if $tableclass}id='{$tableclass}'{/if}>
 			{foreach from=$list item=item}
 				<tr class="{cycle values="evenrow, oddrow"}" id='{$page}_{$item.id}'>
-					{if $cb == true}<td><input type="checkbox" name="{$page}[]" value="{$item.id}"/></td>{/if}
+					<td {if $cb !== true}style="display:none"{/if}><input type="checkbox" name="{$page}[]" value="{$item.id}"/></td>
 					{foreach from=$item item=object key=key}
-					{if $key!='id' || $showID==true}
 						{strip}
-						    <td class="{$key}">{$object}</td>
+						    <td class="{$key}" {if $key=='id' && $showID!=true}style="display:none"{/if}>{$object}</td>
 						{/strip}
-					{/if}
 					{/foreach}
 				</tr>
 			{/foreach}

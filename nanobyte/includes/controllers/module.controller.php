@@ -161,7 +161,10 @@ EOF;
 	}
 	
 	public static function uninstallModule(&$module){
-		
+		$module->disableBlocks();
+		$mod_class = 'Mod_'.$module->name;
+		$m = new $mod_class($Core);
+		$m->uninstall();
 	}
 	
 	public static function updateStatus(){
@@ -181,6 +184,7 @@ EOF;
 				if ($Core->args[1] == "enable"){
 					self::InstallModule($module);
 				}else{
+					self::UninstallModule($module);
 					call_user_func(array('Mod_'.$module->name, 'Uninstall'));
 				}
 				$Core->json_obj->callback = 'nanobyte.changeLink';

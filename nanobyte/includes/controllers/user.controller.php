@@ -25,7 +25,7 @@ class UserController extends BaseController{
 					$Core->json_obj->title = "Edit user";
 					break;
 				case 'add':
-					$Core->smarty->assign('form',self::RegForm($Core,true));
+					$Core->smarty->assign('form',self::RegForm());
 					$content = $Core->smarty->fetch('form.tpl');
 					$Core->json_obj->title = "Add new user";
 					break;

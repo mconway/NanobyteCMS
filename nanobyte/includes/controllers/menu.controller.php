@@ -89,7 +89,7 @@ class MenuController extends BaseController{
 						$menu = new Menu($Core->args[2]);
 						$menu->delete();
 						$Core->json_obj->callback = 'nanobyte.deleteRows';
-						$Core->json_obj->args = $menu->menu[0]['mid'].'|';
+						$Core->json_obj->args = $menu->menu[0]->mid.'|';
 					}
 					break;
 				case 'edit':
@@ -122,9 +122,9 @@ class MenuController extends BaseController{
 		$premenu = new Menu($name);
 		$menu = array();
 		foreach ($premenu->menu as $preitem){
-			if(strpos($preitem['viewableby'],$permission)!==false){
-				$options = array('id'=>$preitem['styleid'],'class'=>$preitem['class']);
-				array_push($menu,Core::l($preitem['linktext'],$preitem['linkpath'],$options));
+			if(strpos($preitem->viewableby,$permission)!==false){
+				$options = array('id'=>$preitem->styleid,'class'=>$preitem->class);
+				array_push($menu,Core::l($preitem->linktext,$preitem->linkpath,$options));
 			}
 		}
 		return $menu;
@@ -140,7 +140,7 @@ class MenuController extends BaseController{
 			$options['class'] = 'action-link-tab';
 			$options['title'] = "Edit menu";
 			array_push($list, array(
-//				'id'=>$menu['mid'],
+				'id'=>$menu['mid'],
 				'menu name'=>ucwords($menu['name']),
 //				'parent id'=>$menu['parent_id'],
 				'actions'=>Core::l('edit','admin/menu/edit/'.$menu['mid'],$options)
@@ -160,7 +160,8 @@ class MenuController extends BaseController{
 		return array(
 			'self'=>'admin/menu',
 			'list'=>$list,
-			'sublinks'=>$links
+			'sublinks'=>$links,
+			'showID'=>false
 		);
 	}
 	
@@ -172,18 +173,20 @@ class MenuController extends BaseController{
 		$i = 0;
 		$menuItems = new Menu($menu->name);
 		$options['image']='16';
+		$options['class'] = 'action-link';
 		foreach($menuItems->menu as $item){
 			$items[$i] = array(
-				'path'=>'<input type="text" size="15" value="'.$item['linkpath'].'" name="tb_'.$item['id'].'_linkpath"/>',
-				'title'=>'<input type="text" size="15" value="'.$item['linktext'].'" name="tb_'.$item['id'].'_linktext"/>',
-				'class'=>'<input type="text" size="10" value="'.$item['class'].'" name="tb_'.$item['id'].'_class"/>',
-				'id'=>'<input type="text" size="10" value="'.$item['styleid'].'" name="tb_'.$item['id'].'_styleid"/>',
+				'id'=>$item->id,
+				'path'=>'<input type="text" size="15" value="'.$item->linkpath.'" name="tb_'.$item->id.'_linkpath"/>',
+				'title'=>'<input type="text" size="15" value="'.$item->linktext.'" name="tb_'.$item->id.'_linktext"/>',
+				'class'=>'<input type="text" size="10" value="'.$item->class.'" name="tb_'.$item->id.'_class"/>',
+				'element id'=>'<input type="text" size="10" value="'.$item->styleid.'" name="tb_'.$item->id.'_styleid"/>',
 			);
 			foreach($perms->names as $pname){
-				$checked = strpos($item['viewableby'],$pname) !== false ? 'checked="checked"' : '';
-				$items[$i][$pname] = '<input type="checkbox" name="cb_'.$item['id'].'_'.$pname.'[]" value="'.$pname.'" '.$checked.'/>';
+				$checked = strpos($item->viewableby,$pname) !== false ? 'checked="checked"' : '';
+				$items[$i][$pname] = '<input type="checkbox" name="cb_'.$item->id.'_'.$pname.'[]" value="'.$pname.'" '.$checked.'/>';
 			}
-			$items[$i]['actions'] = Core::l('delete','admin/menu/delete/'.$mid.'/'.$item['id'],$options);
+			$items[$i]['actions'] = Core::l('delete','admin/menu/delete/'.$mid.'/'.$item->id,$options);
 			$i++;
 		}		
 		$options['image'] = '24';
@@ -193,7 +196,8 @@ class MenuController extends BaseController{
 			'sublinks'=>$links,
 			'list'=>$items,
 			'extra'=>'<input type="submit" value="Submit" name="submit"/>',
-			'formAction'=>'admin/menu/edit/'.$mid
+			'formAction'=>'admin/menu/edit/'.$mid,
+			'showID'=>false
 		);
 	}
 	

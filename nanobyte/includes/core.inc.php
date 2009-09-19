@@ -14,7 +14,6 @@
 	public $ajax;
 	public $args;
 	public $user;
-	public $cms_installed = true;
 	
 	public function __construct($start_session=false){
 		if($start_session===true){
