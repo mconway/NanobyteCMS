@@ -7,6 +7,20 @@ class Mod_UrlAlias{
 		$this->dbh = DBCreator::GetDbObject();
 	}
 	
+	public function checkAlias($alias){
+		$dbh = DBCreator::GetDBObject();
+		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
+		$query->execute(array(0=>$alias));
+		$result = $query->fetch();
+		if ($query->rowCount() == 1){
+			return $result[0];
+		}else{
+			$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias` LIKE ? LIMIT 1");
+			$query->execute(array(0=>$alias."%"));
+			return false;
+		}
+	}
+	
 	public static function Install(){
 		//register Menu Item
 		$menu = new Menu('admin');
@@ -40,28 +54,23 @@ class Mod_UrlAlias{
 
 class UrlAliasController extends BaseController{
 	
-	public static function Admin(&$argsArray){
-		list($args,$ajax,$smarty,$user,$jsonObj,$core) = $argsArray;
-		if(array_key_exists(1,$args)){
-			switch($args[1]){
-				case 'list':
-					$smarty->assign(self::GetList($args[2]));
-					$content = $smarty->fetch('list.tpl'); 
-					break;
-				case 'add':
-					$smarty->assign('form', self::AddAlias());
-					$content = $smarty->fetch('form.tpl'); 
-					break;
-			}
+	public static function Admin(){
+		$Core = BaseController::getCore();
+		if(isset($Core->args[1]) && function_exists($Core->args[1])){
+			$content = call_user_func(array('self',$Core->args[1]));
 		}else{
 			$tabs = array(Core::l('Aliases','admin/urlalias/list'));
 			$smarty->assign('tabs',$tabs);
 			if($ajax){$jsonObj->tabs = $smarty->fetch('tabs.tpl');}
 		}
-		$jsonObj->content = $content;
+		$Core->jsonObj->content = $content;
 	}
 
-	public static function GetList($page){
+	public static function AddAlias(){
+		
+	}
+
+	public static function getList($page){
 		$alias = new Mod_UrlAlias();
 		$alias->Read(parent::GetStart($page,10), 10); //array of objects
 		$list = array();
@@ -102,6 +111,13 @@ class UrlAliasController extends BaseController{
 		);
 		return $smartyArray;
 	}
+
+	public static function list($page=1){
+		$Core = BaseController::getCore();
+		$Core->smarty->assign(self::GetList($page));
+		return $Core->smarty->fetch('list.tpl');	
+	}
+
 
 	public static function AddAlias(){
 		$form = new HTML_QuickForm('newuser','post','user/register/');
