@@ -107,6 +107,17 @@ class UserController extends BaseController{
 		}
 	}
 	
+	public static function commit(){
+		$Core = BaseController::getCore();
+		if (isset($_POST['commit'])){
+			self::EditUser($Core->args[1]);
+			parent::Redirect();
+		}elseif(isset($_POST['delete'])){
+			AdminController::DeleteUserRequest();
+			parent::Redirect();
+		}
+	}
+	
 	public static function deleteUserRequest(){
 		$Core = parent::getCore();
  		if (isset($_GET['uid'])){
@@ -133,73 +144,17 @@ class UserController extends BaseController{
  		}
 	}
 	
+	public static function details(){
+		$Core = BaseController::getCore();
+		return self::GetDetails($Core->args[1]);
+	}
+	
 	public static function display(){
 		$Core = parent::getCore();
 		$content = "";
 		if(isset($Core->args[0])){
-//			if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
-			switch($Core->args[0]){ // What sub page are we trying to view
-				case 'details': // view user details - THIS IS NOT THE PROFILE PAGE
-					$content = self::GetDetails($Core->args[1]);
-					break;
-				case 'edit':
-					if ($Core->authUser($user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
-						self::editUser($Core->args[1]);
-						$content = $Core->smarty->fetch('form.tpl');
-					}else{
-						$Core->setMessage('You do not have access to this page!','error');
-					}
-					parent::displayMessages();
-					parent::getHTMLIncludes();
-					$Core->smarty->display('index.tpl');
-					break;	
-				case 'commit': // Save User Details
-					if (isset($_POST['commit'])){
-						self::EditUser($Core->args[1]);
-						parent::Redirect();
-					}elseif(isset($_POST['delete'])){
-						AdminController::DeleteUserRequest();
-						parent::Redirect();
-					}
-					break;
-				case 'login': // Log in a user
-					self::Login($_POST['user'], $_POST['pass']);
-					if($Core->user->success===true){
-						$Core->setMessage('Authentication Successful!','info');
-						$Core->json_obj->callback = 'reload';
-					}else{
-						$Core->json_obj->callback = 'reset';
-						$Core->setMessage('Username or Password is incorrect','error');
-					}
-					break;
-					
-				case 'logout': //Logout and destroy a user session
-					self::Logout();
-					parent::Redirect(HOME);
-					break;
-				case 'register': // Sign up as a new user
-					if(isset($_POST['submit'])){
-						$Core->json_obj->callback = 'nanobyte.closeParentTab';
-						$Core->json_obj->args = 'input[name=submit][value=Submit]';
-					}
-					$Core->smarty->assign('form',self::RegForm($Core));
-					$content = $Core->smarty->fetch('form.tpl');
-					break;
-				case 'reset_pw':
-					$Core->smarty->assign('form',self::ResetPassword($Core->user));
-					$content = $smarty->fetch('form.tpl');
-					$Core->json_obj->callback = 'Dialog';
-					$Core->json_obj->title = 'Reset Password';
-					break;
-				case 'profiles':
-				default:
-					if ($Core->user->uid == 0){ //User is not logged in
-						$Core->smarty->assign('noSess', true);
-					}
-					if($Core->authUser('view user profiles') && is_numeric($Core->args[0])){
-						$content = self::showprofile($Core->args[0]);
-					}
-					break;
+			if(method_exists('UserController', $Core->args[0])){
+				call_user_func(array('UserController',$Core->args[0]));
 			}
 		}else{
 			if ($Core->user->uid == 0){ //User is not logged in
@@ -231,7 +186,21 @@ class UserController extends BaseController{
     	}
     } 
 	
-	public static function edit($id){
+	public static function edit(){
+		$Core = BaseController::getCore();
+		if ($Core->authUser($user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
+			self::editForm($Core->args[1]);
+			$content = $Core->smarty->fetch('form.tpl');
+		}else{
+			$Core->setMessage('You do not have access to this page!','error');
+		}
+		parent::displayMessages();
+		parent::getHTMLIncludes();
+		$Core->smarty->display('index.tpl');
+		return;
+	}
+	
+	public static function editForm($id){
 		$Core = parent::getCore();
 		$edituser = new User($id);
 //		$profile = new UserProfile($edituser->uid);
@@ -343,9 +312,17 @@ class UserController extends BaseController{
 		return $smartyArray;
 	}
 	
-	public static function login($username,$pass){
+	public static function login(){
 		$Core = parent::getCore();
-		$Core->user->Login($_POST['user'], $pass);
+		$Core->user->Login($_POST['user'], $_POST['pass']);
+		if($Core->user->success===true){
+			$Core->setMessage('Authentication Successful!','info');
+			$Core->json_obj->callback = 'reload';
+		}else{
+			$Core->json_obj->callback = 'reset';
+			$Core->setMessage('Username or Password is incorrect','error');
+		}
+		return;
 	}
 	
 	public static function logout(){
@@ -356,6 +333,8 @@ class UserController extends BaseController{
 		}else{
 			$Core->SetMessage('You are still logged in! Please try again.', 'error');
 		}
+		parent::Redirect(HOME);
+		return;
 	}
 	
 	public static function newUser($username, $pw, $cp, $e, $ce){
@@ -375,6 +354,16 @@ class UserController extends BaseController{
 			$Core->SetMessage('Error Creating User. Please try again later.', 'error');
 			return false;
 		}
+	}
+	
+	public static function profiles(){
+		if ($Core->user->uid == 0){ //User is not logged in
+			$Core->smarty->assign('noSess', true);
+		}
+		if($Core->authUser('view user profiles') && is_numeric($Core->args[0])){
+			return self::showprofile($Core->args[0]);
+		}
+		return;
 	}
 	
 	public static function regForm($form_action='user/register',$redirect=null){
@@ -412,6 +401,24 @@ class UserController extends BaseController{
 		}
 		//send the form to smarty
 		return $form->toArray(); 
+	}
+	
+	public static function register(){
+		$Core = BaseController::getCore();
+		if(isset($_POST['submit'])){
+			$Core->json_obj->callback = 'nanobyte.closeParentTab';
+			$Core->json_obj->args = 'input[name=submit][value=Submit]';
+		}
+		$Core->smarty->assign('form',self::RegForm($Core));
+		$content = $Core->smarty->fetch('form.tpl');
+	}
+	
+	public static function reset_pw(){
+		$Core = parent::getCore();
+		$Core->smarty->assign('form',self::ResetPassword($Core->user));
+		$Core->json_obj->callback = 'Dialog';
+		$Core->json_obj->title = 'Reset Password';
+		return $smarty->fetch('form.tpl');
 	}
 	
 	public static function resetPassword(){
