@@ -58,12 +58,14 @@ a img{
 	display:inline-block;
 	width:5em;
 }
-#loginform form{
+
+.ui-dialog #loginform form{
 	float:left;
 	left:25%;
 	position:relative;
 	top:35%;
 }
+
 #mcont{
 	position: absolute;
 	left: 20%;
@@ -490,3 +492,15 @@ a{
 	border: 1px solid black;
 	padding: 5px;
 }
+#user-content{
+	text-align:center;
+}
+#user-content .label{
+	width: 10em;
+	font-weight: bold;
+}
+#user-content form{
+	top: 100px;
+	position: relative;
+}
+

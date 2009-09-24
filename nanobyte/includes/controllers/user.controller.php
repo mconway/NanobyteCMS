@@ -152,9 +152,9 @@ class UserController extends BaseController{
 	public static function display(){
 		$Core = parent::getCore();
 		$content = "";
-		if(isset($Core->args[0])){
+		if(isset($Core->args[0]) && !empty($Core->args[0])){
 			if(method_exists('UserController', $Core->args[0])){
-				call_user_func(array('UserController',$Core->args[0]));
+				$content = call_user_func(array('UserController',$Core->args[0]));
 			}
 		}else{
 			if ($Core->user->uid == 0){ //User is not logged in
@@ -162,13 +162,15 @@ class UserController extends BaseController{
 			}else{
 				if($Core->authUser('view user profiles')){
 					$content =  self::showProfile($Core->user->uid);
+				}else{
+					$Core->setMessage("You do not have permission to view this profile!","error");
 				}
-				
 			}
 		}
 		if(!$Core->ajax){
 			parent::DisplayMessages(); // Get any messages
 			parent::GetHTMLIncludes(); // Get CSS and Script Files
+			$Core->smarty->assign('content',$content);
 			$Core->smarty->display('user.tpl'); // Display the Page
 		}else{
 			$Core->json_obj->content = $content;
@@ -188,7 +190,7 @@ class UserController extends BaseController{
 	
 	public static function edit(){
 		$Core = BaseController::getCore();
-		if ($Core->authUser($user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
+		if ($Core->authUser($Core->user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
 			self::editForm($Core->args[1]);
 			$content = $Core->smarty->fetch('form.tpl');
 		}else{
@@ -357,11 +359,12 @@ class UserController extends BaseController{
 	}
 	
 	public static function profiles(){
+		$Core = BaseController::getCore();
 		if ($Core->user->uid == 0){ //User is not logged in
 			$Core->smarty->assign('noSess', true);
 		}
-		if($Core->authUser('view user profiles') && is_numeric($Core->args[0])){
-			return self::showprofile($Core->args[0]);
+		if($Core->authUser('view user profiles') && is_numeric($Core->args[1])){
+			return self::showProfile($Core->args[1]);
 		}
 		return;
 	}
@@ -418,7 +421,7 @@ class UserController extends BaseController{
 		$Core->smarty->assign('form',self::ResetPassword($Core->user));
 		$Core->json_obj->callback = 'Dialog';
 		$Core->json_obj->title = 'Reset Password';
-		return $smarty->fetch('form.tpl');
+		return $Core->smarty->fetch('form.tpl');
 	}
 	
 	public static function resetPassword(){

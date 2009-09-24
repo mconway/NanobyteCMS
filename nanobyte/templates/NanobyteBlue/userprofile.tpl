@@ -7,12 +7,13 @@
 	<div class="fields"><img src="./templates/NanobyteBlue/images/{$online}.png"/> {$online|capitalize}</div>
 	<br />
 	{if $twitter!='' || $facebook!=''}
+	<b>My Social Networks:</b>
 	<div class="fields">
 		{if $facebook !=''}
-		<a href="{$facebook}"><img alt="Facebook" title="Facebook" src="./templates/NanobyteBlue/images/facebook_32.png"/></a>
+		<a href="{$facebook}" target="_blank"><img alt="Facebook" title="Facebook" src="./templates/NanobyteBlue/images/facebook_32.png"/></a>
 		{/if}
 		{if $twitter!=''}
-		<a href="{$twitter}"><img alt="Twitter" title="Twitter" src="./templates/NanobyteBlue/images/twitter_32.png"/></a>
+		<a href="{$twitter}" target="_blank"><img alt="Twitter" title="Twitter" src="./templates/NanobyteBlue/images/twitter_32.png"/></a>
 		{/if}
 	</div>
 	{/if}

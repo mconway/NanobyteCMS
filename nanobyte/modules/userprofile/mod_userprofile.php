@@ -53,36 +53,31 @@
 			$Core = BaseController::getCore();
 			$tabs = array();
 			$content = '';
-			if(is_numeric($Core->args[0])){
-				array_push($tabs,$Core->l('About Me','user/'.$Core->args[0].'/about/ajax'));
-				$Core->smarty->assign($this->showProfile());
-				if($Core->args[0] == $Core->user->uid || $Core->authUser('edit user profiles')){
-					array_push($tabs,$Core->l('Edit Profile','user/'.$Core->args[0].'/edit/ajax'));
+			array_push($tabs,$Core->l('About Me','user/profiles/'.$this->uid.'/about/ajax'));
+			$Core->smarty->assign($this->showProfile());
+			if($this->uid == $Core->user->uid || $Core->authUser('edit user profiles')){
+				array_push($tabs,$Core->l('Edit Profile','user/profiles/'.$this->uid.'/edit/ajax'));
+			}
+			if(isset($Core->args[2])){
+				switch($Core->args[2]){
+					case 'about':
+						$vars = $this->showProfile();
+						$content = "<h3>About Me:</h3><br />".$vars['about'];
+						break;							
+					case 'edit':
+						$form_vals = $this->edit();
+						if(isset($Core->args[2]) && $Core->args[2] == 'image'){
+							$Core->json_obj->args = BaseController::handleImage($_FILES[key($_FILES)],'80');
+							$Core->json_obj->callback = 'changeAvatar';
+							$this->avatar = $Core->json_obj->args['thumb'];
+							$this->commit();
+							break;
+						}
+						if(!isset($_POST['submit'])){
+							$Core->smarty->assign('form',$form_vals);
+							$content = $Core->smarty->fetch('form.tpl');
+						}
 				}
-				if(isset($Core->args[1])){
-					switch($Core->args[1]){
-						case 'about':
-							$vars = $this->showProfile();
-							$content = "<h3>About Me:</h3><br />".$vars['about'];
-							break;							
-						case 'edit':
-							$form_vals = $this->edit();
-							if(isset($Core->args[2]) && $Core->args[2] == 'image'){
-								$Core->json_obj->args = BaseController::handleImage($_FILES[key($_FILES)],'80');
-								$Core->json_obj->callback = 'changeAvatar';
-								$this->avatar = $Core->json_obj->args['thumb'];
-								$this->commit();
-								break;
-							}
-							if(!isset($_POST['submit'])){
-								$Core->smarty->assign('form',$form_vals);
-								$content = $Core->smarty->fetch('form.tpl');
-							}
-					}
-				}
-
-			}else{
-				$Core->setMessage('You have specified an invalid user!', 'error');
 			}
 			$Core->smarty->assign('tabs',$tabs);
 			return $content;
