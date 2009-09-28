@@ -30,11 +30,17 @@
 		$this->smarty = new Smarty();
 		$this->smarty->template_dir = THEME_PATH;
 		$this->smarty->force_compile = true;
-		//Create the User Object
 		
-		//Other
-		$this->ajax = false;
-		$this->args = "";
+		$this->parseArgs();
+		
+		//Determine if we are using AJAX, then remove it from the array and resort it
+		$this->ajax = in_array('ajax',$this->args) ? true : false;
+		if($this->ajax==true){
+			unset($this->args[array_search('ajax',$this->args)]);
+			$this->args = array_values($this->args);
+		}
+		
+		
 	}
 	
 	/**
@@ -216,6 +222,22 @@
 		$title = isset($options['title']) ? $options['title'] : '';
 		$link = "<a href='{$url}' class='{$class}' id='{$id}' title='{$title}'>{$text}</a>";
 		return $link;
+	}
+	
+	public function parseArgs(){
+		// If the page is 'home' or blank, set it to the HOME defined constant
+		if (!array_key_exists('page',$_GET) || strpos($_GET['page'], 'home') !== false){
+			$_GET['page'] = HOME;
+		} 
+		//Creates an array of arguments to pass to specific pages
+		$this->args = explode('/', $_GET['page']); 
+		//If any actions have been set using POST, add these to the args array
+		if(array_key_exists('actions',$_POST)){ 
+			$action = explode('/',$_POST['actions']);
+			foreach ($action as $a){
+				$this->args[] = $a;
+			}
+		}
 	}
 	
 	public function saveSettings($value,$setting){

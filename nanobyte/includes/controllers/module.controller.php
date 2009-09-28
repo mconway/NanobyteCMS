@@ -84,20 +84,21 @@ EOF;
 		$Core = parent::getCore();
 		require_once($module->modpath."Mod_".$module->name.'.php');
 		$mod_class = 'Mod_'.$module->name;
-		$m = new $mod_class($Core);
+		$m = new $mod_class();
 		$m->install();
-
+		
 		if(isset($m->setup['menus'])){
 			if(!isset($m->setup['menus']['menu'])){
 				foreach($m->setup['menus'] as $menu){
 					$menu_obj = new Menu($menu['menu']);
 					$menu_obj->data = array($menu);
-					$menu_obj->commit($menu_obj->menu[0]['mid']);
+					$menu_obj->commit($menu_obj->menu[0]->mid);
 				}
 			}else{
+				
 				$menu_obj = new Menu($m->setup['menus']['menu']);
 				$menu_obj->data = array($m->setup['menus']);
-				$menu_obj->commit($menu_obj->menu[0]['mid']);
+				$menu_obj->commit($menu_obj->menu[0]->mid);
 			}
 		}
 		
@@ -161,9 +162,10 @@ EOF;
 	}
 	
 	public static function uninstallModule(&$module){
+		$Core = parent::getCore();
 		$module->disableBlocks();
 		$mod_class = 'Mod_'.$module->name;
-		$m = new $mod_class($Core);
+		$m = new $mod_class();
 		$m->uninstall();
 	}
 	

@@ -19,9 +19,8 @@ class Menu{
 		}
 	}
 	
-	public function commit($insert=null){
+	public function commit($menu,$insert=false){
 		$Core = BaseController::getCore();
-		
 		if($insert){
 			$query = $this->dbh->prepare("insert into ".DB_PREFIX."_menu_links (menu, linkpath, linktext, viewableby, class, styleid) values (:menu,:path,:text,:view,:class,:sid)");
 		}else{
@@ -43,7 +42,7 @@ class Menu{
 				':class'=>$item['class'],
 				':sid'=>$item['styleid']
 			);
-			isset($id) ? $array[':id']=$key : $array[':menu']=$insert;
+			isset($id) ? $array[':id']=$key : $array[':menu']=$menu;
 			try{
 				$query->execute($array);
 			}catch(PDOException $e){

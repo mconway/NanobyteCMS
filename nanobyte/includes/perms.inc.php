@@ -104,7 +104,7 @@ class Perms extends Core{
 		
 		$update_query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_groups SET permissions=CONCAT_WS(',',permissions,:p) WHERE name='admin'");
 		try{
-			$update_query->execute(array(':p'=>implode(",",strtolower($permissions))));
+			$update_query->execute(array(':p'=>implode(",",$permissions)));
 		}catch(PDOException $e){
 			
 		}

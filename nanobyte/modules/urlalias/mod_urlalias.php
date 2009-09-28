@@ -6,41 +6,62 @@ class Mod_UrlAlias{
 	public function __construct($id=null){
 		$this->dbh = DBCreator::GetDbObject();
 		$this->id = $id;
+		if(isset($id)){
+			$query = $this->dbh->prepare("SELECT `alias`,`path` FROM ".DB_PREFIX."_url_alias WHERE id=:id");
+			$query->execute(array(':id'=>$this->id));
+			list($this->alias,$this->path) = $query->fetch();
+		}
+		$this->setup = array(
+			'menus'=>array(
+				'menu'=>'admin',
+				'linkpath'=>'admin/urlalias', //path
+				'linktext'=>'URL Alias', //text
+				'viewableby'=>array('admin'), //set default permissions for the menu item
+				'styleid'=>'a-alias', //html id
+				'class'=>'' //html class
+			),
+			'permissions'=>array('View Aliases','Add Alias')
+		);
 	}
 	
 	public function checkAlias($alias){
-		$dbh = DBCreator::GetDBObject();
-		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
+		$query = $this->dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
 		$query->execute(array(0=>$alias));
 		$result = $query->fetch();
 		if ($query->rowCount() == 1){
 			return $result[0];
 		}else{
-			$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias` LIKE ? LIMIT 1");
+			$query = $this->dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias` LIKE ? LIMIT 1");
 			$query->execute(array(0=>$alias."%"));
 			return false;
 		}
 	}
 	
 	public function commit(){
+		$params = array(':alias'=>$this->alias,':path'=>$this->path);
 		if(!isset($this->id)){
 			$query = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_url_alias (`alias`,`path`) VALUES(:alias,:path)");
 		}else{
-			$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_url_alias SET `alias`=:alias, `path`=:path");	
+			$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_url_alias SET `alias`=:alias, `path`=:path WHERE id=:id");
+			$params[':id'] = $this->id;
 		}
-		$query->execute(array(':alias'=>$this->alias,':path'=>$this->path));
+		$query->execute($params);
 	}
 	
 	public function delete(){
 		$query = $this->dbh->prepare("DELETE FROM ".DB_PREFIX."_url_alias WHERE id=:id");
 		$query->execute(array(':id'=>$this->id));
+		if($query->rowCount()==1){
+			return true;
+		}
+		return false;
 	}
 	
 	public static function Install(){
 		//register Menu Item
-		$menu = new Menu('admin');
-		$menu->data = array(array('linkpath'=>'admin/urlalias','linktext'=>'Url Alias','styleid'=>'a-alias','viewableby'=>'admin'));
-		$menu->Commit(2);
+//		$menu = new Menu('admin');
+//		$menu->data = array(array('linkpath'=>'admin/urlalias','linktext'=>'Url Alias','styleid'=>'a-alias','viewableby'=>'admin'));
+//		$menu->Commit(2);
 	}
 	
 	public function Read($start, $limit){
@@ -69,28 +90,10 @@ class Mod_UrlAlias{
 
 class UrlAliasController extends BaseController{
 	
-	public static function addAlias(){
-		$form = new HTML_QuickForm('newuser','post','user/register/');
-		//create form elements
-		$form->addElement('header','','Create New Alias');
-		$form->addElement('text', 'alias', 'Alias', array('size'=>25, 'maxlength'=>15));
-		$form->addElement('text', 'path', 'Actual Path', array('size'=>25, 'maxlength'=>50));
-		$form->addElement('submit', 'submit', 'Submit');
-		//apply form prefilters
-		$form->applyFilter('__ALL__', 'trim');
-		$form->applyFilter('__ALL__', 'strip_tags');
-		//add form rules
-		$form->addRule('alias', 'A valid alias is required.', 'required');
-		$form->addRule('path', 'A valid path is required.', 'required');
-		//If the form has already been submitted - validate the data
-		if($_POST['submit']){
-			if($form->validate()){
-				
-			}
-		}
-
-		//send the form to smarty
-		return $form->toArray(); 
+	public static function add(){
+		$Core = parent::getCore();
+		$Core->smarty->assign('form',self::form());
+		return $Core->smarty->fetch('form.tpl');
 	}
 	
 	public static function admin(){
@@ -107,29 +110,46 @@ class UrlAliasController extends BaseController{
 	}
 
 	public static function delete(){
-		
+		$Core = parent::getCore();
+		foreach($_POST['urlalias'] as $id){
+			$alias = new Mod_UrlAlias($id);
+			if($alias->delete()===true){
+				$Core->json_obj->args .= $id.'|';
+			}
+		}
+		$Core->json_obj->callback = 'nanobyte.deleteRows';
 	}
 
 	public static function edit(){
 		$Core = parent::getCore();
-		$Core->smarty->assign('form',self::form('edit'));
+		$Core->smarty->assign('form',self::form($Core->args[2]));
 		return $Core->smarty->fetch('form.tpl');
 	}
 
-	public static function form($func){
+	public static function form($id=null){
 		$Core = parent::getCore();
+		$func = isset($id) ? 'edit' : 'add';
 		$form = new HTML_QuickForm('urlalias','post','admin/urlalias/'.$func);
-		if($func == 'edit'){
+		if(isset($id)){
+			$alias = new Mod_UrlAlias($id);
 			$form->setDefaults(array(
-				'alias'=>'',
-				'realpath'=>''
+				'alias'=>$alias->alias,
+				'realpath'=>$alias->path,
+				'alias_id'=>$alias->id
 			));
 		}
 		$header = $func == 'add' ? 'Create Alias' : 'Edit Alias';
 		$form->addElement('header','',$header);
 		$form->addElement('text', 'alias', 'Alias', array('size'=>62, 'maxlength'=>80));
 		$form->addElement('text', 'realpath', 'Real Path', array('size'=>62, 'maxlength'=>80));
+		$form->addElement('hidden', 'alias_id', '', array('size'=>62, 'maxlength'=>80));
 		$form->addElement('submit','submit','Submit');
+		//apply form prefilters
+		$form->applyFilter('__ALL__', 'trim');
+		$form->applyFilter('__ALL__', 'strip_tags');
+		//add form rules
+		$form->addRule('alias', 'A valid alias is required.', 'required');
+		$form->addRule('realpath', 'A valid path is required.', 'required');
 		if(isset($_POST['submit']) && $form->validate()){
 			$form->process(array('UrlAliasController','Save'));
 			return;
@@ -168,13 +188,13 @@ class UrlAliasController extends BaseController{
 			'class' => 'action-link-tab',
 			'title' => 'Add New Alias'
 		);
-		$links = array('header'=>'Actions: ','add'=>Core::l('add','admin/urlalias/add',$options));
+		$links = array('add'=>Core::l('add','admin/urlalias/add',$options));
 		// bind the params to smarty
 		$smartyArray = array(
 			'pager'=>BaseController::Paginate($alias->all['limit'], $alias->all['nbItems'], 'admin/urlalias/list/', $page),
 			'sublinks'=>$links,
 			'cb'=>true,
-			'self'=>'admin/alias/select',
+			'formAction'=>'admin/urlalias',
 			'actions'=>$actions,
 			'extra'=>$extra,
 			'list'=>$list
@@ -185,8 +205,12 @@ class UrlAliasController extends BaseController{
 
 	public static function save($params){
 		$Core = parent::getCore();
+		if(isset($params['alias_id']) && !empty($params['alias_id'])){
+			$alias = new Mod_UrlAlias($params['alias_id']);
+		}else{
+			$alias = new Mod_UrlAlias();
+		}
 		
-		$alias = new Mod_UrlAlias();
 		$alias->alias = $params['alias'];
 		$alias->path = $params['realpath'];
 		$alias->commit();
