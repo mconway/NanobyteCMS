@@ -1,7 +1,13 @@
 <?php
 	class GroupController extends BaseController{
-	
+		
 		public static function add(){
+			$Core = parent::getCore();
+			$Core->smarty->assign('form',self::Add());
+			return $Core->smarty->fetch('form.tpl');
+		}
+	
+		public static function addForm(){
 			//create the form object 
 			$form = new HTML_QuickForm('newgroup','post','admin/group/add');
 			//create form elements
@@ -31,40 +37,18 @@
 			$Core = parent::getCore();
 			$content = '';
 			$perms = new Perms();
-			switch($Core->args[1]){
-				case 'add':
-					$Core->smarty->assign('form',self::Add());
-					$content = $Core->smarty->fetch('form.tpl');
-					break;
-				case 'edit':
-					if(isset($_POST['submit'])){
-				 		self::Write($perms);
-					}else{					
-						$Core->smarty->assign(self::Edit($perms));
-						$content = $Core->smarty->fetch('list.tpl');
-						$Core->json_obj->callback = 'Dialog';
-					}
-					break;
-				case 'list': 
+			if(isset($Core->args[1])){
+				if($Core->args[1] == 'list'){
 					$perms->getAllGroups();
 					$Core->smarty->assign(self::listGroups($perms));
 					$content = $Core->smarty->fetch('list.tpl');
-					break;
-				case 'select':
-					switch($Core->args[2]){
-						case 'delete':
-							$Core->json_obj->callback = 'nanobyte.deleteRows';
-							$Core->json_obj->args = implode('|',self::delete());
-							break;
-						default: 
-							break;
-					}
-					break;
-				default: //Need to set active tab
-					$tabs = array($Core->l('Users','admin/user/list'),$Core->l('Groups','admin/group/list'));
-					$Core->smarty->assign('tabs',$tabs);
-					if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
-					break;
+				}elseif(method_exists('GroupController',$Core->args[1])){
+					$content = call_user_func(array('GroupController',$Core->args[1]));
+				}
+			}else{
+				$tabs = array($Core->l('Users','admin/user/list'),$Core->l('Groups','admin/group/list'));
+				$Core->smarty->assign('tabs',$tabs);
+				if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
 			}
 			$Core->json_obj->content = $content;
 		}
@@ -91,7 +75,21 @@
 			exit;
 		}	
 		
-		public static function edit(&$perms){
+		public static function edit(){
+			$Core = parent::getCore();
+			$perms = new Perms();
+			if(isset($_POST['submit'])){
+		 		self::Write($perms);
+				$Core->json_obj->callback = 'nanobyte.closeParentTab';
+				$Core->json_obj->args = 'input[name=submit][value=Submit]';
+			}else{					
+				$Core->smarty->assign(self::editForm($perms));
+				$Core->json_obj->callback = 'Dialog';
+				return $Core->smarty->fetch('list.tpl');
+			}
+		}
+		
+		public static function editForm(&$perms){
 			$perms_list = $perms->GetPermissionsList();
 			$perms->GetAllGroups();
 			$list = array();
@@ -153,6 +151,18 @@
 				'extra'=>$extra,
 				'list'=>$list
 			);
+		}
+		
+		public static function select(){
+			$Core = parent::getCore();
+			switch($Core->args[2]){
+				case 'delete':
+					$Core->json_obj->callback = 'nanobyte.deleteRows';
+					$Core->json_obj->args = implode('|',self::delete());
+					break;
+				default: 
+					break;
+			}
 		}
 		
 		public static function write($perms){

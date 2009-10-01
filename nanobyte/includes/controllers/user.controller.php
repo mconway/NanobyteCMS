@@ -2,6 +2,13 @@
 
 class UserController extends BaseController{
 	
+	public static function add(){
+		$Core = BaseController::getCore();
+		$Core->smarty->assign('form',self::RegForm());
+		$Core->json_obj->title = "Add new user";
+		return $Core->smarty->fetch('form.tpl');
+	}
+	
 	public static function addPerm($perm){
 		foreach($_POST['user'] as $u){
 			$user = new User($u);
@@ -14,54 +21,11 @@ class UserController extends BaseController{
 		
 		$content = '';
 		if(isset($Core->args[1])){
-			switch($Core->args[1]){
-				case 'edit':
-					$Core->smarty->assign('form',self::Edit($Core->args[2]));
-					$content = $Core->smarty->fetch('form.tpl');
-					if(isset($_POST['submit'])){
-						$Core->json_obj->callback = 'nanobyte.closeParentTab';
-						$Core->json_obj->args = 'input[name=submit][value=Save Changes]';
-					}
-					$Core->json_obj->title = "Edit user";
-					break;
-				case 'add':
-					$Core->smarty->assign('form',self::RegForm());
-					$content = $Core->smarty->fetch('form.tpl');
-					$Core->json_obj->title = "Add new user";
-					break;
-				case 'select':
-					switch($Core->args[2]){
-						case 'delete':
-							self::DeleteUserRequest($Core);
-							break;
-						default: 
-							if(isset($_POST['user'])){
-								self::AddPerm($Core->args[2]);
-								$Core->setMessage('Group "'.ucfirst($Core->args[2]).'" has been added to the selected users!','info');
-								$Core->json_obj->callback = 'nanobyte.changeGroup';
-								$Core->json_obj->args = implode('|',$_POST['user']);
-							}else{
-								$Core->setMessage('You must select a user!','error');
-							}
-							break;
-					}
-					break;
-				case 'list':
-					$Core->smarty->assign(self::ListUsers($Core));
-					$content = $Core->smarty->fetch('list.tpl'); 
-					break;
-				case 'details':
-					$content = self::GetDetails($Core->args[2]);
-					break;
-				case 'email':
-					$email = new Email();
-					$Core->smarty->assign('form',parent::emailForm('admin/user/email',$email->getEmailData('register')));
-					$content = $Core->smarty->fetch('form.tpl');
-				default: 
-					$tabs = array($Core->l('Users','admin/user/list'),$Core->l('Groups','admin/group/list'));
-					$Core->smarty->assign('tabs',$tabs);
-					if($Core->ajax){$Core->json_obj->tabs = $Core->smarty->fetch('tabs.tpl');}
-					break;
+			if($Core->args[1] == 'list'){
+				$Core->smarty->assign(self::ListUsers($Core));
+				$content = $Core->smarty->fetch('list.tpl'); 
+			}elseif(method_exists('UserController',$Core->args[1])){
+				$content = call_user_func(array('UserController',$Core->args[1]));
 			}
 		}else{
 			$tabs = array(Core::l('Users','admin/user/list'),Core::l('Groups','admin/group/list'),Core::l('Email','admin/user/email'));
@@ -188,18 +152,29 @@ class UserController extends BaseController{
     	}
     } 
 	
+	/* Not sure why I had this.
+//		$Core = BaseController::getCore();
+//		if ($Core->authUser($Core->user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
+//			self::editForm($Core->args[1]);
+//			return $Core->smarty->fetch('form.tpl');
+//		}else{
+//			$Core->setMessage('You do not have access to this page!','error');
+//		}
+//		parent::displayMessages();
+//		parent::getHTMLIncludes();
+//		$Core->smarty->display('index.tpl');
+//		return;
+	 */
+	
 	public static function edit(){
-		$Core = BaseController::getCore();
-		if ($Core->authUser($Core->user, 'edit user accounts') || $Core->user->uid === $Core->args[1]){
-			self::editForm($Core->args[1]);
-			$content = $Core->smarty->fetch('form.tpl');
-		}else{
-			$Core->setMessage('You do not have access to this page!','error');
+		$Core = parent::getCore();
+		$Core->smarty->assign('form',self::editForm($Core->args[2]));
+		if(isset($_POST['submit'])){
+			$Core->json_obj->callback = 'nanobyte.closeParentTab';
+			$Core->json_obj->args = 'input[name=submit][value=Save Changes]';
 		}
-		parent::displayMessages();
-		parent::getHTMLIncludes();
-		$Core->smarty->display('index.tpl');
-		return;
+		$Core->json_obj->title = "Edit user";
+		return $Core->smarty->fetch('form.tpl');
 	}
 	
 	public static function editForm($id){
@@ -255,6 +230,17 @@ class UserController extends BaseController{
 		return $form->toArray();
 	}
 	
+	public static function email(){
+		$Core = parent::getCore();
+		$email = new Email();
+		$Core->smarty->assign('form',parent::emailForm('admin/user/email',$email->getEmailData('register')));
+		if(isset($_POST['submit'])){
+			$Core->setMessage("Your settings were saved successfully!","info");
+			return;
+		}
+		return $Core->smarty->fetch('form.tpl');
+	}
+	
 	public static function getDetails($id){
 		$user = new User($id);
 		return $user->uid .'|'. $user->name .'|'.$user->email.'|'.$user->joined.'|'.$user->group;
@@ -281,7 +267,7 @@ class UserController extends BaseController{
 			$actions .= Core::l('info','admin/user/edit/'.$u['uid'],$options);
 			array_push($list, array(
 				'id'=>$u['uid'], 
-				'name'=>Core::l($u['username'], 'user/'.$u['uid']), 
+				'name'=>Core::l($u['username'], 'user/profiles/'.$u['uid']), 
 				'email'=>$u['email'], 
 				'group'=>$perms->names[$u['group_id']],
 				'actions'=>Core::l('info','admin/user/details/'.$u['uid'],$options).' | '.Core::l('edit','admin/user/edit/'.$u['uid'],$options)
@@ -441,6 +427,25 @@ class UserController extends BaseController{
 			}
 		}
 		return $form->toArray();
+	}
+
+	public static function select(){
+		$Core = parent::getCore();
+		switch($Core->args[2]){
+			case 'delete':
+				self::DeleteUserRequest($Core);
+				break;
+			default: 
+				if(isset($_POST['user'])){
+					self::AddPerm($Core->args[2]);
+					$Core->setMessage('Group "'.ucfirst($Core->args[2]).'" has been added to the selected users!','info');
+					$Core->json_obj->callback = 'nanobyte.changeGroup';
+					$Core->json_obj->args = implode('|',$_POST['user']);
+				}else{
+					$Core->setMessage('You must select a user!','error');
+				}
+				break;
+		}
 	}
 
 	public static function showProfile($id){

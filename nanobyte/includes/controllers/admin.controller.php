@@ -8,8 +8,11 @@ class AdminController extends BaseController{
 	
 	public static function admin(){
 		$Core = parent::getCore();
- 		self::ShowConfig($Core);
-		$Core->json_obj->content =  $Core->smarty->fetch('form.tpl');
+ 		if(is_array(self::ShowConfig())){
+ 			$Core->json_obj->content =  $Core->smarty->fetch('form.tpl');
+ 		}else{
+ 			$Core->SetMessage('Settings have been saved successfully.','info');
+ 		}
 	}
 	
 	public static function display(){ //passed by call_user_func
@@ -28,7 +31,7 @@ class AdminController extends BaseController{
 					$class = $alias."Controller";
 //					Core::SetMessage($alias." ".$class);
 				}
-				call_user_func(array($class, 'Admin'),array(&$Core));
+				call_user_func(array($class, 'Admin'));
 			}else{
 				if (isset($_POST['save'])){
 					PostController::SavePost();
@@ -70,7 +73,7 @@ class AdminController extends BaseController{
 		//create the tabs menu
 		$tablinks = array('Global Settings','DB Settings','File Settings', 'Email Settings', 'Theme Settings', 'User Settings', 'License');
 		//create the form object 
-		$form = new HTML_QuickForm('newuser','post',$form_action);
+		$form = new HTML_QuickForm('settings','post',$form_action);
 		
 		//get the site license
 		$license = file_get_contents('license');
@@ -163,15 +166,15 @@ class AdminController extends BaseController{
 		//If the form has already been submitted - validate the data
 		if(isset($_POST['submit'])&&$form->validate()){
 			$form->process(array('AdminController','EditConfig'));
-			$Core->SetMessage('Settings have been saved successfully.','info');
 			return true;
 //			parent::redirect('admin');
 //			exit;
 		}
 		//send the form to smarty
-		$Core->smarty->assign('form', $form->toArray());
-		$Core->smarty->assign('tabbed',$tablinks);
-		
+		return array(
+			'form'=>$form->toArray(),
+			'tabbed'=>$tablinks
+		);
 	}
 
 }

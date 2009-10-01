@@ -181,19 +181,23 @@ class MenuController extends BaseController{
 		$options['image']='16';
 		$options['class'] = 'action-link';
 		foreach($menuItems->menu as $item){
-			$items[$i] = array(
-				'id'=>$item->id,
-				'path'=>'<input type="text" size="15" value="'.$item->linkpath.'" name="tb_'.$item->id.'_linkpath"/>',
-				'title'=>'<input type="text" size="15" value="'.$item->linktext.'" name="tb_'.$item->id.'_linktext"/>',
-				'class'=>'<input type="text" size="10" value="'.$item->class.'" name="tb_'.$item->id.'_class"/>',
-				'element id'=>'<input type="text" size="10" value="'.$item->styleid.'" name="tb_'.$item->id.'_styleid"/>',
-			);
-			foreach($perms->names as $pname){
-				$checked = strpos($item->viewableby,$pname) !== false ? 'checked="checked"' : '';
-				$items[$i][$pname] = '<input type="checkbox" name="cb_'.$item->id.'_'.$pname.'[]" value="'.$pname.'" '.$checked.'/>';
+			if(isset($item->id)){
+				$items[$i] = array(
+					'id'=>$item->id,
+					'path'=>'<input type="text" size="15" value="'.$item->linkpath.'" name="tb_'.$item->id.'_linkpath"/>',
+					'title'=>'<input type="text" size="15" value="'.$item->linktext.'" name="tb_'.$item->id.'_linktext"/>',
+					'class'=>'<input type="text" size="10" value="'.$item->class.'" name="tb_'.$item->id.'_class"/>',
+					'element id'=>'<input type="text" size="10" value="'.$item->styleid.'" name="tb_'.$item->id.'_styleid"/>'
+				);
+				foreach($perms->names as $pname){
+					$checked = strpos($item->viewableby,$pname) !== false ? 'checked="checked"' : '';
+					$items[$i][$pname] = '<input type="checkbox" name="cb_'.$item->id.'_'.$pname.'[]" value="'.$pname.'" '.$checked.'/>';
+				}
+				$items[$i]['actions'] = Core::l('delete','admin/menu/delete/'.$mid.'/'.$item->id,$options);
+				$i++;
+			}else{
+				$items[0] = array(''=>"There are no links added to this menu.");
 			}
-			$items[$i]['actions'] = Core::l('delete','admin/menu/delete/'.$mid.'/'.$item->id,$options);
-			$i++;
 		}		
 		$options['image'] = '24';
 		$options['class'] = 'action-link';

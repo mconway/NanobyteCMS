@@ -71,7 +71,9 @@ class User extends Core{
 			$this->password = $row->password;
 			$this->salt = substr($row->password, 3);	
 			$this->permissions = new Perms($row->group_id);
-			$this->group = $this->permissions->permissions[0]->name;
+			if(is_object($this->permissions)){
+				$this->group = $this->permissions->permissions[0]->name;
+			}
 		}
 	}
 	
