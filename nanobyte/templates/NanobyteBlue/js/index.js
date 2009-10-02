@@ -146,6 +146,7 @@ $(document).ready(function(){
 				
 			},
 			error: function(e,t,et){
+				console.log(me.parents('form:first').attr('action')+'/image/ajax');
 				console.log(e,t,et);
 			}
 		});

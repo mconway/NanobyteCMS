@@ -66,7 +66,7 @@
 						break;							
 					case 'edit':
 						$form_vals = $this->edit();
-						if(isset($Core->args[2]) && $Core->args[2] == 'image'){
+						if(isset($Core->args[3]) && $Core->args[3] == 'image'){
 							$Core->json_obj->args = BaseController::handleImage($_FILES[key($_FILES)],'80');
 							$Core->json_obj->callback = 'changeAvatar';
 							$this->avatar = $Core->json_obj->args['thumb'];
@@ -84,7 +84,7 @@
 		}
 	
 		public function edit(){
-			$form = new HTML_QuickForm('editprofile','post','user/'.$this->uid.'/edit');
+			$form = new HTML_QuickForm('editprofile','post','user/profiles/'.$this->uid.'/edit');
 			$form->setDefaults(array(
 				'avatar'=>$this->avatar,
 				'location'=>$this->location,
