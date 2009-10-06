@@ -1,14 +1,16 @@
 <?php
 	class Mod_Users{
 		
-		public static function Install(){
+		public function Install(){
 			//Module::NewPerm();
 			Module::RegBlock(array('name'=>'UsersOnline', 'module'=>'Users', 'options'=>''));
 		}
+		
 		public static function UsersOnline_Block(){
 			$block = new Block_UsersOnline;
 			return $block;
 		}
+		
 		public static function NewUsers(){
 	 		$dbh = DBCreator::GetDbObject();
 	 		$sql = $dbh->prepare('select uid, username, joined from '.DB_PREFIX.'_user order by `joined` desc limit 5');
@@ -18,12 +20,17 @@
 	 		}
 	 		return $users;
 	 	}
+		
 		public static function GetUsersOnline(){
 			$dbh = DBCreator::GetDbObject();
 			$query = $dbh->prepare("SELECT username FROM ".DB_PREFIX."_user WHERE online > :time");
 			$query->bindValue(':time',time()-300);
 			$query->execute();
 			return $query->fetchAll(PDO::FETCH_COLUMN,0);
+		}
+		
+		public function Uninstall(){
+			
 		}
 	}
 	class Block_UsersOnline extends Mod_Users{

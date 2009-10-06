@@ -1,7 +1,15 @@
 <?php
 
 class Mod_RSS{
-	public static function Display(){
+	public function display(){
+		
+	}
+	
+	public function install(){
+		
+	}
+	
+	public function uninstall(){
 		
 	}
 }

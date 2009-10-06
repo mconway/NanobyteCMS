@@ -92,13 +92,12 @@ EOF;
 				foreach($m->setup['menus'] as $menu){
 					$menu_obj = new Menu($menu['menu']);
 					$menu_obj->data = array($menu);
-					$menu_obj->commit($menu_obj->menu[0]->mid);
+					$menu_obj->commit($menu_obj->menu[0]->mid,true);
 				}
 			}else{
-				
 				$menu_obj = new Menu($m->setup['menus']['menu']);
 				$menu_obj->data = array($m->setup['menus']);
-				$menu_obj->commit($menu_obj->menu[0]->mid);
+				$menu_obj->commit($menu_obj->menu[0]->mid,true);
 			}
 		}
 		
@@ -166,6 +165,31 @@ EOF;
 		$module->disableBlocks();
 		$mod_class = 'Mod_'.$module->name;
 		$m = new $mod_class();
+		
+		if(isset($m->setup['menus'])){
+			if(!isset($m->setup['menus']['menu'])){
+				foreach($m->setup['menus'] as $menu){
+					$menu_obj = new Menu($menu['menu']);
+					foreach($menu_obj->menu as $tmp){
+						if ($tmp->linkpath==$menu['linkpath'] && $tmp->linktext==$menu['linktext']){
+							Admin::deleteObject('menu_links','id',$tmp->id);
+						}
+					}
+				}
+			}else{
+				$menu_obj = new Menu($m->setup['menus']['menu']);
+				foreach($menu_obj->menu as $tmp){
+					if ($tmp->linkpath==$m->setup['menus']['linkpath'] && $tmp->linktext==$m->setup['menus']['linktext']){
+						Admin::deleteObject('menu_links','id',$tmp->id);
+					}
+				}
+			}
+		}
+		
+		if(isset($m->setup['permissions'])){
+			Admin::deleteObject('perms','category',$module->name);
+		}
+		
 		$m->uninstall();
 	}
 	

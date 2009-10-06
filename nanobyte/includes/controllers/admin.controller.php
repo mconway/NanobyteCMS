@@ -8,7 +8,9 @@ class AdminController extends BaseController{
 	
 	public static function admin(){
 		$Core = parent::getCore();
- 		if(is_array(self::ShowConfig())){
+		$data = self::ShowConfig();
+ 		if(is_array($data)){
+ 			$Core->smarty->assign($data);
  			$Core->json_obj->content =  $Core->smarty->fetch('form.tpl');
  		}else{
  			$Core->SetMessage('Settings have been saved successfully.','info');
@@ -53,6 +55,8 @@ class AdminController extends BaseController{
 		}else{
 			$Core->setMessage('You do not have access to view this page!','error');
 			parent::Redirect('home',$Core->ajax);
+			$Core->json_obj->messages = parent::displayMessages();
+			print json_encode($Core->json_obj);
 		}
 	}
 	
@@ -166,6 +170,7 @@ class AdminController extends BaseController{
 		//If the form has already been submitted - validate the data
 		if(isset($_POST['submit'])&&$form->validate()){
 			$form->process(array('AdminController','EditConfig'));
+			$Core->setMessage("Submit Set!");
 			return true;
 //			parent::redirect('admin');
 //			exit;

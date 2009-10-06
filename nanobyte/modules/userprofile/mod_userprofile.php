@@ -2,22 +2,24 @@
     class Mod_UserProfile{
     	private $dbh;
 		
-		public function __construct($id){
+		public function __construct($id=null){
 			$this->dbh = DBCreator::GetDbObject();
-			$query = $this->dbh->prepare("select user.username, user.email, user.lastlogin, profile.avatar, profile.location, profile.about, profile.facebook, profile.twitter from ".DB_PREFIX."_user AS user LEFT JOIN ".DB_PREFIX."_user_profiles AS profile ON user.uid = profile.uid where profile.uid=:id"); 
-			$query->bindParam(':id', $id);
-			$query->execute();
-			$row = $query->fetch(PDO::FETCH_ASSOC);
-			$this->uid = $id;
-			$this->name = $row['username'];
-			$this->email = $row['email'];
-			$this->avatar = $row['avatar'];
-			$this->location = $row['location'];
-			$this->about = $row['about'];
-			$this->lastlogin = $row['lastlogin'];
-			$this->facebook = $row['facebook'];
-			$this->twitter = $row['twitter'];
-			$this->online = $this->checkOnline();
+			if(isset($id)){
+				$query = $this->dbh->prepare("select user.username, user.email, user.lastlogin, profile.avatar, profile.location, profile.about, profile.facebook, profile.twitter from ".DB_PREFIX."_user AS user LEFT JOIN ".DB_PREFIX."_user_profiles AS profile ON user.uid = profile.uid where profile.uid=:id"); 
+				$query->bindParam(':id', $id);
+				$query->execute();
+				$row = $query->fetch(PDO::FETCH_ASSOC);
+				$this->uid = $id;
+				$this->name = $row['username'];
+				$this->email = $row['email'];
+				$this->avatar = $row['avatar'];
+				$this->location = $row['location'];
+				$this->about = $row['about'];
+				$this->lastlogin = $row['lastlogin'];
+				$this->facebook = $row['facebook'];
+				$this->twitter = $row['twitter'];
+				$this->online = $this->checkOnline();
+			}
 		}
 		
 		public function checkOnline(){

@@ -245,24 +245,24 @@ class BaseController{
 		$filename = $image['name'];
 		$error = BaseController::VerifyFile($image);
 		if ($error == false){
-			if (Core::FileUpload($image) == true){
-//				Core::SetMessage('Your file upload was successful, view the file <a href="' . UPLOAD_PATH . $filename . '" title="Your File">here</a>','info');
+			if (self::$Core->FileUpload($image) == true){
+				if ($resize){
+					$images = self::ResizeImage($image, $resize);
+		//			return '<a class="postImage" href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
+					
+				}
+				else{
+					$images['orig'] = UPLOAD_PATH.$filename;
+		//			return '<img src="'.UPLOAD_PATH.$filename.'" />';
+				}
+				return $images;
 			}else{
-				Core::SetMessage('There was an error during the file upload.  Please try again.','error');
+				self::$Core->SetMessage('There was an error during the file upload.  Please try again.','error');
 			}
 		}else{
-			Core::SetMessage($error, 'error');
+//			self::$Core->SetMessage($error, 'status');
 		}
-		if ($resize){
-			$images = self::ResizeImage($image, $resize);
-//			return '<a class="postImage" href="'.$images['orig'].'"><img src="'.$images['thumb'].'"/></a>';
-			
-		}
-		else{
-			$images['orig'] = UPLOAD_PATH.$filename;
-//			return '<img src="'.UPLOAD_PATH.$filename.'" />';
-		}
-		return $images;
+		return;
 		
 	}
 	
@@ -318,14 +318,16 @@ class BaseController{
 			header("location: " . $Core->url($page), true, 303);
 		}elseif ($page && $Core->ajax){ 
 //			header("location: " . Core::Url($page).'/ajax', true, 303);
-			$Core->json_obj->callback = 'Redirect';
+			$Core->json_obj->callback = 'nanobyte.redirect';
 			$Core->json_obj->args = $Core->Url($page);
+			return;
 		}elseif(!isset($page) && !$ajax){
 			header("location: ".$_SERVER['HTTP_REFERER'], true, 303); 
 		}elseif(!isset($page) && $Core->ajax){
 //			header("location: ".$_SERVER['HTTP_REFERER'].'/ajax', true, 303); 
-			$Core->json_obj->callback = 'Redirect';
+			$Core->json_obj->callback = 'nanobyte.redirect';
 			$Core->json_obj->args = $_SERVER['HTTP_REFERER'];
+			return;
 		}
 		exit;
 	}
@@ -402,7 +404,7 @@ class BaseController{
 		}
 		// Now check the filesize, if it is too large then inform the user.
 		if(filesize($file['tmp_name']) > FILE_SIZE){
-			$error = 'The file you attempted to upload is too large.';
+			$error = 'The file you attempted to upload is too large';
 		}
 		// Check if we can upload to the specified path, if not, inform the user.
 		if(!is_writable(UPLOAD_PATH)){

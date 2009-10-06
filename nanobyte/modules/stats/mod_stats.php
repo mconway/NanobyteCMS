@@ -18,6 +18,18 @@ class Mod_Stats extends Module
 			$this->visitorReferrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
 			$this->visitorPage = $this->SelfURL();
 		}
+		
+		$this->setup = array(
+			'menus'=>array(
+				'menu'=>'admin',
+				'linkpath'=>'admin/stats', //path
+				'linktext'=>'Stats', //text
+				'viewableby'=>array('admin'), //set default permissions for the menu item
+				'styleid'=>'a-stats', //html id
+				'class'=>'' //html class
+			),
+			'permissions'=>array('View Statistics')
+		);
 	}
 	
 	public static function Admin(&$argsArray){
@@ -183,6 +195,14 @@ class Mod_Stats extends Module
 		$query->execute();
 		$result = $query->fetchAll(PDO::FETCH_COLUMN,0);
 		return $result;
+	}
+
+	public function install(){
+		
+	}
+	
+	public function uninstall(){
+		
 	}
 
 }

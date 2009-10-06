@@ -14,8 +14,8 @@
    private $DB;
    function __construct() {
       // Read the maxlifetime setting from PHP
-      $this->life_time = get_cfg_var("session.gc_maxlifetime");
-      $this->DB = DBCreator::GetDbObject('wb_test');
+      $this->life_time = SESS_TTL > 0 ? SESS_TTL : 10800;
+      $this->DB = DBCreator::GetDbObject();
       // Register this object as the session handler
       session_set_save_handler( 
         array( &$this, "open" ), 

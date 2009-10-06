@@ -9,7 +9,10 @@ ini_set('display_messages',E_ALL);
 require_once './includes/controllers/base.controller.php';
 require_once './includes/contrib/smarty/libs/Smarty.class.php';
 require_once './includes/contrib/geshi/geshi.php';
-require_once './includes/config.inc.php';
+if(!include_once './includes/config.inc.php'){
+	echo "Unable to find configuration file";
+	exit;
+}
 
 ###SERVE CSS AND JS###
 //Serve any JS and CSS files before we call anything we dont need to (faster)

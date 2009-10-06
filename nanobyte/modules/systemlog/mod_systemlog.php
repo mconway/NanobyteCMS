@@ -20,7 +20,8 @@ class Mod_SystemLog{
 	 * @return 
 	 * @param object $id[optional]
 	 */
-	public function __construct(&$Core){
+	public function __construct(){
+		$Core = BaseController::getCore();
 		$this->files = explode('|',$Core->getSettings('systemLogFiles'));
 		$this->setup = array(
 			'menus'=>array(
