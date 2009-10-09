@@ -3,7 +3,7 @@
 		
 		public static function add(){
 			$Core = parent::getCore();
-			$Core->smarty->assign('form',self::Add());
+			$Core->smarty->assign('form',self::AddForm());
 			return $Core->smarty->fetch('form.tpl');
 		}
 	

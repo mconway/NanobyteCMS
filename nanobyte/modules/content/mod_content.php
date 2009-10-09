@@ -218,8 +218,8 @@ class ContentController extends BaseController{
 	 * @return 
 	 * @param object $argsArray
 	 */
-	public static function admin(&$arg_array){
-		list($Core) = $arg_array;
+	public static function admin(){
+		$Core = parent::getCore();
 		
 		$contents = new Mod_Content();
 		$contents->GetTypes();
