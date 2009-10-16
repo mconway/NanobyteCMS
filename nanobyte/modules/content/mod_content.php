@@ -418,13 +418,13 @@ class ContentController extends BaseController{
 	 * @param object $content[optional]
 	 */
 	public static function form(&$content=null){
-		global $Core;
+		$Core = parent::getCore();
 		$func = $content ? 'edit/'.$content->pid : 'add';
 		$tablinks = array('Main','Image Functions','Publishing Options');
 		//Create the form object
-		$form = new HTML_QuickForm('edituser','post','admin/content/'.$func);
+		$form = new HTML_QuickForm('content','post','admin/content/'.$func);
 		//set form default values
-
+	
 		if(isset($content)){
 			$form->setdefaults(array(
 				'pid'=>$content->pid, 
@@ -434,14 +434,14 @@ class ContentController extends BaseController{
 				'imagelist'=>$content->images,
 				'type'=>isset($content->type) ? $content->type : $content->getDefaultType()
 			));
-//			$form->setdefaults($defaults);
 			$header = 'Edit Content';
 		}else{
 			$form->setdefaults(array(
-				'published'=>'1'
+				'published'=>true
 			));
 			$content = new Mod_Content();
 		}
+		
 		$content->GetTypes();
 		//create form elements
 		$form->addElement('header','','Create Content');

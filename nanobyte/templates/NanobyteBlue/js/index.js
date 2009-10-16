@@ -16,7 +16,7 @@ $(document).ready(function(){
 		modal: true,
 		closeOnEscape: false,
 		buttons: {
-			'Log In' : function(){nanobyte.submitForm($('#loginform form'));}
+			'Log In' : function(){nanobyte.submitForm($('#loginform form'),$(this));}
 		}
 	});
 	

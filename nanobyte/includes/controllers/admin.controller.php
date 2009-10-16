@@ -130,7 +130,7 @@ class AdminController extends BaseController{
 		$form->addElement('hidden', 'cms_installed', '', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
 //		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
-		
+
 		$form->addElement('header','','DB Settings');
 		$form->addElement('text', 'dbuser', 'DB Username', array('size'=>25, 'maxlength'=>60));
 		$form->addElement('password', 'dbpass', 'DB Password', array('size'=>25, 'maxlength'=>60));

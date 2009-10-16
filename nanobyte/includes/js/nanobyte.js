@@ -57,7 +57,7 @@ var nanobyte = {
 			var	b = {
 				'Ok': function(){
 					if($('.ui-dialog').find('form').length > 0){
-						nanobyte.submitForm($('.ui-dialog').find('form'));
+						nanobyte.submitForm($('.ui-dialog').find('form'),$(this));
 					}else{
 						$(this).dialog('close');
 					}
