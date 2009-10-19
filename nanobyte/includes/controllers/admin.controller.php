@@ -1,5 +1,14 @@
 <?php
-
+	/*
+	*Copyright (c) 2009, Michael Conway
+	*All rights reserved.
+	*Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    *Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+   	*Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+	*Neither the name of the Nanobyte CMS nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+	*THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	*/
+	
 class AdminController extends BaseController{
 	
 	function __construct(){
@@ -76,14 +85,18 @@ class AdminController extends BaseController{
 		}
 		//create the tabs menu
 		$tablinks = array('Global Settings','DB Settings','File Settings', 'Email Settings', 'Theme Settings', 'User Settings', 'License');
-		//create the form object 
-		$form = new HTML_QuickForm('settings','post',$form_action);
 		
 		//get the site license
 		$license = file_get_contents('license');
 		
+		//begin defining the form with form attributes
+		$element_array = array();
+		$element_array['name'] = 'settings';
+		$element_array[' ethod'] = 'post';
+		$element_array['action'] = $form_action;
+		
 		//set form defaults
-		$form->setdefaults(array(
+		$element_array['defaults']=array(
 			'dbuser'=>$Core->DecodeConfParams(DB_USER),
 			'dbpass'=>$Core->DecodeConfParams(DB_PASS),
 			'dbhost'=>DB_HOST,
@@ -115,69 +128,73 @@ class AdminController extends BaseController{
 			'smtp_pass'=>$Core->DecodeConfParams(SMTP_PASS),
 			'allowed_html_tags'=>ALLOWED_HTML_TAGS,
 			'cms_installed'=>CMS_INSTALLED
-		));
-		//create form elements
-		$form->addElement('header','','Global Site Settings');
-		$form->addElement('text', 'path', 'Site Path', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'pearpath', 'Pear Include Path', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'sitename', 'Site Name', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'sitelogo', 'Site Logo', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'siteslogan', 'Site Slogan', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'sitedomain', 'Domain', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'limit', 'Default Limit on Table Lists', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'home', 'Default Home Page', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'allowed_html_tags', 'Allowed HTML Tags', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('hidden', 'cms_installed', '', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('checkbox', 'cleanurl' ,'Enable Clean URLs');
-//		$form->addElement('checkbox', 'compress' ,'Enable Javascript and CSS Compression');
-
-		$form->addElement('header','','DB Settings');
-		$form->addElement('text', 'dbuser', 'DB Username', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('password', 'dbpass', 'DB Password', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'dbhost', 'DB Host', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'dbname', 'DB Name', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'dbprefix', 'DB Prefix', array('size'=>25, 'maxlength'=>60));
+		);
+		//create all of the form elements
+		$element_array['elements'] = array(	
+			array('type'=>'header','name'=>'','label'=>'Global Site Settings','group'=>'0'),
+			array('type'=>'text', 'name'=>'path', 'label'=>'Site Path', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'text', 'name'=>'pearpath', 'label'=>'Pear Include Path', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'text', 'name'=>'sitename', 'label'=>'Site Name', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'text', 'name'=>'sitelogo', 'label'=>'Site Logo', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'text', 'name'=>'siteslogan','label'=> 'Site Slogan', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'text', 'name'=>'sitedomain', 'label'=>'Domain', 'options'=>array('size'=>25,'maxlength'=>60,'group'=>'0')),
+			array('type'=>'text', 'name'=>'limit', 'label'=>'Default Limit on Table Lists', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'text', 'name'=>'home', 'label'=>'Default Home Page', 'options'=>array('size'=>25,'maxlength'=>60),'group'=>'0'),
+			array('type'=>'text', 'name'=>'allowed_html_tags', 'label'=>'Allowed HTML Tags', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'hidden', 'name'=>'cms_installed', 'label'=>'', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
+			array('type'=>'checkbox', 'name'=>'cleanurl' ,'label'=>'Enable Clean URLs','group'=>'0'),
+	//		array('checkbox', 'compress' ,'Enable Javascript and CSS Compression'),
+	
+			array('type'=>'header','name'=>'','label'=>'DB Settings','group'=>'1'),
+			array('type'=>'text', 'name'=>'dbuser', 'label'=>'DB Username', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'1'),
+			array('type'=>'password', 'name'=>'dbpass', 'label'=>'DB Password', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'1'),
+			array('type'=>'text','name'=>'dbhost', 'label'=>'DB Host', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'1'),
+			array('type'=>'text', 'name'=>'dbname', 'label'=>'DB Name', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'1'),
+			array('type'=>'text', 'name'=>'dbprefix', 'label'=>'DB Prefix','options'=>array('size'=>25, 'maxlength'=>60),'group'=>'1'),
+			
+			array('type'=>'header','name'=>'','File Settings','group'=>'2'),
+			array('type'=>'text', 'name'=>'uploadpath', 'label'=>'Upload Path', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'2'),
+			array('type'=>'text', 'name'=>'filesize','label'=> 'Max File Size', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'2'),
+			array('type'=>'text', 'name'=>'filetypes', 'label'=>'Allowed File Types', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'2'),
+			
+			array('type'=>'header','name'=>'','label'=>'Email Settings','group'=>'3'),
+			array('type'=>'text', 'name'=>'smtp_host', 'label'=>'SMTP Host', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'3'),
+			array('type'=>'text', 'name'=>'smtp_port', 'label'=>'SMTP Port (25)', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'3'),
+			array('type'=>'checkbox', 'name'=>'smtp_auth' ,'label'=>'SMTP Server Uses Authentication','group'=>'3'),
+			array('type'=>'text', 'name'=>'smtp_user', 'label'=>'SMTP Username', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'3'),
+			array('type'=>'password', 'name'=>'smtp_pass', 'label'=>'SMTP Password', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'3'),
+			array('type'=>'text', 'name'=>'from_name', 'label'=>'Default FROM Name', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'3'),
+			array('type'=>'text', 'name'=>'subject', 'label'=>'Default Subject', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'3'),
+			array('type'=>'checkbox', 'name'=>'use_html' ,'label'=>'Compile Emails in HTML','group'=>'3'),
+			
+			array('type'=>'header','name'=>'','label'=>'Theme Settings','group'=>'4'),
+			array('type'=>'select', 'name'=>'themepath', 'label'=>'Select Theme', parent::GetThemeList(),'group'=>'4'),
+			
+			array('type'=>'header', 'name'=>'', 'label'=>'User Settings','group'=>'5'),
+			array('type'=>'select', 'name'=>'defaultgroup', 'label'=>'Choose Default group for new Users', $perms->names,'group'=>'5'),
+			array('type'=>'text', 'name'=>'sessttl', 'label'=>'Time before users\' sessions expire (in seconds)','options'=>array('size'=>10, 'maxlength'=>10),'group'=>'5'),
+			
+			array('type'=>'header','name'=>'','label'=>'License','group'=>'6'),
+			array('type'=>'textarea','name'=>'license','label'=>'','options'=>array('rows'=>20,'cols'=>70,'readonly','disabled'),'group'=>'6'),
+			
+			array('type'=>'submit', 'name'=>'submit', 'label'=>'Submit')
+		);
 		
-		$form->addElement('header','','File Settings');
-		$form->addElement('text', 'uploadpath', 'Upload Path', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'filesize', 'Max File Size', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'filetypes', 'Allowed File Types', array('size'=>25, 'maxlength'=>60));
-		
-		$form->addElement('header','','Email Settings');
-		$form->addElement('text', 'smtp_host', 'SMTP Host', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'smtp_port', 'SMTP Port (25)', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('checkbox', 'smtp_auth' ,'SMTP Server Uses Authentication');
-		$form->addElement('text', 'smtp_user', 'SMTP Username', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('password', 'smtp_pass', 'SMTP Password', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'from_name', 'Default FROM Name', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('text', 'subject', 'Default Subject', array('size'=>25, 'maxlength'=>60));
-		$form->addElement('checkbox', 'use_html' ,'Compile Emails in HTML');
-		
-		$form->addElement('header','','Theme Settings');
-		$form->addElement('select', 'themepath', 'Select Theme', parent::GetThemeList());
-		
-		$form->addElement('header', '', 'User Settings');
-		$form->addElement('select', 'defaultgroup', 'Choose Default group for new Users', $perms->names);
-		$form->addElement('text', 'sessttl', 'Time before users\' sessions expire (in seconds)',array('size'=>10, 'maxlength'=>10));
-		
-		$form->addElement('header','','License');
-		$form->addElement('textarea','license','',array('rows'=>20,'cols'=>70,'readonly','disabled'));
-		
-		$form->addElement('submit', 'submit', 'Submit');
+		$element_array['callback'] = array('AdminController','EditConfig');
 		//apply form prefilters
-		$form->applyFilter('__ALL__', 'trim');
+//		$form->applyFilter('__ALL__', 'trim');
 //		$form->applyFilter('__ALL__', 'strip_tags');
 		//If the form has already been submitted - validate the data
-		if(isset($_POST['submit'])&&$form->validate()){
-			$form->process(array('AdminController','EditConfig'));
-			$Core->setMessage("Submit Set!");
-			return true;
+//		if(isset($_POST['submit'])&&$form->validate()){
+//			$form->process(array('AdminController','EditConfig'));
+//			$Core->setMessage("Submit Set!");
+//			return true;
 //			parent::redirect('admin');
 //			exit;
-		}
+//		}
 		//send the form to smarty
 		return array(
-			'form'=>$form->toArray(),
+			'form'=>self::generateForm($element_array),
 			'tabbed'=>$tablinks
 		);
 	}

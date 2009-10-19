@@ -1,7 +1,13 @@
 <?php
-/**
- * 
- */
+	/*
+	*Copyright (c) 2009, Michael Conway
+	*All rights reserved.
+	*Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    *Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+   	*Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+	*Neither the name of the Nanobyte CMS nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+	*THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	*/
 
 class Mod_Content{
 	
@@ -422,66 +428,70 @@ class ContentController extends BaseController{
 		$func = $content ? 'edit/'.$content->pid : 'add';
 		$tablinks = array('Main','Image Functions','Publishing Options');
 		//Create the form object
-		$form = new HTML_QuickForm('content','post','admin/content/'.$func);
+		$element_array = array('name'=>'content','method'=>'post','action'=>'admin/content/'.$func);
 		//set form default values
 	
 		if(isset($content)){
-			$form->setdefaults(array(
+			$element_array['defaults']=array(
 				'pid'=>$content->pid, 
 				'title'=>$content->title, 
-				'published'=>$content->published,
+				'published'=>true,
 				'body'=> preg_replace('/<br \/>/','',$content->body),
 				'imagelist'=>$content->images,
 				'type'=>isset($content->type) ? $content->type : $content->getDefaultType()
-			));
+			);
 			$header = 'Edit Content';
 		}else{
-			$form->setdefaults(array(
-				'published'=>true
-			));
+			$element_array['defaults']=array(
+				'published'=>'1'
+			);
 			$content = new Mod_Content();
 		}
 		
 		$content->GetTypes();
 		//create form elements
-		$form->addElement('header','','Create Content');
-		$form->addElement('text', 'title', 'Title', array('size'=>62, 'maxlength'=>80));
-		$form->addElement('textarea','body','Body',array('rows'=>20,'cols'=>60));
+		$element_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>'Create Content'),
+			array('type'=>'text', 'name'=>'title', 'label'=>'Title', 'options'=>array('size'=>62, 'maxlength'=>80)),
+			array('type'=>'textarea','name'=>'body','label'=>'Body','options'=>array('rows'=>20,'cols'=>60)),
+			
+			array('type'=>'header','name'=>'','label'=>'Image Functions','group'=>'1'),
+			array('type'=>'file','name'=>'image','label'=>'Add Image', 'options'=>array('id'=>'image'),'group'=>'1'),
+	//		if(!empty($content->images)){
+	//			array('hidden','imagelist','', array('id'=>'imagelist')),
+	//		}
+	//		$form->addElement('text', 'ititle', 'Title', array('size'=>25, 'maxlength'=>15));
+	//		$form->addElement('text', 'ialt', 'Alt Text', array('size'=>25, 'maxlength'=>15));
+			
+			array('type'=>'header','name'=>'','label'=>'Publishing Options','group'=>'2'),
+	//		$form->addElement('text', 'tags', 'Tags', array('size'=>25, 'maxlength'=>15));
+			array('type'=>'select', 'name'=>'type', 'label'=>'Content Type', 'list'=>$content->types,'group'=>'2'),
+			array('type'=>'checkbox','name'=>'published','label'=>'Publish','group'=>'2'),
+			
+			array('type'=>'hidden','name'=>'pid'),
+			array('type'=>'hidden','name'=>'author', 'value'=>$Core->user->name),
+			array('type'=>'hidden','name'=>'created','value'=>time()),
+					
+			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save')
+		);
 		
-		$form->addElement('header','','Image Functions');
-		$form->addElement('file','image','Add Image', array('id'=>'image'));
-		if(!empty($content->images)){
-			$form->addElement('hidden','imagelist','', array('id'=>'imagelist'));
-		}
-//		$form->addElement('text', 'ititle', 'Title', array('size'=>25, 'maxlength'=>15));
-//		$form->addElement('text', 'ialt', 'Alt Text', array('size'=>25, 'maxlength'=>15));
-		
-		$form->addElement('header','','Publishing Options');
-//		$form->addElement('text', 'tags', 'Tags', array('size'=>25, 'maxlength'=>15));
-		$form->addElement('select', 'type', 'Content Type', $content->types);
-		$form->addElement('checkbox','published','Publish');
-		
-		$form->addElement('hidden','pid');
-		$form->addElement('hidden','author', $Core->user->name);
-		$form->addElement('hidden','created',time());
-				
-		$form->addElement('submit', 'submit', 'Save');
+		$element_array['callback'] = array('ContentController','Save');
 		//apply form prefilters
-		$form->applyFilter('__ALL__', 'trim');
+//		$form->applyFilter('__ALL__', 'trim');
 		//$form->applyFilter('__ALL__', 'nl2br');
 
 		//add form rules
-		$form->addRule('title', 'A Title is required.', 'required');
-		$form->addRule('body', 'Body text is required.', 'required');
+//		$form->addRule('title', 'A Title is required.', 'required');
+//		$form->addRule('body', 'Body text is required.', 'required');
 		//If the form has already been submitted - validate the data
-		if(isset($_POST['submit']) && $form->validate()){
-			$form->process(array('ContentController','Save'));
-//				BaseController::Redirect('admin/content');
-//				exit;
-		}
+//		if(isset($_POST['submit']) && $form->validate()){
+//			$form->process(array('ContentController','Save'));
+////				BaseController::Redirect('admin/content');
+////				exit;
+//		}
 		//send the form to smarty
 		return array(
-			'form'=>$form->toArray(),
+			'form'=>self::generateForm($element_array),
 			'tabbed'=>$tablinks
 		);
 	}
@@ -602,6 +612,7 @@ class ContentController extends BaseController{
 	public static function save($data){ 
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
 		//upload files if needed
+		var_dump($data);
 		$image = '';
 		if(isset($data['image']['name'])){
 			$image = parent::HandleImage($data['image'],'80');
