@@ -9,28 +9,34 @@
 	
 		public static function addForm(){
 			//create the form object 
-			$form = new HTML_QuickForm('newgroup','post','admin/group/add');
+			$element_array = array('name'=>'newgroup','method'=>'post','action'=>'admin/group/add');
+			
 			//create form elements
-			$form->addElement('header','','Add New Permissions Group');
-			$form->addElement('text', 'name', 'Group Name', array('size'=>25, 'maxlength'=>60));
-			$form->addElement('text', 'comments', 'Comments', array('size'=>25, 'maxlength'=>60));
-			$form->addElement('submit', 'submit', 'Submit');
+			$element_array['elements'] = array(
+				array('header','','Add New Permissions Group'),
+				array('text', 'name', 'Group Name', array('size'=>25, 'maxlength'=>60)),
+				array('text', 'comments', 'Comments', array('size'=>25, 'maxlength'=>60)),
+				array('submit', 'submit', 'Submit')
+			);
+			
 			//apply form prefilters
-			$form->applyFilter('__ALL__', 'trim');
-			$form->applyFilter('__ALL__', 'strip_tags');
+			//$form->applyFilter('__ALL__', 'trim');
+			//$form->applyFilter('__ALL__', 'strip_tags');
+			
 			// Add required Fields
-			$form->addRule('name', 'A Group Name is required.', 'required');
+			//$form->addRule('name', 'A Group Name is required.', 'required');
+			
 			//If the form has already been submitted - validate the data
+			$element_array['callback'] = array(new Perms(),'addGroup');
+			
 			if(isset($_POST['submit']) && $form->validate()){
 				$Core = parent::getCore();
-				$perms = new Perms();
-				$form->process(array($perms,'AddGroup'));
 				$Core->setMessage('Your group has been created successfully.','info');
 				$Core->json_obj->callback = 'nanobyte.closeParentTab';
 				$Core->json_obj->args = 'input[name=submit][value=Submit]';
 			}
 			//send the form to smarty
-			return $form->toArray(); 
+			return parent::generateForm($element_array); 
 		}
 		
 	    public static function admin(){

@@ -141,27 +141,27 @@ class BaseController{
 		}
 	}
 	
-	public static function emailForm($method,$email=array('id'=>'','subject'=>'','body'=>'','function'=>'')){
-		$form = new HTML_QuickForm('email','post',$method);
+	public static function emailForm($action,$email=array('id'=>'','subject'=>'','body'=>'','function'=>'')){
+		
+		$element_array = array('name'=>'email','method'=>'post','action'=>$action);
 		//set form default values
-		$form->setdefaults(array(
+		$element_array['defaults'] =array(
 			'id'=>$email['id'],
 			'subject'=>$email['subject'],
 			'body'=>$email['body'],
 			'function'=>$email['function']
-		));
+		);
 		//create form elements
-		$form->addElement('header','',"Email Details for {$email['function']}");
-		$form->addElement('hidden','id');
-		$form->addElement('text', 'subject', 'Subject', array('size'=>63, 'maxlength'=>50));
-		$form->addElement('textarea', 'body', 'Body',array('rows'=>15,'cols'=>60));
-		$form->addElement('text', 'function', 'Function', array('size'=>63, 'maxlength'=>50));
-		$form->addElement('submit','submit','Submit');
-		if(isset($_POST['submit']) && $form->validate()){
-			$emailObj=new Email();
-			return $emailObj->setEmailData($form->exportValues());
-		}
-		return $form->toArray();
+		$element_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>"Email Details for {$email['function']}"),
+			array('type'=>'hidden','name'=>'id'),
+			array('type'=>'text', 'name'=>'subject', 'label'=>'Subject', 'options'=>array('size'=>63, 'maxlength'=>50)),
+			array('type'=>'textarea', 'name'=>'body', 'label'=>'Body','options'=>array('rows'=>15,'cols'=>60)),
+			array('type'=>'text', 'name'=>'function', 'label'=>'Function', 'options'=>array('size'=>63, 'maxlength'=>50)),
+			array('type'=>'submit','name'=>'submit','value'=>'Submit')
+		);
+		$element_array['callback'] = array(new Email(),'setEmailData');
+		return self::generateForm($element_array);
 	}
 	
 	public static function generateForm($element_array){
@@ -410,12 +410,12 @@ class BaseController{
 			$clr_trnsprnt = imagecolortransparent($orig, imagecolorallocate($orig,0,0,0));
 			$i_trnprt   = imagecolorallocate($thumb, $clr_trnsprnt['red'], $clr_trnsprnt['green'], $clr_trnsprnt['blue']);
 			
-			imagefill($thumb, 0, 0, $i_trnprt);
+//			imagefill($thumb, 0, 0, $i_trnprt);
 	 
 	        // Set the background color for new image to transparent
 	        imagecolortransparent($thumb, $i_trnprt);
 	
-			imagealphablending($thumb, false);
+//			imagealphablending($thumb, false);
 			imagecopyresampled($thumb, $orig, 0, 0, 0, 0, $thumb_x, $thumb_y, $orig_x, $orig_y);
 
 			//write the 2 images to disk.

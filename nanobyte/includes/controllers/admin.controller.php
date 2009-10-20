@@ -11,10 +11,6 @@
 	
 class AdminController extends BaseController{
 	
-	function __construct(){
-		//make construct check for perms, hash and then make object.
-	}
-	
 	public static function admin(){
 		$Core = parent::getCore();
 		$data = self::ShowConfig();
@@ -90,10 +86,7 @@ class AdminController extends BaseController{
 		$license = file_get_contents('license');
 		
 		//begin defining the form with form attributes
-		$element_array = array();
-		$element_array['name'] = 'settings';
-		$element_array[' ethod'] = 'post';
-		$element_array['action'] = $form_action;
+		$element_array = array('name'=>'settings','method'=>'post','action'=>$form_action);
 		
 		//set form defaults
 		$element_array['defaults']=array(
@@ -133,7 +126,6 @@ class AdminController extends BaseController{
 		$element_array['elements'] = array(	
 			array('type'=>'header','name'=>'','label'=>'Global Site Settings','group'=>'0'),
 			array('type'=>'text', 'name'=>'path', 'label'=>'Site Path', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
-			array('type'=>'text', 'name'=>'pearpath', 'label'=>'Pear Include Path', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
 			array('type'=>'text', 'name'=>'sitename', 'label'=>'Site Name', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
 			array('type'=>'text', 'name'=>'sitelogo', 'label'=>'Site Logo', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
 			array('type'=>'text', 'name'=>'siteslogan','label'=> 'Site Slogan', 'options'=>array('size'=>25, 'maxlength'=>60),'group'=>'0'),
@@ -168,30 +160,29 @@ class AdminController extends BaseController{
 			array('type'=>'checkbox', 'name'=>'use_html' ,'label'=>'Compile Emails in HTML','group'=>'3'),
 			
 			array('type'=>'header','name'=>'','label'=>'Theme Settings','group'=>'4'),
-			array('type'=>'select', 'name'=>'themepath', 'label'=>'Select Theme', parent::GetThemeList(),'group'=>'4'),
+			array('type'=>'select', 'name'=>'themepath', 'label'=>'Select Theme', 'list'=>parent::GetThemeList(),'group'=>'4'),
 			
 			array('type'=>'header', 'name'=>'', 'label'=>'User Settings','group'=>'5'),
-			array('type'=>'select', 'name'=>'defaultgroup', 'label'=>'Choose Default group for new Users', $perms->names,'group'=>'5'),
+			array('type'=>'select', 'name'=>'defaultgroup', 'label'=>'Choose Default group for new Users', 'list'=>$perms->names,'group'=>'5'),
 			array('type'=>'text', 'name'=>'sessttl', 'label'=>'Time before users\' sessions expire (in seconds)','options'=>array('size'=>10, 'maxlength'=>10),'group'=>'5'),
 			
 			array('type'=>'header','name'=>'','label'=>'License','group'=>'6'),
-			array('type'=>'textarea','name'=>'license','label'=>'','options'=>array('rows'=>20,'cols'=>70,'readonly','disabled'),'group'=>'6'),
+			array('type'=>'textarea','name'=>'license','label'=>'','options'=>array('rows'=>20,'cols'=>70,'readonly'=>'readonly','disabled'=>'disabled'),'group'=>'6'),
 			
-			array('type'=>'submit', 'name'=>'submit', 'label'=>'Submit')
+			array('type'=>'submit', 'name'=>'submit', 'value'=>'Submit')
 		);
 		
 		$element_array['callback'] = array('AdminController','EditConfig');
 		//apply form prefilters
 //		$form->applyFilter('__ALL__', 'trim');
 //		$form->applyFilter('__ALL__', 'strip_tags');
-		//If the form has already been submitted - validate the data
-//		if(isset($_POST['submit'])&&$form->validate()){
-//			$form->process(array('AdminController','EditConfig'));
-//			$Core->setMessage("Submit Set!");
-//			return true;
-//			parent::redirect('admin');
-//			exit;
-//		}
+
+		$form = self::generateForm($element_array);
+		if(is_bool($form)){
+			$Core->setMessage("Your settings were saved successfully!",'info');
+			return $form;
+		}
+
 		//send the form to smarty
 		return array(
 			'form'=>self::generateForm($element_array),
