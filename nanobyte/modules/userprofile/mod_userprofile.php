@@ -86,35 +86,36 @@
 		}
 	
 		public function edit(){
-			$form = new HTML_QuickForm('editprofile','post','user/profiles/'.$this->uid.'/edit');
-			$form->setDefaults(array(
+			$element_array = array('name'=>'editprofile','method'=>'post','action'=>'user/profiles/'.$this->uid.'/edit');
+			$element_array['defaults'] = array(
 				'avatar'=>$this->avatar,
 				'location'=>$this->location,
 				'facebook'=>$this->facebook,
 				'twitter'=>$this->twitter,
 				'about'=>$this->about
-			));
-			 	
-			$form->addElement('header','','User Profile Information');
-			$form->addElement('file', 'avatar', 'Upload Avatar', array('id'=>'image'));
-			$form->addElement('text', 'location', 'Location',array('size'=>25, 'maxlength'=>15));
-			$form->addElement('text', 'facebook', 'Facebook ID',array('size'=>25, 'maxlength'=>20));
-			$form->addElement('text', 'twitter', 'Twitter Username',array('size'=>25, 'maxlength'=>20));
-			$form->addElement('textarea', 'about', 'About Me',array('rows'=>10,'cols'=>40,'id'=>'ckeditor'));
-			$form->addElement('submit', 'submit', 'Save Changes');
-
-			if(isset($_POST['submit']) && $form->validate()){
-				$values = $form->exportValues();
-				$this->location = $values['location'];
-				$this->about = strip_tags($values['about'],ALLOWED_HTML_TAGS);
-				$this->facebook = $values['facebook'];
-				$this->twitter = $values['twitter'];
-				$this->commit();
-				
-				return;
-			}
+			);
+			$element_array['elements'] = array(
+				array('type'=>'header','name'=>'','label'=>'User Profile Information'),
+				array('type'=>'file','name'=>'avatar','label'=>'Upload Avatar','options'=>array('id'=>'image')),
+				array('type'=>'text','name'=>'location','label'=>'Location','options'=>array('size'=>25, 'maxlength'=>15)),
+				array('type'=>'text','name'=>'facebook','label'=>'Facebook ID','options'=>array('size'=>25, 'maxlength'=>20)),
+				array('type'=>'text','name'=>'twitter','label'=>'Twitter Username','options'=>array('size'=>25, 'maxlength'=>20)),
+				array('type'=>'textarea','name'=>'about','label'=>'About Me','options'=>array('rows'=>10,'cols'=>40,'id'=>'ckeditor')),
+				array('type'=>'submit','name'=>'submit','value'=>'Save Changes')
+			);
+			$element_array['callback'] = array(new self(),'Commit');
+//			if(isset($_POST['submit']) && $form->validate()){
+//				$values = $form->exportValues();
+//				$this->location = $values['location'];
+//				$this->about = strip_tags($values['about'],ALLOWED_HTML_TAGS);
+//				$this->facebook = $values['facebook'];
+//				$this->twitter = $values['twitter'];
+//				$this->commit();
+//				
+//				return;
+//			}
 			//send the form to smarty
-			return $form->toArray();
+			return BaseController::generateForm($element_array);
 		}
 		
 		public function install(){

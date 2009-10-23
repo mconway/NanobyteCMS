@@ -435,7 +435,7 @@ class ContentController extends BaseController{
 			$element_array['defaults']=array(
 				'pid'=>$content->pid, 
 				'title'=>$content->title, 
-				'published'=>true,
+				'published'=>$content->published,
 				'body'=> preg_replace('/<br \/>/','',$content->body),
 				'imagelist'=>$content->images,
 				'type'=>isset($content->type) ? $content->type : $content->getDefaultType()
@@ -453,7 +453,7 @@ class ContentController extends BaseController{
 		$element_array['elements'] = array(
 			array('type'=>'header','name'=>'','label'=>'Create Content'),
 			array('type'=>'text', 'name'=>'title', 'label'=>'Title', 'options'=>array('size'=>62, 'maxlength'=>80)),
-			array('type'=>'textarea','name'=>'body','label'=>'Body','options'=>array('rows'=>20,'cols'=>60)),
+			array('type'=>'textarea','name'=>'body','label'=>'Body','options'=>array('rows'=>20,'cols'=>60,'id'=>'ckeditor')),
 			
 			array('type'=>'header','name'=>'','label'=>'Image Functions','group'=>'1'),
 			array('type'=>'file','name'=>'image','label'=>'Add Image', 'options'=>array('id'=>'image'),'group'=>'1'),

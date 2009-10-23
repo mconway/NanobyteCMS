@@ -32,10 +32,7 @@ class BaseController{
 		$found_class = false;
 		$c = strtolower($c);
 		if(!empty($c) && $c != 'controller'){
-			if($c == 'html_quickform'){
-				@include 'HTML/QuickForm.php';
-				$found_class = true;
-			}elseif(strcasecmp(substr($c,0,4),'mod_')!=0){
+			if(strcasecmp(substr($c,0,4),'mod_')!=0){
 		 		if(file_exists("includes/".strtolower($c).".inc.php") && require_once("./includes/".strtolower($c).".inc.php")) {
 		 			return true;
 		    	}elseif (file_exists("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php") && require_once("includes/controllers/".strtolower(str_ireplace('controller','',$c)).".controller.php")) {

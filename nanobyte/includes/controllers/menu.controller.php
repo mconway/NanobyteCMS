@@ -1,9 +1,14 @@
 <?php
-/**
- *@author Mike Conway
- *@copyright 2008, Mike Conway
- *@since 01-May-2008
- */
+	/*
+	*Copyright (c) 2009, Michael Conway
+	*All rights reserved.
+	*Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    *Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+   	*Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+	*Neither the name of the Nanobyte CMS nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+	*THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	*/
+	
 class MenuController extends BaseController{
 	
 	public static function add(){
@@ -33,20 +38,23 @@ class MenuController extends BaseController{
 	
 	public static function addMenu(){
 		$Core = parent::getCore();
-		$form = new HTML_QuickForm('new-menu','post','admin/menu/add');
-		$form->addElement('header','','Create new Account');
-		$form->addElement('text', 'name', 'Menu Name', array('size'=>25, 'maxlength'=>50));
-		$form->addElement('submit', 'submit', 'Submit');
+		$element_array = array('name'=>'new-menu','method'=>'post','action'=>'admin/menu/add');
+		$element_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>'Create new Account'),
+			array('type'=>'text', 'name'=>'name', 'label'=>'Menu Name', array('size'=>25, 'maxlength'=>50)),
+			array('type'=>'submit', 'name'=>'submit', 'value'=>'Submit')
+		);
+		$element_array['callback'] = array(new Menu(),'Create');
 		//If the form has already been submitted - validate the data
-		if(isset($_POST['submit']) && $form->validate()){
-			$menu = new Menu();
-			$form->process(array($menu,'Create'));
-			return true;
-			//parent::Redirect();
-			//exit;
-		}
+//		if(isset($_POST['submit']) && $form->validate()){
+//			$menu = new Menu();
+//			$form->process(array($menu,'Create'));
+//			return true;
+//			//parent::Redirect();
+//			//exit;
+//		}
 		//send the form to smarty
-		return array('form'=>$form->toArray()); 
+		return array('form'=>parent::generateForm($element_array)); 
 	}
 	
 	public static function addMenuItemForm($menuID){

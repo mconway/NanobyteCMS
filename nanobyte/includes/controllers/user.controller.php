@@ -1,5 +1,14 @@
 <?php
-
+	/*
+	*Copyright (c) 2009, Michael Conway
+	*All rights reserved.
+	*Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    *Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+   	*Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+	*Neither the name of the Nanobyte CMS nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+	*THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	*/
+	
 class UserController extends BaseController{
 	
 	public static function add(){
@@ -181,53 +190,58 @@ class UserController extends BaseController{
 		$Core = parent::getCore();
 		$edituser = new User($id);
 //		$profile = new UserProfile($edituser->uid);
-		//create the form object 
-		$form = new HTML_QuickForm('edituser','post','admin/user/edit/'.$edituser->uid);
+		//create the form object
+		$element_array = array('name'=>'edituser','method'=>'post','action'=>'admin/user/edit/'.$edituser->uid);
 		//set form default values
-		$form->setdefaults(array(
+		$element_array['defaults']=array(
 			'name'=>$edituser->name, 
 			'joined'=>date('G:i m/d/Y T',$edituser->joined),
 			'email'=>$edituser->email,
 //			'avatar'=>$profile->avatar,
 //			'location'=>$profile->location,
 //			'about'=>$profile->about
-		));
+		);
 		//create form elements
-		$form->addElement('header','','User Account Details');
-		$form->addElement('text', 'name', 'Username', array('size'=>25, 'maxlength'=>15, 'readonly'=>'readonly'));
-		$form->addElement('text', 'joined', 'Joined', array('size'=>25, 'maxlength'=>15, 'readonly'=>'readonly'));
-		$form->addElement('password', 'password', 'Password', array('size'=>25, 'maxlength'=>10));
-		$form->addElement('password', 'confirm', 'Confirm Password', array('size'=>25, 'maxlength'=>10));
-		$form->addElement('text', 'email', 'Email', array('size'=>25, 'maxlength'=>50));
-		
-		$form->addElement('submit', 'submit', 'Save Changes');
+		$element_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>'User Account Details'),
+			array('type'=>'text', 'name'=>'name', 'label'=>'Username', 'options'=>array('size'=>25, 'maxlength'=>15, 'readonly'=>'readonly')),
+			array('type'=>'text', 'name'=>'joined','label'=>'Joined', 'options'=>array('size'=>25, 'maxlength'=>15, 'readonly'=>'readonly')),
+			array('type'=>'password', 'name'=>'password', 'label'=>'Password', 'options'=>array('size'=>25, 'maxlength'=>10)),
+			array('type'=>'password', 'name'=>'confirm', 'label'=>'Confirm Password', 'options'=>array('size'=>25, 'maxlength'=>10)),
+			array('type'=>'text', 'name'=>'email','label'=> 'Email', 'options'=>array('size'=>25, 'maxlength'=>50)),
+			
+			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save Changes')
+		);
 		//apply form prefilters
-		$form->applyFilter('__ALL__', 'trim');
-		$form->applyFilter('__ALL__', 'strip_tags');
+		//$form->applyFilter('__ALL__', 'trim');
+		//$form->applyFilter('__ALL__', 'strip_tags');
 		//add form rules
-		$form->addRule('email', 'Please enter a valid email address', 'required');
-		$form->addRule('email', 'Please enter a valid email', 'email', true);
-		$form->addRule(array('password','confirm'),'The passwords you have entered do not match','compare');
+//		$form->addRule('email', 'Please enter a valid email address', 'required');
+//		$form->addRule('email', 'Please enter a valid email', 'email', true);
+//		$form->addRule(array('password','confirm'),'The passwords you have entered do not match','compare');
+		
+		$element_array['callback'] = array($edituser,'commit');
+		
 		//If the form has already been submitted - validate the data
-		if(isset($_POST['submit']) && $form->validate()){
-			$values = $form->exportValues();
-			if($values['password']){
-				$edituser->pwchanged = $values['password'];
-			} 
-			if($edituser->email != $values['email']){
-				$edituser->email = $values['email'];
-			}
-			if ($edituser->commit() === true){
-				$Core->SetMessage('Your Information has been updated!','info');
-			}else{
-				$Core->SetMessage('Your Information was not updated!','error');
-			}
-
-//			parent::Redirect();
-			return;
-		}
+//		if(isset($_POST['submit']) && $form->validate()){
+//			$values = $form->exportValues();
+//			if($values['password']){
+//				$edituser->pwchanged = $values['password'];
+//			} 
+//			if($edituser->email != $values['email']){
+//				$edituser->email = $values['email'];
+//			}
+//			if ($edituser->commit() === true){
+//				$Core->SetMessage('Your Information has been updated!','info');
+//			}else{
+//				$Core->SetMessage('Your Information was not updated!','error');
+//			}
+//
+////			parent::Redirect();
+//			return;
+//		}
 		//send the form to smarty
-		return $form->toArray();
+		return parent::generateForm($element_array);
 	}
 	
 	public static function email(){
@@ -358,38 +372,42 @@ class UserController extends BaseController{
 	public static function regForm($form_action='user/register',$redirect=null){
 		$Core = parent::getCore();
 		//create the form object 
-		$form = new HTML_QuickForm('newuser','post',$form_action);
+		$element_array = array('name'=>'newuser','method'=>'post','action'=>$form_action);
 		//create form elements
-		$form->addElement('header','','Create new Account');
-		$form->addElement('text', 'name', 'Username', array('size'=>25, 'maxlength'=>15));
-		$form->addElement('password', 'password', 'Password', array('size'=>25, 'maxlength'=>10));
-		$form->addElement('password', 'confirm', 'Confirm Password', array('size'=>25, 'maxlength'=>10));
-		$form->addElement('text', 'email', 'Email', array('size'=>25, 'maxlength'=>50));
-		$form->addElement('text', 'cemail', 'Confirm Email', array('size'=>25, 'maxlength'=>50));
-		$form->addElement('submit', 'submit', 'Submit');
+		$element_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>'User Account Details'),
+			array('type'=>'text', 'name'=>'name', 'label'=>'Username', 'options'=>array('size'=>25, 'maxlength'=>15)),
+			array('type'=>'password', 'name'=>'password', 'label'=>'Password', 'options'=>array('size'=>25, 'maxlength'=>10)),
+			array('type'=>'password', 'name'=>'confirm', 'label'=>'Confirm Password', 'options'=>array('size'=>25, 'maxlength'=>10)),
+			array('type'=>'text', 'name'=>'email','label'=> 'Email', 'options'=>array('size'=>25, 'maxlength'=>50)),
+			array('type'=>'text', 'name'=>'cemail','label'=> 'Confirm Email', 'options'=>array('size'=>25, 'maxlength'=>50)),
+			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save Changes')
+		);
 		//apply form prefilters
-		$form->applyFilter('__ALL__', 'trim');
-		$form->applyFilter('__ALL__', 'strip_tags');
+//		$form->applyFilter('__ALL__', 'trim');
+//		$form->applyFilter('__ALL__', 'strip_tags');
 		//add form rules
-		$form->addRule('name', 'A username is required.', 'required');
-		$form->addRule('email', 'A valid Email address is required.', 'required');
-		$form->addRule('cemail', 'Please confirm your email address.', 'required');
-		$form->addRule('password', 'A password is required.', 'required');
-		$form->addRule('confirm', 'Please confirm your password', 'required');
-		$form->addRule('email', 'Please enter a valid email address', 'email', true);
-		$form->addRule(array('password','confirm'),'The passwords you have entered do not match','compare');
-		$form->addRule(array('email','cemail'),'The emails you have entered do not match','compare');
+//		$form->addRule('name', 'A username is required.', 'required');
+//		$form->addRule('email', 'A valid Email address is required.', 'required');
+//		$form->addRule('cemail', 'Please confirm your email address.', 'required');
+//		$form->addRule('password', 'A password is required.', 'required');
+//		$form->addRule('confirm', 'Please confirm your password', 'required');
+//		$form->addRule('email', 'Please enter a valid email address', 'email', true);
+//		$form->addRule(array('password','confirm'),'The passwords you have entered do not match','compare');
+//		$form->addRule(array('email','cemail'),'The emails you have entered do not match','compare');
 		//If the form has already been submitted - validate the data
-		if(array_key_exists('submit',$_POST) && $form->validate()){
-			$newUser = new User();
-			if($newUser->Create($form->exportValues())){
-				return true;
-			}
-			return false;
-//			parent::Redirect();
-		}
+		
+		$element_array['callback'] = array(new User(),'create');
+//		if(array_key_exists('submit',$_POST) && $form->validate()){
+//			$newUser = new User();
+//			if($newUser->Create($form->exportValues())){
+//				return true;
+//			}
+//			return false;
+////			parent::Redirect();
+//		}
 		//send the form to smarty
-		return $form->toArray(); 
+		return parent::generateForm($element_array); 
 	}
 	
 	public static function register(){
