@@ -13,7 +13,9 @@ class UserController extends BaseController{
 	
 	public static function add(){
 		$Core = BaseController::getCore();
-		$Core->smarty->assign('form',self::RegForm());
+		$form = self::RegForm();
+		$Core->smarty->assign('form',$form);
+
 		$Core->json_obj->title = "Add new user";
 		return $Core->smarty->fetch('form.tpl');
 	}
@@ -414,7 +416,7 @@ class UserController extends BaseController{
 		$Core = BaseController::getCore();
 		if(isset($_POST['submit'])){
 			$Core->json_obj->callback = 'nanobyte.closeParentTab';
-			$Core->json_obj->args = 'input[name=submit][value=Submit]';
+			$Core->json_obj->args = 'input[name=submit][value=Save Changes]';
 		}
 		$Core->smarty->assign('form',self::RegForm($Core));
 		$content = $Core->smarty->fetch('form.tpl');

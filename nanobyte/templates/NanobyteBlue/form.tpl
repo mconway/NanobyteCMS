@@ -15,13 +15,13 @@
 					<div class="formheader">{$group.header}</div>
 					{foreach from=$group.elements item=element}
 						{if $element.type!=='submit'}
-						<div class="elementcontainer">
+						<div class="elementcontainer {if $element.type=='hidden'}hidden{/if}">
 							<div class="label">{if $element.required}
 								<span style="color:#FF0000;font-size:16px">*</span>
 		   						{/if}
 								{$element.label}
 							</div>
-							{if $element.type == 'textarea'}<br />{/if}
+							{if $element.type == 'textarea'}<br /><br />{/if}
 							<div class="element {if $element.required} required{/if}" {if $element.type=='textarea'}style="margin-left:0"{/if} >
 								{if $element.type == 'select'}
 									{html_options name=$element.name options=$element.list selected=$element.value}
@@ -38,12 +38,14 @@
 									{/foreach}
 									/>
 								{/if}
+								{$element.error}
 							</div>
 							{if $element.error}
 							<div class="formerror">{$element.error}</div>
 							{/if}
 						</div>
 						{else}
+						</div></div>
 						<div class="formbutton"><input type="{$element.type}" name="{$element.name}" value="{$element.value}"
 							{foreach from=$element.options item=option key=name}
 								{$name}="{$option}" 
@@ -52,9 +54,9 @@
 						</div>
 						{/if}
 					{/foreach}
-				</div>
+				<!--</div>-->
 			{/foreach}
-		</div>
+		<!--</div>-->
 		<p>{$form->requirednote}</p>
 	</form>
 </div>

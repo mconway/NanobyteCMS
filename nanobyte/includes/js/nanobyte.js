@@ -141,7 +141,7 @@ var nanobyte = {
 		var rowArray = rows.split('|');
 		for(key in rowArray){
 			if (rowArray[key] != "") {
-				$('input[type=checkbox][value=' + rowArray[key] + ']').parent().siblings(':eq(3)').text($('select[name=actions] option:selected').text());
+				$('input[type=checkbox][value=' + rowArray[key] + ']').parent().siblings(':eq(3)').text($('select[name=actions]').find('option:selected').filter(':first').text());
 			}
 		}
 	},

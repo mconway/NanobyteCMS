@@ -70,7 +70,7 @@ class Mod_Content{
 		$insert = $this->dbh->prepare("insert into ".DB_PREFIX."_content (title, body, images, created, author, published, type) values (:ti,:b,:i,:c,:a,:p,:t)");
 		//$insert->bindParam(':ta', $params['tags']);
 		try{
-			$insert->execute(array(':ti'=>$params['title'],':b'=>$params['body'],':i'=>$params['imagelist'],':c'=>$params['created'],':a'=>$params['author'],':p'=>isset($params['published']) ? $params['published'] : '0', ':t'=>$params['type']));
+			$insert->execute(array(':ti'=>$params['title'],':b'=>$params['body'],':i'=>isset($params['imagelist'])?$params['imagelist']:'',':c'=>$params['created'],':a'=>$params['author'],':p'=>isset($params['published']) ? $params['published'] : '0', ':t'=>$params['type']));
 		}catch(PDOException $e){
 			Core::SetMessage($e->getMessage(), 'error');
 		}
@@ -250,9 +250,10 @@ class ContentController extends BaseController{
 							print json_encode($Core->json_obj);
 							exit;
 						}elseif(isset($_POST['submit'])){
-							self::form();
-							$Core->json_obj->callback = 'nanobyte.closeParentTab';
-							$Core->json_obj->args = 'input[name=submit][value=Save]';
+							if(self::form()==true){
+								$Core->json_obj->callback = 'nanobyte.closeParentTab';
+								$Core->json_obj->args = 'input[name=submit][value=Save]';
+							}
 						}else{
 							$Core->smarty->assign(self::form());
 							$content = $Core->smarty->fetch('form.tpl');
@@ -475,6 +476,8 @@ class ContentController extends BaseController{
 			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save')
 		);
 		
+		$element_array['filters'] = array(array("__ALL__","trim"));
+		
 		$element_array['callback'] = array('ContentController','Save');
 		//apply form prefilters
 //		$form->applyFilter('__ALL__', 'trim');
@@ -612,7 +615,7 @@ class ContentController extends BaseController{
 	public static function save($data){ 
 		//fields: Title | Body | Created | Modified | Author | Published | Tags
 		//upload files if needed
-		var_dump($data);
+		//var_dump($data);
 		$image = '';
 		if(isset($data['image']['name'])){
 			$image = parent::HandleImage($data['image'],'80');

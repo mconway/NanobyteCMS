@@ -48,6 +48,10 @@
 //			}
 		}
 		
+		public function addFilter($element,$filter){
+			$this->filters[] = array($element=>$filter);
+		}
+		
 		public function process($callback){
 			foreach($this->filters as $filter){
 				array_walk_recursive($_POST,$filter);
@@ -62,7 +66,22 @@
 			}
 		}
 		
+		public function applyFilters(){
+			foreach($this->filters as $filter_pair){
+				foreach($filter_pair as $element=>$filter){
+					if($element=="__ALL__"){
+						foreach($_POST as $e){
+							$filter($e);
+						}
+					}elseif(isset($_POST[$element])){
+						$filter($_POST[$element]);
+					}
+				}
+			}
+		}
+		
 		public function validate(){
+			$this->applyFilters();
 			foreach($this->rules as $rule){
 				
 			}

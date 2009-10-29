@@ -178,12 +178,12 @@ class BaseController{
 			}
 		}
 		
-//		if(isset($element_array['filters'])){
-//			foreach($element_array['filters'] as $filter){
-//				$form->applyFilter($filter['apply_to'], $filter['rule']);
-//			}
-//		}
-//		
+		if(isset($element_array['filters'])){
+			foreach($element_array['filters'] as $filter){
+				$form->addFilter($filter[0], $filter[1]);
+			}
+		}
+		
 		if(isset($_POST['submit'])&&$form->validate()){
 			$form->process($element_array['callback']);
 			return true;
