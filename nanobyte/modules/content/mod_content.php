@@ -505,43 +505,46 @@ class ContentController extends BaseController{
 	 */
 	public static function formSettings(){
 		$content = new Mod_Content();
-		
+		$Core = parent::getCore();
 		//Create the form object
-		$form = new HTML_QuickForm('settings','post','admin/content/settings');
+		$elements_array = array('name'=>'settings','method'=>'post','action'=>'admin/content/settings');
 		//set form default values
 
-		$defaults = array(
+		$elements_array['defaults'] = array(
 			'type'=>$content->getDefaultType() 
 		);
-		$form->setdefaults($defaults);
-		
-		
+	
 		$content->GetTypes();
 		
 		//create form elements
-		$form->addElement('header','','Content Settings');
-		$form->addElement('select', 'type', 'Default Content Type', $content->types);
-		
-		$form->addElement('submit', 'submit', 'Save');
-		
+		$elements_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>'Content Settings'),
+			array('type'=>'select', 'name'=>'type', 'label'=>'Default Content Type', 'list'=>$content->types),
+			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save')
+		);
 		//apply form prefilters
-		$form->applyFilter('__ALL__', 'trim');
-
+		$elements_array['filters']= array(array('__ALL__'=>'trim'));
+		$elements_array['callback'] = array($Core,'saveSettings');
 		//If the form has already been submitted - validate the data
-		if(isset($_POST['submit']) && $form->validate()){
-			global $Core;
+//		if(isset($_POST['submit']) && $form->validate()){
+//			Core = parent::getCore();
 //			foreach($form->exportValues() as $val){
 //				$core->saveSettings($val,$setting);
 //			}
-			if($Core->saveSettings($form->exportValue('type'),'defaultContentType')){
-				$Core->setMessage("Settings saved Successfully!", 'info');
-			}else{
-				$Core->setMessage("Unable to save settings.","error");
-			}
+//			if($Core->saveSettings($form->exportValue('type'),'defaultContentType')){
+//				$Core->setMessage("Settings saved Successfully!", 'info');
+//			}else{
+//				$Core->setMessage("Unable to save settings.","error");
+//			}
 		
-		}
 		//send the form to smarty
-		return $form->toArray();
+		$form = parent::generateForm($elements_array);
+		
+		if(isset($_POST['submit'])){
+			$form->exportValues();
+		}
+		
+		return parent::generateForm($elements_array);
 	}
 	
 	/**
@@ -588,7 +591,11 @@ class ContentController extends BaseController{
 		//create the actions options and bind the params to smarty
 		return array(
 			'pager'=>BaseController::Paginate($content->items['limit'], $content->items['nbItems'], 'admin/content/'.$type.'/', $page),
-			'sublinks'=>array('add'=>Core::l('add','admin/content/add',$options),'settings'=>Core::l('settings','admin/content/settings',array('image'=>'24', 'class'=>'action-link-tab', 'title'=>'Content Settings')),'addtype'=>Core::l('addtype','admin/content/addtype',array('image'=>'24', 'class'=>'action-link-tab', 'title'=>'Add Content Type'))),
+			'sublinks'=>array(
+				'add'=>Core::l('add','admin/content/add',$options),
+				'settings'=>Core::l('settings','admin/content/settings',array('image'=>'24', 'class'=>'action-link-tab', 'title'=>'Content Settings')),
+				//'addtype'=>Core::l('addtype','admin/content/addtype',array('image'=>'24', 'class'=>'action-link-tab', 'title'=>'Add Content Type'))
+			),
 			'cb'=>true,
 			'formAction'=>'admin/content',
 			'actions'=>array('delete' => 'Delete'),

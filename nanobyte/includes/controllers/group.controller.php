@@ -13,7 +13,14 @@
 		
 		public static function add(){
 			$Core = parent::getCore();
-			$Core->smarty->assign('form',self::AddForm());
+			$form = self::addForm();
+			if(is_object($form)){
+				$Core->smarty->assign('form',$form);
+			}else{
+				$Core->setMessage('Your group has been created successfully.','info');
+				$Core->json_obj->callback = 'nanobyte.closeParentTab';
+				$Core->json_obj->args = 'input[name=submit][value=Submit]';
+			}
 			return $Core->smarty->fetch('form.tpl');
 		}
 	

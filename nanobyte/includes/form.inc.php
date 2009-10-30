@@ -48,8 +48,26 @@
 //			}
 		}
 		
+		public function applyFilters(){
+			foreach($this->filters as $filter_pair){
+				foreach($filter_pair as $element=>$filter){
+					if($element=="__ALL__"){
+						foreach($_POST as $e){
+							$filter($e);
+						}
+					}elseif(isset($_POST[$element])){
+						$filter($_POST[$element]);
+					}
+				}
+			}
+		}
+		
 		public function addFilter($element,$filter){
 			$this->filters[] = array($element=>$filter);
+		}
+		
+		public function exportValues(){
+			return $_POST;
 		}
 		
 		public function process($callback){
@@ -65,21 +83,7 @@
 				$this->defaults[$name] = $default;
 			}
 		}
-		
-		public function applyFilters(){
-			foreach($this->filters as $filter_pair){
-				foreach($filter_pair as $element=>$filter){
-					if($element=="__ALL__"){
-						foreach($_POST as $e){
-							$filter($e);
-						}
-					}elseif(isset($_POST[$element])){
-						$filter($_POST[$element]);
-					}
-				}
-			}
-		}
-		
+	
 		public function validate(){
 			$this->applyFilters();
 			foreach($this->rules as $rule){

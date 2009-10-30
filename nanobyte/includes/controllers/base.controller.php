@@ -185,8 +185,10 @@ class BaseController{
 		}
 		
 		if(isset($_POST['submit'])&&$form->validate()){
-			$form->process($element_array['callback']);
-			return true;
+			if(isset($element_array['callback'])){
+				$form->process($element_array['callback']);
+				return true;
+			}
 		}
 
 //		var_dump($element_array);
