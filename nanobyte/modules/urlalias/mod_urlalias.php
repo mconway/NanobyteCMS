@@ -129,32 +129,35 @@ class UrlAliasController extends BaseController{
 	public static function form($id=null){
 		$Core = parent::getCore();
 		$func = isset($id) ? 'edit' : 'add';
-		$form = new HTML_QuickForm('urlalias','post','admin/urlalias/'.$func);
+		$element_array = array('name'=>'urlalias','method'=>'post','action'=>'admin/urlalias/'.$func);
 		if(isset($id)){
 			$alias = new Mod_UrlAlias($id);
-			$form->setDefaults(array(
+			$element_array['defaults'] = array(
 				'alias'=>$alias->alias,
 				'realpath'=>$alias->path,
 				'alias_id'=>$alias->id
-			));
+			);
 		}
 		$header = $func == 'add' ? 'Create Alias' : 'Edit Alias';
-		$form->addElement('header','',$header);
-		$form->addElement('text', 'alias', 'Alias', array('size'=>62, 'maxlength'=>80));
-		$form->addElement('text', 'realpath', 'Real Path', array('size'=>62, 'maxlength'=>80));
-		$form->addElement('hidden', 'alias_id', '', array('size'=>62, 'maxlength'=>80));
-		$form->addElement('submit','submit','Submit');
+		$element_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>$header),
+			array('type'=>'text', 'name'=>'alias', 'label'=>'Alias', 'options'=>array('size'=>62, 'maxlength'=>80)),
+			array('type'=>'text', 'name'=>'realpath', 'label'=>'Real Path', 'options'=>array('size'=>62, 'maxlength'=>80)),
+			array('type'=>'hidden', 'name'=>'alias_id', 'label'=>'', 'options'=>array('size'=>62, 'maxlength'=>80)),
+			array('type'=>'submit','name'=>'submit','value'=>'Submit')
+		);
 		//apply form prefilters
-		$form->applyFilter('__ALL__', 'trim');
-		$form->applyFilter('__ALL__', 'strip_tags');
+//		$form->applyFilter('__ALL__', 'trim');
+//		$form->applyFilter('__ALL__', 'strip_tags');
 		//add form rules
-		$form->addRule('alias', 'A valid alias is required.', 'required');
-		$form->addRule('realpath', 'A valid path is required.', 'required');
-		if(isset($_POST['submit']) && $form->validate()){
-			$form->process(array('UrlAliasController','Save'));
-			return;
-		}
-		return $form->toArray();
+//		$form->addRule('alias', 'A valid alias is required.', 'required');
+//		$form->addRule('realpath', 'A valid path is required.', 'required');
+		$element_array['callback'] = array('UrlAliasController','Save');
+//		if(isset($_POST['submit']) && $form->validate()){
+//			$form->process(array('UrlAliasController','Save'));
+//			return;
+//		}
+		return parent::generateForm($element_array);
 	}
 
 	public static function getList(){

@@ -37,17 +37,18 @@ class Mod_SystemLog{
 	}
 	
 	public function buildForm(){
-		$form = new HTML_QuickForm('syslog','post','');
+		$element_array = array('name'=>'syslog','method'=>'post','action'=>'');
 		//set form default values
 
-		$form->setdefaults(array(
+		$elements_array['defaults']=array(
 			'file'=>$this->contents
-		));
+		);
 		
-		$form->addElement('header','','View System Log: '.$this->current_file);
-		$form->addElement('textarea','file','',array('rows'=>20,'cols'=>70,'readonly','disabled'));
-		
-		return $form->toArray();
+		$elements_array['elements'] = array(
+			array('header','name'=>'','View System Log: '.$this->current_file),
+			array('textarea','name'=>'file','',array('rows'=>20,'cols'=>70,'readonly','disabled'))
+		);
+		return BaseController::generateForm($element_array);
 	}
 	
 	/**
