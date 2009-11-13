@@ -49,21 +49,21 @@
 		}
 		
 		public function applyFilters(){
-			foreach($this->filters as $filter_pair){
-				foreach($filter_pair as $element=>$filter){
-					if($element=="__ALL__"){
-						foreach($_POST as $e){
-							$filter($e);
-						}
-					}elseif(isset($_POST[$element])){
-						$filter($_POST[$element]);
+			foreach($this->filters as $element=>$filter){
+				//var_dump($filter);
+				if($element=="__ALL__"){
+					foreach($_POST as $k=>$e){
+						$_POST[$k] = $filter($e);
 					}
+				}elseif(isset($_POST[$element])){
+					$_POST[$element] = $filter($_POST[$element]);
 				}
 			}
 		}
 		
 		public function addFilter($element,$filter){
-			$this->filters[] = array($element=>$filter);
+			$this->filters[$element] = $filter;
+			//var_dump($this->filters);
 		}
 		
 		public function exportValues(){
@@ -71,9 +71,7 @@
 		}
 		
 		public function process($callback){
-			foreach($this->filters as $filter){
-				array_walk_recursive($_POST,$filter);
-			}
+			$this->applyFilters();
 			call_user_func($callback,$_POST);
 			return true;
 		}

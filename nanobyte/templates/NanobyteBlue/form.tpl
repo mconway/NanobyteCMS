@@ -45,18 +45,20 @@
 							{/if}
 						</div>
 						{else}
-						</div></div>
-						<div class="formbutton"><input type="{$element.type}" name="{$element.name}" value="{$element.value}"
-							{foreach from=$element.options item=option key=name}
-								{$name}="{$option}" 
-							{/foreach}
-						/>
-						</div>
+							{assign var='submit' value=`$element`}
 						{/if}
 					{/foreach}
-				<!--</div>-->
+				</div>
 			{/foreach}
-		<!--</div>-->
+		</div>
+		{if $submit}
+			<div class="formbutton"><input type="{$submit.type}" name="{$submit.name}" value="{$submit.value}"
+				{foreach from=$submit.options item=option key=name}
+					{$name}="{$option}" 
+				{/foreach}
+			/>
+			</div>
+		{/if}
 		<p>{$form->requirednote}</p>
 	</form>
 </div>
