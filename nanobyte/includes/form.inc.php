@@ -48,6 +48,16 @@
 //			}
 		}
 		
+		public function addFilter($element,$filter){
+			$this->filters[$element] = $filter;
+			//var_dump($this->filters);
+		}
+		
+		public function addFilter($element,$rule){
+			$this->rules[$element] = $rule;
+			
+		}
+		
 		public function applyFilters(){
 			foreach($this->filters as $element=>$filter){
 				//var_dump($filter);
@@ -61,9 +71,10 @@
 			}
 		}
 		
-		public function addFilter($element,$filter){
-			$this->filters[$element] = $filter;
-			//var_dump($this->filters);
+		public function applyRules(){
+			foreach($this->rules as $element=>$rule){
+				$_POST[$element] = $rule($_POST[$element]);
+			}
 		}
 		
 		public function exportValues(){
@@ -81,7 +92,7 @@
 				$this->defaults[$name] = $default;
 			}
 		}
-	
+		
 		public function validate(){
 			$this->applyFilters();
 			foreach($this->rules as $rule){
