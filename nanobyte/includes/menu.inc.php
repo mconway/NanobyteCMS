@@ -34,7 +34,7 @@ class Menu{
 		if($insert){
 			$query = $this->dbh->prepare("insert into ".DB_PREFIX."_menu_links (menu, linkpath, linktext, viewableby, class, styleid) values (:menu,:path,:text,:view,:class,:sid)");
 		}else{
-			$query = $this->dbh->prepare("update ".DB_PREFIX."_menu_links set `linkpath`=:path, `linktext`=:text, `viewableby`=:view, `class`=:class, `styleid`=:sid where `id`=:id");
+			$query = $this->dbh->prepare("update ".DB_PREFIX."_menu_links set linkpath=:path, linktext=:text, viewableby=:view, class=:class, styleid=:sid where id=:id");
 			$id = true;
 		}
 		foreach($this->data as $key=>$item){
@@ -129,7 +129,7 @@ class Menu{
 //	}
 */
 	public function getMenuName($mid){
-		$query = $this->dbh->prepare("select name from ".DB_PREFIX."_menus where `mid`=:mid");
+		$query = $this->dbh->prepare("select name from ".DB_PREFIX."_menus where mid=:mid");
 		$query->bindParam(':mid',$mid);
 		$query->execute(array(':mid'=>$mid));
 		$name = $query->fetch(PDO::FETCH_ASSOC);

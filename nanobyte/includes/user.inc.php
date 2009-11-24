@@ -114,7 +114,7 @@ class User extends Core{
 		if($this->pwchanged){
 			$this->password = $this->GetPassword($this->name, $this->pwchanged);
 		}
-		$sql = $this->dbh->prepare("update ".DB_PREFIX."_user set `password`=:pass, `email`=:e where `uid`=:uid");
+		$sql = $this->dbh->prepare("update ".DB_PREFIX."_user set password=:pass, email=:e where uid=:uid");
 		$sql->execute(array(':pass'=>$this->password,':e'=>$this->email,':uid'=>$this->uid));
 		if ($sql->rowCount() == 1){
 			return true;
@@ -145,7 +145,7 @@ class User extends Core{
 			}
 		}else{
 			$insert = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user (username, password, email, joined) VALUES (:u, :p, :e, :t)");	
-//			$profileq = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name");
+//			$profileq = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE username=:name");
 			try{
 				$insert->execute(array(':u'=>$array['name'],':p'=>$pw,':e'=>$array['email'],':t'=>time()));
 				if($insert->rowCount()==1){
@@ -207,7 +207,7 @@ class User extends Core{
 	 * @return void
 	 */
 	public function getAccessTime($id=0){
-		$query = $this->dbh->prepare("SELECT online FROM ".DB_PREFIX."_user where `uid`=:uid");
+		$query = $this->dbh->prepare("SELECT online FROM ".DB_PREFIX."_user where uid=:uid");
 		$query->execute(array(':uid'=>$id));
 		$row = $query->fetch(PDO::FETCH_ASSOC);
 		$this->access_time = $row['online'];
@@ -232,14 +232,14 @@ class User extends Core{
 	 */
 	public function login($username, $pass){
 		$pass = $this->GetPassword($username,$pass);
-		$result = $this->dbh->prepare("SELECT uid, password FROM ".DB_PREFIX."_user WHERE `username`=:u");
+		$result = $this->dbh->prepare("SELECT uid, password FROM ".DB_PREFIX."_user WHERE username=:u");
 		$result->execute(array(':u'=>$username));
 		$row = $result->fetch(PDO::FETCH_ASSOC);
 		if ($pass == $row['password']){
 			$user = new self($row['uid']);
 			$_SESSION['user'] = $user->uid;
 			$_SESSION['hash'] = $user->SessionHash();
-			$logintime = $this->dbh->prepare("update ".DB_PREFIX."_user set `lastlogin`=:login where `uid`=:uid");
+			$logintime = $this->dbh->prepare("update ".DB_PREFIX."_user set lastlogin=:login where uid=:uid");
 			$logintime->execute(array(':login'=>time(),':uid'=>$user->uid));
 			$this->success=true;
 			return true;
@@ -312,7 +312,7 @@ class User extends Core{
 	 * @return void
 	 */
 	public function setAccessTime(){
-		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user set `online`=:time where `uid`=:uid");
+		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user set online=:time where uid=:uid");
 		$query->execute(array(':time'=>time(),':uid'=>$this->uid));		
 	}
 	

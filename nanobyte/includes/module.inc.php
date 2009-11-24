@@ -28,9 +28,9 @@ class Module{
 		$this->dbh = DBCreator::GetDbObject();
 		if(isset($path)){
 			//set up some generic queries
-			$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE `module`=:mod";
+			$this->select = "SELECT * FROM ".DB_PREFIX."_modules WHERE module=:mod";
 			$this->insert = "INSERT INTO ".DB_PREFIX."_modules (name, module, status) values (:name, :mod, :status)";
-			$this->modify = "UPDATE ".DB_PREFIX."_modules set `status`=status XOR 1 WHERE `module`=:mod";
+			$this->modify = "UPDATE ".DB_PREFIX."_modules set status=status XOR 1 WHERE module=:mod";
 			$this->name = str_replace('modules/', '', $path);
 			$this->modpath = './modules/'.$this->name.'/';
 			if (file_exists($this->modpath.$this->name.'.xml')){
@@ -98,7 +98,7 @@ class Module{
 	}
 	
 	public function getStatus(){
-		$qSelect = $this->dbh->prepare("SELECT `status` FROM ".DB_PREFIX."_modules WHERE `module`=:mod");
+		$qSelect = $this->dbh->prepare("SELECT status FROM ".DB_PREFIX."_modules WHERE module=:mod");
 		$qSelect->bindParam(':mod',$this->modpath);
 		$qSelect->execute();
 		if($qSelect->rowCount() == 1){
@@ -113,13 +113,13 @@ class Module{
 	public static function getEnabled($type){
 		$dbh = DBCreator::GetDbObject();
 		$sort = $type =='block' ? "ORDER BY position DESC" : "";
-		$qSelect = $dbh->prepare("SELECT name FROM ".DB_PREFIX."_{$type}s WHERE `status`=1 {$sort}");
+		$qSelect = $dbh->prepare("SELECT name FROM ".DB_PREFIX."_{$type}s WHERE status=1 {$sort}");
 		$qSelect->execute();
 		return $qSelect->fetchAll(PDO::FETCH_ASSOC);
 	} 
 	
 	public static function getBlocks($enabled=null){
-		$where = $enabled ? "WHERE `status`=1" : "";
+		$where = $enabled ? "WHERE status=1" : "";
 		$dbh = DBCreator::GetDbObject();
 		$qSelect = $dbh->prepare("SELECT * FROM ".DB_PREFIX."_blocks $where ORDER BY position, weight ASC");
 		$qSelect->execute();
@@ -148,7 +148,7 @@ class Module{
 		$qselect->execute();
 		if($qselect->rowCount() == 0){
 			try{
-				$qInsert = $dbh->prepare("INSERT INTO ".DB_PREFIX."_blocks (`name`, `providedby`, `position`, `status`, `options`) values (:name, :mod, :pos, :stat, :opt)");
+				$qInsert = $dbh->prepare("INSERT INTO ".DB_PREFIX."_blocks (name, providedby, position, status, options) values (:name, :mod, :pos, :stat, :opt)");
 				$qInsert->bindParam(':name', $params['name']);
 				$qInsert->bindParam(':mod', $params['module']);
 				$qInsert->bindValue(':pos', 0);
@@ -162,7 +162,7 @@ class Module{
 	}
 
 	public function updateBlockStatus($id){
-		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_blocks set `status`=status XOR 1 WHERE id=:id");
+		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_blocks set status=status XOR 1 WHERE id=:id");
 		$query->execute(array(':id'=>$id));
 		if($query->rowCount()==1){
 			return true;

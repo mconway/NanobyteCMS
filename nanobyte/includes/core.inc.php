@@ -135,7 +135,7 @@
 	
 	public function checkAlias($alias){
 		$dbh = DBCreator::GetDBObject();
-		$query = $dbh->prepare("SELECT `path` FROM ".DB_PREFIX."_url_alias WHERE `alias`=?");
+		$query = $dbh->prepare("SELECT path FROM ".DB_PREFIX."_url_alias WHERE alias=?");
 		$query->execute(array(0=>$alias));
 		$result = $query->fetch();
 		if ($query->rowCount() == 1){
