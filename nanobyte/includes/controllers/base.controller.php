@@ -184,10 +184,17 @@ class BaseController{
 			}
 		}
 		
+		if(isset($element_array['rules'])){
+			foreach($element_array['rules'] as $rule){
+				$form->addRule($rule[0], $rule[1]);
+			}
+		}
+		
 		if(isset($_POST['submit'])&&$form->validate()){
 			if(isset($element_array['callback'])){
-				$form->process($element_array['callback']);
-				return true;
+				if($form->process($element_array['callback'])==true){
+					return true;
+				}
 			}
 		}
 

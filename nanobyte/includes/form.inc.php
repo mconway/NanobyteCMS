@@ -18,6 +18,7 @@
 		public $defaults = array();
 		private $filters = array();
 		private $rules = array();
+		private $errors;
 		
 		public function __construct($form_params){
 			$this->name = $form_params['name'];
@@ -53,14 +54,12 @@
 			//var_dump($this->filters);
 		}
 		
-		public function addFilter($element,$rule){
-			$this->rules[$element] = $rule;
-			
+		public function addRule($rule,$element){
+			$this->rules[$rule][] = $element;
 		}
 		
 		public function applyFilters(){
 			foreach($this->filters as $element=>$filter){
-				//var_dump($filter);
 				if($element=="__ALL__"){
 					foreach($_POST as $k=>$e){
 						$_POST[$k] = $filter($e);
@@ -72,9 +71,18 @@
 		}
 		
 		public function applyRules(){
-			foreach($this->rules as $element=>$rule){
-				$_POST[$element] = $rule($_POST[$element]);
+			$tmp = true;
+			foreach($this->rules as $rule=>$elements){
+				if(!is_array($rule)){
+					$rule = array($this,$rule);
+				}
+				foreach($elements as $element){
+					if(call_user_func($rule,$element)==false){
+						return false;
+					}
+				}
 			}
+			return $tmp;
 		}
 		
 		public function exportValues(){
@@ -94,11 +102,23 @@
 		}
 		
 		public function validate(){
+			var_dump($this->rules);
 			$this->applyFilters();
-			foreach($this->rules as $rule){
-				
+			return $this->applyRules();
+		}
+
+		//RULES
+		private function required($element){
+			//$Core = BaseController::getCore();
+			if(empty($_POST['element'])){
+			//	$Core->setMessage("Error");
+				return false;
 			}
 			return true;
+		}
+
+		private function match($element){
+			
 		}
 
 	}

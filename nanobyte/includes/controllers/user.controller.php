@@ -385,15 +385,18 @@ class UserController extends BaseController{
 			array('type'=>'text', 'name'=>'cemail','label'=> 'Confirm Email', 'options'=>array('size'=>25, 'maxlength'=>50)),
 			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save Changes')
 		);
+		
+		$element_array['rules'] = array(
+			array('required','name'),
+			array('required','email'),
+			array('required','cemail'),
+			array('required','password'),
+			array('required','confirm')
+		);
 		//apply form prefilters
 //		$form->applyFilter('__ALL__', 'trim');
 //		$form->applyFilter('__ALL__', 'strip_tags');
 		//add form rules
-//		$form->addRule('name', 'A username is required.', 'required');
-//		$form->addRule('email', 'A valid Email address is required.', 'required');
-//		$form->addRule('cemail', 'Please confirm your email address.', 'required');
-//		$form->addRule('password', 'A password is required.', 'required');
-//		$form->addRule('confirm', 'Please confirm your password', 'required');
 //		$form->addRule('email', 'Please enter a valid email address', 'email', true);
 //		$form->addRule(array('password','confirm'),'The passwords you have entered do not match','compare');
 //		$form->addRule(array('email','cemail'),'The emails you have entered do not match','compare');
