@@ -198,8 +198,6 @@ class BaseController{
 			}
 		}
 
-//		var_dump($element_array);
-
 		return $form;
 	}
 	

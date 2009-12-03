@@ -102,23 +102,32 @@
 		}
 		
 		public function validate(){
-			var_dump($this->rules);
 			$this->applyFilters();
 			return $this->applyRules();
 		}
 
 		//RULES
 		private function required($element){
-			//$Core = BaseController::getCore();
-			if(empty($_POST['element'])){
-			//	$Core->setMessage("Error");
+			$Core = BaseController::getCore();
+			if(empty($_POST[$element])){
+				$Core->setMessage(ucfirst($element) . " is required","error");
 				return false;
 			}
 			return true;
 		}
 
-		private function match($element){
-			
+		private function match($elements){
+			if(is_array($elements)){
+				$Core = BaseController::getCore();
+				$comp = array_shift($elements);
+				foreach($elements as $e){
+					if($_POST[$comp] != $_POST[$e]){
+						$Core->setMessage("The " . $comp . " does not match the confirmation " . $comp,"error");
+						return false;
+					}
+				}
+			}
+			return true;
 		}
 
 	}

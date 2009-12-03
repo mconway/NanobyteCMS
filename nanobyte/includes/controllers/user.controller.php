@@ -391,7 +391,9 @@ class UserController extends BaseController{
 			array('required','email'),
 			array('required','cemail'),
 			array('required','password'),
-			array('required','confirm')
+			array('required','confirm'),
+			array('match',array('password','confirm')),
+			array('match',array('email','cemail'))
 		);
 		//apply form prefilters
 //		$form->applyFilter('__ALL__', 'trim');
@@ -417,12 +419,14 @@ class UserController extends BaseController{
 	
 	public static function register(){
 		$Core = BaseController::getCore();
-		if(isset($_POST['submit'])){
+		$form = self::RegForm();
+		if(isset($_POST['submit']) && is_bool($form)){
 			$Core->json_obj->callback = 'nanobyte.closeParentTab';
 			$Core->json_obj->args = 'input[name=submit][value=Save Changes]';
+		}else{
+			$Core->smarty->assign('form',$form);
+			$content = $Core->smarty->fetch('form.tpl');
 		}
-		$Core->smarty->assign('form',self::RegForm($Core));
-		$content = $Core->smarty->fetch('form.tpl');
 	}
 	
 	public static function reset_pw(){
