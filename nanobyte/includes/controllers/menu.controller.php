@@ -138,7 +138,10 @@ class MenuController extends BaseController{
 		foreach ($premenu->menu as $preitem){
 			if(strpos($preitem->viewableby,$permission)!==false){
 				$options = array('id'=>$preitem->styleid,'class'=>$preitem->class);
-				array_push($menu,Core::l($preitem->linktext,$preitem->linkpath,$options));
+				if(file_exists(THEME_PATH."/images/".strtolower($preitem->linktext)."-menu.png")){
+					$options['image'] = 'menu';
+				}
+				array_push($menu,Core::l(strtolower($preitem->linktext),$preitem->linkpath,$options));
 			}
 		}
 		return $menu;

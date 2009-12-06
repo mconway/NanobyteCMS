@@ -358,7 +358,7 @@ class BaseController{
 		return $output;
 	}
 
-	public static function redirect($page=null,$ajax=false){
+	public static function redirect($page=null){
 		$Core = self::$Core;
 		if ($page && !$Core->ajax){ 
 			header("location: " . $Core->url($page), true, 303);
@@ -367,7 +367,7 @@ class BaseController{
 			$Core->json_obj->callback = 'nanobyte.redirect';
 			$Core->json_obj->args = $Core->Url($page);
 			return;
-		}elseif(!isset($page) && !$ajax){
+		}elseif(!isset($page) && !$Core->ajax){
 			header("location: ".$_SERVER['HTTP_REFERER'], true, 303); 
 		}elseif(!isset($page) && $Core->ajax){
 //			header("location: ".$_SERVER['HTTP_REFERER'].'/ajax', true, 303); 

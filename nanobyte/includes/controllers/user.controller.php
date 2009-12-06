@@ -321,7 +321,8 @@ class UserController extends BaseController{
 		$Core->user->Login($_POST['user'], $_POST['pass']);
 		if($Core->user->success===true){
 			$Core->setMessage('Authentication Successful!','info');
-			$Core->json_obj->callback = 'reload';
+			//$Core->json_obj->callback = 'reload';
+			parent::Redirect();
 		}else{
 			$Core->json_obj->callback = 'reset';
 			$Core->setMessage('Username or Password is incorrect','error');

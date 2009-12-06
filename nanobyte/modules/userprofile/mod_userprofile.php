@@ -64,7 +64,7 @@
 				switch($Core->args[2]){
 					case 'about':
 						$vars = $this->showProfile();
-						$content = "<h3>About Me:</h3><br />".$vars['about'];
+						$content = "<h3>About Me:</h3>".$vars['about'];
 						break;							
 					case 'edit':
 						$form_vals = $this->edit();
