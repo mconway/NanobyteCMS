@@ -14,13 +14,13 @@
     	
 		public function __construct(){
 			$this->requirements = array(
-				array(
-					'name'=>'HTML_Quickform',
-					'type'=>'pear',
-					'path'=>'HTML/QuickForm.php',
-					'provider'=>'PEAR',
-					'perms'=>'N/A'
-				),
+//				array(
+//					'name'=>'HTML_Quickform',
+//					'type'=>'pear',
+//					'path'=>'HTML/QuickForm.php',
+//					'provider'=>'PEAR',
+//					'perms'=>'N/A'
+//				),
 				array(
 					'name'=>'Write Permissions for Config file',
 					'type'=>'fileperm',

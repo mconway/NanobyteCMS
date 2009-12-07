@@ -4,6 +4,6 @@
 }
 #usersonline li{
 	list-style: none;
-	background:transparent url(../../templates/Nanobyte/images/online.png) no-repeat scroll 0 50%;
+	background:transparent url(templates/online.png) no-repeat scroll 0 50%;
 	padding-left: 15px;
 }

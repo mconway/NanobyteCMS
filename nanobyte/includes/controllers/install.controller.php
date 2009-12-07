@@ -29,10 +29,8 @@
 				}
 				';
 		
-		public static function Display(){
+		public static function display(){
 			$Core = parent::getCore();
-			
-
 			
 			$Install = new Install();
 			if(isset($Core->args[0])){
@@ -48,7 +46,7 @@
 			$Core->smarty->assign(array(
 				'extraScript'=>self::SCRIPT,
 				'content'=>$content,
-				//We need to create an empty block. instead of the riggamaroll of trying to add it to a the database, 
+				//We need to create an empty block. instead of the riggamaroll of trying to add it to the database, 
 				//and use module controller, we are going to force it manually.
 				'blocks'=> array('rightsidebar'=>$Core->smarty->fetch('block.tpl'))
 			));
