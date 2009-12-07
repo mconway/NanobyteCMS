@@ -480,8 +480,6 @@ class ContentController extends BaseController{
 		
 		$element_array['callback'] = array('ContentController','Save');
 		//apply form prefilters
-//		$form->applyFilter('__ALL__', 'trim');
-		//$form->applyFilter('__ALL__', 'nl2br');
 
 		//add form rules
 //		$form->addRule('title', 'A Title is required.', 'required');

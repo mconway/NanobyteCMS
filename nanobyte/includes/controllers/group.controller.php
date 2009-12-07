@@ -37,11 +37,15 @@
 			);
 			
 			//apply form prefilters
-			//$form->applyFilter('__ALL__', 'trim');
-			//$form->applyFilter('__ALL__', 'strip_tags');
+			$element_array['filters'] = array(
+				array("__ALL__","trim"),
+				array("__ALL__","strip_tags")
+			);
 			
 			// Add required Fields
-			//$form->addRule('name', 'A Group Name is required.', 'required');
+			$element_array['rules'] = array(
+				array("name","required")
+			);
 			
 			//If the form has already been submitted - validate the data
 			$element_array['callback'] = array(new Perms(),'addGroup');

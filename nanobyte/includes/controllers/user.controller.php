@@ -214,13 +214,20 @@ class UserController extends BaseController{
 			
 			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save Changes')
 		);
-		//apply form prefilters
-		//$form->applyFilter('__ALL__', 'trim');
-		//$form->applyFilter('__ALL__', 'strip_tags');
+		
 		//add form rules
-//		$form->addRule('email', 'Please enter a valid email address', 'required');
-//		$form->addRule('email', 'Please enter a valid email', 'email', true);
-//		$form->addRule(array('password','confirm'),'The passwords you have entered do not match','compare');
+		$element_array['rules'] = array(
+			array('required','email'),
+			array('required','password'),
+			array('required','confirm'),
+			array('match',array('password','confirm'))
+		);
+		
+		//apply form prefilters
+		$element_array['filters'] = array(
+			array("__ALL__","trim"),
+			array("__ALL__","strip_tags")
+		);
 		
 		$element_array['callback'] = array($edituser,'commit');
 		
@@ -387,6 +394,7 @@ class UserController extends BaseController{
 			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save Changes')
 		);
 		
+		//add form rules
 		$element_array['rules'] = array(
 			array('required','name'),
 			array('required','email'),
@@ -396,13 +404,13 @@ class UserController extends BaseController{
 			array('match',array('password','confirm')),
 			array('match',array('email','cemail'))
 		);
+		
 		//apply form prefilters
-//		$form->applyFilter('__ALL__', 'trim');
-//		$form->applyFilter('__ALL__', 'strip_tags');
-		//add form rules
-//		$form->addRule('email', 'Please enter a valid email address', 'email', true);
-//		$form->addRule(array('password','confirm'),'The passwords you have entered do not match','compare');
-//		$form->addRule(array('email','cemail'),'The emails you have entered do not match','compare');
+		$element_array['filters'] = array(
+			array("__ALL__","trim"),
+			array("__ALL__","strip_tags")
+		);
+
 		//If the form has already been submitted - validate the data
 		
 		$element_array['callback'] = array(new User(),'create');
