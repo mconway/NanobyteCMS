@@ -146,17 +146,19 @@ class UrlAliasController extends BaseController{
 			array('type'=>'hidden', 'name'=>'alias_id', 'label'=>'', 'options'=>array('size'=>62, 'maxlength'=>80)),
 			array('type'=>'submit','name'=>'submit','value'=>'Submit')
 		);
-		//apply form prefilters
-//		$form->applyFilter('__ALL__', 'trim');
-//		$form->applyFilter('__ALL__', 'strip_tags');
 		//add form rules
-//		$form->addRule('alias', 'A valid alias is required.', 'required');
-//		$form->addRule('realpath', 'A valid path is required.', 'required');
+		$element_array['rules'] = array(
+			array('required','alias'),
+			array('required','path')
+		);
+		
+		//apply form prefilters
+		$element_array['filters'] = array(
+			array("__ALL__","trim"),
+			array("__ALL__","strip_tags")
+		);
 		$element_array['callback'] = array('UrlAliasController','Save');
-//		if(isset($_POST['submit']) && $form->validate()){
-//			$form->process(array('UrlAliasController','Save'));
-//			return;
-//		}
+
 		return parent::generateForm($element_array);
 	}
 

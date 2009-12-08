@@ -78,12 +78,6 @@ $Core->smarty->assign(array(
 //}
 if(!CMS_INSTALLED){
 	array_shift($Core->args); 
-
-	//Determine if we are using AJAX, then remove it from the array and resort it
-	if($Core->ajax==true){
-		unset($Core->args[array_search('ajax',$Core->args)]);
-		$Core->args = array_values($Core->args);
-	}
 	$class = 'InstallController';
 	call_user_func(array($class,'Display'));
 }else{

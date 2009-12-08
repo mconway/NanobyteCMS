@@ -111,7 +111,7 @@ EOF;
 			$Core = parent::getCore();
 			$Core->smarty->assign('self',"Step 2 - Database Settings");
 			
-			AdminController::ShowConfig('install/step3');
+			$Core->smarty->assign(AdminController::ShowConfig('install/step3'));
 
 			$content = $Core->smarty->fetch('form.tpl');
 			

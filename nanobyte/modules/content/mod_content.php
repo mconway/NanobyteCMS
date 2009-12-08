@@ -482,14 +482,13 @@ class ContentController extends BaseController{
 		//apply form prefilters
 
 		//add form rules
-//		$form->addRule('title', 'A Title is required.', 'required');
-//		$form->addRule('body', 'Body text is required.', 'required');
+		$element_array['rules'] = array(
+			array('required','title'),
+			array('required','body')
+		);
+		
 		//If the form has already been submitted - validate the data
-//		if(isset($_POST['submit']) && $form->validate()){
-//			$form->process(array('ContentController','Save'));
-////				BaseController::Redirect('admin/content');
-////				exit;
-//		}
+
 		//send the form to smarty
 		return array(
 			'form'=>self::generateForm($element_array),
