@@ -64,6 +64,7 @@ BaseController::getThemeIncludes();
 
 //Assign Global Site Variables to Smarty
 $Core->smarty->assign(array(
+	'siteurl'=>$Core->url(),
 	'sitename'=>SITE_NAME,
 	'logo'=>SITE_LOGO,
 	'feedurl'=>$Core->url('rss'),
