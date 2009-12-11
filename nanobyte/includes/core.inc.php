@@ -199,9 +199,6 @@
 	}
 
 	public function isEnabled($module){
-		if(!is_array($this->mods_enabled)){
-			var_dump($this->mods_enabled, $module);
-		}
 		if(array_key_exists(strtolower($module), $this->mods_enabled)){
 			return true;
 		}

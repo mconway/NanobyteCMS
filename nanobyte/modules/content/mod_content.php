@@ -24,15 +24,20 @@ class Mod_Content{
 	public function __construct($id=null){
 		$this->dbh = DBCreator::GetDbObject();
 		$this->types = array();
+		$Core = BaseController::getCore();
 		if($id){
 			$result = $this->dbh->prepare("SELECT pid, title, body, images, created, author, published, modified,type FROM ".DB_PREFIX."_content WHERE pid=:id");
 			try{
 				$result->execute(array(':id'=>$id));
 				$row = $result->fetch();
 				list($this->pid,$this->title,$this->body,$this->images,$this->created,$this->author,$this->published,$this->modified,$this->type) = $row;
-//				$this->comments = new ModComments($this->pid);
+				if($Core->isEnabled('Comments')){
+					$this->comments = new Mod_Comments($this->pid);
+					$Core = BaseController::getCore();
+				}
 			}catch(PDOException $e){
-				Core::SetMessage($e->getMessage(), 'error');
+				$Core = BaseController::getCore();
+				$Core->SetMessage($e->getMessage(), 'error');
 			}
 		}
 	}
@@ -346,7 +351,7 @@ class ContentController extends BaseController{
 		}elseif($Core->args[1]=='comments'){
 			switch($Core->args[2]){
 				case 'add':
-					self::CommentsForm($Core->args[0]);
+					CommentsController::CommentsForm($Core->args[0]);
 					$Core->smarty->fetch('form.tpl');
 					break;
 				case 'view':
@@ -378,7 +383,9 @@ class ContentController extends BaseController{
 		if(!empty($content->items['content'])){
 			foreach ($content->items['content'] as $p){
 				$post = new Mod_Content($p['pid']);
-	//			$num = count($post->comments->all);
+				if(isset($post->comments)){
+					$num = count($post->comments->all);
+				}
 				if(!empty($post->images)){
 					$images = explode(';',$post->images);
 					array_walk($images,array('BaseController','split'),'|');
@@ -390,7 +397,7 @@ class ContentController extends BaseController{
 					'images'=>isset($images) ? $images : null,
 					'created'=>date('M jS',$post->created),
 					'author'=>$post->author,
-	//				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
+					'numcomments'=>isset($num) ? ($num != 1 ? $num.' comments' : $num.' comment') : null
 				));
 				unset($images);
 			}
@@ -401,7 +408,6 @@ class ContentController extends BaseController{
 				'body'=>'There is currently no published content to display.', 
 				'created'=>date('M jS'),
 				'author'=>'System',
-//				'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
 			));
 		}
 		//$smarty->assign('pager',BaseController::Paginate($posts['limit'], $posts['nbItems'], '', $page));
@@ -666,10 +672,12 @@ class ContentController extends BaseController{
 	 * @param object $pid
 	 */
 	public static function view($pid){
-		global $Core;
+		$Core = BaseController::getCore();
 		$post = self::GetContent($pid);
-//		$num = count($post->comments->all);
-//		$comments = array();
+		if(isset($post->comments)){
+			$num = count($post->comments->all);
+		}
+		$comments = array();
 		if(!empty($post->images)){
 			$images = explode(';',$post->images);
 			array_walk($images,array('BaseController','split'),'|');
@@ -681,16 +689,16 @@ class ContentController extends BaseController{
 			'images'=>isset($images) ? $images : null,
 			'created'=>date('M jS',$post->created),
 			'author'=>$post->author,
-//			'numcomments'=>$num != 1 ? $num.' comments' : $num.' comment'
+			'numcomments'=>isset($num) ? ($num != 1 ? $num.' comments' : $num.' comment') : null
 		);
-//		foreach($post->comments->all as $comment){
-//			$smarty->assign('post',$comment);
-//			array_push($comments,$smarty->fetch('post.tpl'));
-//		}
-////		CommentsController::CommentsForm($pid);
-//		array_push($comments,$smarty->fetch('form.tpl'));
+		foreach($post->comments->all as $comment){
+			$Core->smarty->assign('post',$comment);
+			array_push($comments,$Core->smarty->fetch('post.tpl'));
+		}
+		CommentsController::CommentsForm($pid);
+		array_push($comments,$Core->smarty->fetch('form.tpl'));
 		$Core->smarty->assign('post', $data);
-//		$smarty->assign('comments', $comments);
+		$Core->smarty->assign('comments', $comments);
 	}
 
 }
