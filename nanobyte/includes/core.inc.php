@@ -280,7 +280,7 @@
 	
  	public function url($path){
  		if (CLEANURL){
- 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;;
+ 			return PATH != '' ? SITE_DOMAIN.'/'.PATH.$path : SITE_DOMAIN.'/'.$path;
  		}else{
  			//$url = explode('/',$path);
  			//$script = array_shift($url);

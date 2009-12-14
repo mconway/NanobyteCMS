@@ -390,16 +390,17 @@ class ContentController extends BaseController{
 					$images = explode(';',$post->images);
 					array_walk($images,array('BaseController','split'),'|');
 				}
+				$tmp_user = new User($post->author);
 				array_push($theList, array( 
 					'url'=>'content/'.$post->pid, 
 					'title'=>$post->title, 
 					'body'=>$post->body, 
 					'images'=>isset($images) ? $images : null,
 					'created'=>date('M jS',$post->created),
-					'author'=>$post->author,
+					'author'=>$tmp_user->name,
 					'numcomments'=>isset($num) ? ($num != 1 ? $num.' comments' : $num.' comment') : null
 				));
-				unset($images);
+				unset($images,$tmp_user);
 			}
 		}else{
 			array_push($theList, array( 
@@ -476,7 +477,7 @@ class ContentController extends BaseController{
 			array('type'=>'checkbox','name'=>'published','label'=>'Publish','group'=>'2'),
 			
 			array('type'=>'hidden','name'=>'pid'),
-			array('type'=>'hidden','name'=>'author', 'value'=>$Core->user->name),
+			array('type'=>'hidden','name'=>'author', 'value'=>$Core->user->uid),
 			array('type'=>'hidden','name'=>'created','value'=>time()),
 					
 			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save')
@@ -677,28 +678,27 @@ class ContentController extends BaseController{
 		if(isset($post->comments)){
 			$num = count($post->comments->all);
 		}
-		$comments = array();
+
 		if(!empty($post->images)){
 			$images = explode(';',$post->images);
 			array_walk($images,array('BaseController','split'),'|');
 		}
+		$tmp_user = new User($post->author);
 		$data = array( 
 			'url'=>'content/'.$post->pid, 
 			'title'=>$post->title, 
 			'body'=>$post->body,
 			'images'=>isset($images) ? $images : null,
 			'created'=>date('M jS',$post->created),
-			'author'=>$post->author,
+			'author'=>$tmp_user->name,
 			'numcomments'=>isset($num) ? ($num != 1 ? $num.' comments' : $num.' comment') : null
 		);
-		foreach($post->comments->all as $comment){
-			$Core->smarty->assign('post',$comment);
-			array_push($comments,$Core->smarty->fetch('post.tpl'));
-		}
-		CommentsController::CommentsForm($pid);
-		array_push($comments,$Core->smarty->fetch('form.tpl'));
 		$Core->smarty->assign('post', $data);
-		$Core->smarty->assign('comments', $comments);
+		if($Core->isEnabled('Comments')){
+			CommentsController::showComments($post->comments,$post->pid);
+		}
+		
+		unset($tmp_user);
 	}
 
 }

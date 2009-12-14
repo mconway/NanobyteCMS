@@ -17,7 +17,7 @@ class Mod_Comments{
 	public function __construct($pid=null){
 		$this->dbh = DBCreator::GetDBObject();
 		if (isset($pid)){
-			$query = $this->dbh->prepare("SELECT comment.cid, comment.title, comment.body, user.username, comment.date FROM ".DB_PREFIX."_comments AS comment LEFT JOIN ".DB_PREFIX."_user AS user ON comment.author=user.uid WHERE comment.pid=:pid");
+			$query = $this->dbh->prepare("SELECT pid, title, body, username, created FROM ".DB_PREFIX."_content LEFT JOIN ".DB_PREFIX."_user AS user ON author=uid LEFT JOIN ".DB_PREFIX."_content_types ON type=id WHERE parent=:pid");
 			$query->execute(array(':pid'=>$pid));
 			$this->all = $query->fetchAll(PDO::FETCH_ASSOC);
 		}
@@ -25,7 +25,7 @@ class Mod_Comments{
 	
 	public function read($limit=15,$start=0){ //Replaces GetPostLst
 		$Core = BaseController::getCore();
-		$result = $this->dbh->prepare("SELECT SQL_CALC_FOUND_ROWS * FROM ".DB_PREFIX."_comments ORDER BY date DESC LIMIT {$start},{$limit}");
+		$result = $this->dbh->prepare("SELECT SQL_CALC_FOUND_ROWS * FROM ".DB_PREFIX."_content LEFT JOIN ".DB_PREFIX."_content_types ON type=id WHERE name = 'Comments' ORDER BY created DESC LIMIT {$start},{$limit}");
 		//get the row count
 		$cRows = $this->dbh->prepare('SELECT found_rows() AS rows');
 		try{
@@ -46,7 +46,7 @@ class Mod_Comments{
 	
 	public function commit($params){
 		$Core= BaseController::getCore();
-		$sql = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_comments set `pid`=:p, `title`=:t, `body`=:b, `author`=:a, `date`=:d");
+		$sql = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_content SET title=:t, body=:b, author=:a, created=:d, parent=:p, type=(SELECT id FROM ".DB_PREFIX."_content_types WHERE name = 'Comments')");
 		$sql->execute(array(
 			':t'=> $params['title'],
 			':b'=> $params['body'],
@@ -55,11 +55,14 @@ class Mod_Comments{
 			':d'=> time()
 		));
 		if ($sql->rowCount() == 1){
+			$Core->json_obj->callback = 'nanobyte.redirect';
+			$Core->json_obj->args = $Core->url('content/'.$params['pid']);
 			return true;
 		}else{
 			return false;
 		}
 	}
+
 }
  
 class CommentsController extends BaseController{
@@ -102,7 +105,7 @@ class CommentsController extends BaseController{
 		$element_array['elements'] = array(
 			array('type'=>'header','name'=>'','label'=>'Post a new comment'),
 			array('type'=>'text', 'name'=>'title', 'label'=>'Title', array('size'=>80, 'maxlength'=>80)),
-			array('type'=>'textarea','name'=>'body','label'=>'Body','options'=>array('rows'=>20,'cols'=>60)),
+			array('type'=>'textarea','name'=>'body','label'=>'Body','options'=>array('rows'=>5,'cols'=>60)),
 			array('type'=>'hidden','name'=>'pid'),
 			array('type'=>'submit', 'name'=>'submit', 'value'=>'Save')
 		);
@@ -126,9 +129,24 @@ class CommentsController extends BaseController{
 //				exit;
 //		}
 		//send the form to smarty
-		$Core->smarty->assign('form', BaseController::generateForm($element_array)); 
+		$Core->smarty->assign(array(
+			'form'=>BaseController::generateForm($element_array),
+			'page'=>'comment'
+		)); 
 	}
 
+	public static function showComments(&$comments,$pid){
+		$Core = BaseController::getCore();
+		$tmp_array = array();
+		foreach($comments->all as $comment){
+			$comment['created'] = date('M jS',$comment['created']);
+			$Core->smarty->assign('comment',$comment);
+			array_push($tmp_array,$Core->smarty->fetch('comment.tpl'));
+		}
+		CommentsController::CommentsForm($pid);
+		array_push($tmp_array,$Core->smarty->fetch('form.tpl'));
+		$Core->smarty->assign('comments', $tmp_array);
+	}
 }
 
 ?>
