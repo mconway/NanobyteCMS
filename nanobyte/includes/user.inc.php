@@ -223,6 +223,14 @@ class User extends Core{
 		return sha1($pass . substr(str_rot13(strtolower($username)), 0, 3));
 	}
 
+	public static function getUserID($username){
+		$dbh = DBCreator::GetDBObject();
+		$query = $dbh->prepare("SELECT uid FROM ".DB_PREFIX."_user WHERE username=:un");
+		$query->execute(array(':un'=>$username));
+		$result = $query->fetch(PDO::FETCH_OBJ);
+		return $result->uid;
+	}
+
 	/**
 	 * Log a user in with a given username and password
 	 * Check the username and password given for login, and create a new user object with full information if successful

@@ -139,6 +139,10 @@ class CommentsController extends BaseController{
 		$Core = BaseController::getCore();
 		$tmp_array = array();
 		foreach($comments->all as $comment){
+			if($Core->isEnabled("userprofile")){
+				$userprof = new Mod_UserProfile(User::getUserID($comment['username']));
+				$comment['userimage'] = $userprof->avatar;
+			}
 			$comment['created'] = date('M jS',$comment['created']);
 			$Core->smarty->assign('comment',$comment);
 			array_push($tmp_array,$Core->smarty->fetch('comment.tpl'));

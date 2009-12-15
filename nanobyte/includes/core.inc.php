@@ -33,6 +33,7 @@
 			$this->EnabledMods();
 			$this->user = array_key_exists('user',$_SESSION) ? new User($_SESSION['user']) : new User(0);
 		}
+		
 		//Create the JSON Object
 		$this->json_obj = new Json();
 		//Create the Smary Object and set parameters
@@ -48,8 +49,6 @@
 			unset($this->args[array_search('ajax',$this->args)]);
 			$this->args = array_values($this->args);
 		}
-		
-		
 	}
 	
 	/**
