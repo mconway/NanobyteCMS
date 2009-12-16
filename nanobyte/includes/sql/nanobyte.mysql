@@ -26,10 +26,23 @@ CREATE TABLE IF NOT EXISTS `***DBPREFIX***_blocks` (
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
-
 INSERT INTO `***DBPREFIX***_blocks` (`id`, `name`, `providedby`, `position`, `weight`, `status`, `options`) VALUES
 (1, 'UsersOnline', 'Users', 'rightsidebar', 1, 1, ''),
 (2, 'Menu', 'Menu', 'rightsidebar', -10, 1, '');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_content` (
+  `pid` tinyint(4) NOT NULL auto_increment,
+  `title` varchar(64) NOT NULL,
+  `body` text NOT NULL,
+  `images` text,
+  `created` varchar(12) NOT NULL,
+  `modified` varchar(12) NOT NULL default '0',
+  `author` int(11) NOT NULL,
+  `published` tinyint(1) NOT NULL default '0',
+  `type` tinyint(2) NOT NULL,
+  `parent` int(11) default NULL,
+  PRIMARY KEY  (`pid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `***DBPREFIX***_content_types` (
   `id` int(11) NOT NULL auto_increment,
@@ -215,6 +228,15 @@ CREATE TABLE IF NOT EXISTS `***DBPREFIX***_user_profiles` (
   PRIMARY KEY  (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Constraints for table ``***DBPREFIX***_group_perms`
+--
 ALTER TABLE `***DBPREFIX***_group_perms`
   ADD CONSTRAINT `***DBPREFIX***_group_perms_ibfk_1` FOREIGN KEY (`perm_id`) REFERENCES `***DBPREFIX***_perms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `Group_ID` FOREIGN KEY (`group_id`) REFERENCES `***DBPREFIX***_groups` (`gid`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `cms_menu_links`
+--
+ALTER TABLE `***DBPREFIX***_menu_links`
+  ADD CONSTRAINT `Menu ID` FOREIGN KEY (`menu`) REFERENCES `***DBPREFIX***_menus` (`mid`) ON DELETE CASCADE ON UPDATE CASCADE;
