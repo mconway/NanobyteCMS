@@ -434,7 +434,7 @@ class UserController extends BaseController{
 			$Core->json_obj->args = 'input[name=submit][value=Save Changes]';
 		}else{
 			$Core->smarty->assign('form',$form);
-			$content = $Core->smarty->fetch('form.tpl');
+			return $Core->smarty->fetch('form.tpl');
 		}
 	}
 	
@@ -448,21 +448,27 @@ class UserController extends BaseController{
 	
 	public static function resetPassword(){
 		$Core = parent::getCore();
-		$user = $Core->user;
-		$form = new HTML_QuickForm('resetpw','post','user/reset_pw');
-		//create form elements
-		$form->addElement('header','','Request New Password');
-		$form->addElement('text', 'username', 'Username', array('size'=>25, 'maxlength'=>50));
-		$form->addElement('text', 'email', 'Email Address', array('size'=>25, 'maxlength'=>50));
-		$form->addElement('submit', 'submit', 'Submit');
-		if(array_key_exists('submit',$_POST) && $form->validate()){
-			$user->SetUsername($form->exportValue('username'));
-			$user->SetEmail($form->exportValue('email'));
-			if($user->ValidateEmail()){
-				$user->ResetPassword();
+		if(isset($_POST['submit'])){
+			$Core->user->SetUsername($form->exportValue('username'));
+			$Core->user->SetEmail($form->exportValue('email'));
+			if($Core->user->ValidateEmail()){
+				$Core->user->ResetPassword();
+				return true;
 			}
+			return false;
 		}
-		return $form->toArray();
+		$element_array = array('name'=>'resetpw','method'=>'post','action'=>'user/reset_pw');
+		//create form elements
+		$element_array['elements'] = array(
+			array('type'=>'header','name'=>'','label'=>'Request New Password'),
+			array('type'=>'text', 'name'=>'username', 'label'=>'Username', 'options'=>array('size'=>25, 'maxlength'=>50)),
+			array('type'=>'text', 'name'=>'email', 'label'=>'Email Address', 'options'=>array('size'=>25, 'maxlength'=>50)),
+			array('type'=>'submit', 'name'=>'submit', 'value'=>'Submit')
+		);
+		
+		$element_array['callback'] = array(self,'resetPassword');
+
+		return BaseController::generateForm($element_array);
 	}
 
 	public static function select(){

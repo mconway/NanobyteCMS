@@ -150,7 +150,6 @@ var nanobyte = {
 		$('#content').find('.tablesorter:first').find('tr:last').children('td').each(function(){
 			newRow += "<td class='"+$(this).attr('class')+"'></td>";
 		})
-//		console.log(newRow);
 		$('#content').find('.tablesorter:first').find('tr:last').after(newRow);
 	},
 	changeLink : function(args){
@@ -164,7 +163,6 @@ var nanobyte = {
 	ajaxcall : function(event){
 		var classes = event.currentTarget.className.split(' ');
 		var noloader = false;
-//		window.location.hash = $(this).attr('href').replace();
 		$(this).addClass('active').parent().siblings('li').children('.active').removeClass('active');
 		$.each(classes,function(i,v){
 			if(v=='noloader'){

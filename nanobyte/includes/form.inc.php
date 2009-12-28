@@ -91,7 +91,7 @@
 		
 		public function process($callback){
 			$this->applyFilters();
-			call_user_func($callback,$_POST);
+			call_user_func($callback,$this->exportValues());
 			return true;
 		}
 		

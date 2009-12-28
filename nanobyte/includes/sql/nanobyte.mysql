@@ -136,6 +136,7 @@ CREATE TABLE IF NOT EXISTS `***DBPREFIX***_modules` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 INSERT INTO `***DBPREFIX***_modules` (`name`, `module`, `status`) VALUES
+('content', './modules/content/', 1),
 ('menu', './modules/menu/', 1),
 ('users', './modules/users/', 1);
 

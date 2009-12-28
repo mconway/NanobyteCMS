@@ -236,7 +236,9 @@ class ContentController extends BaseController{
 		$contents->GetTypes();
 		$tabs = array();
 		foreach($contents->types as $key=>$tab){
-			array_push($tabs, $Core->l($tab,'admin/content/'.$key));
+			if(!empty($key)){
+				array_push($tabs, $Core->l($tab,'admin/content/'.$key));
+			}
 		}
 		if(isset($Core->args[1])){
 			if(is_numeric($Core->args[1])){

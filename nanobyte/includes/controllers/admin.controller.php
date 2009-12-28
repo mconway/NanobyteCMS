@@ -89,6 +89,7 @@ class AdminController extends BaseController{
 		$element_array = array('name'=>'settings','method'=>'post','action'=>$form_action);
 		
 		//set form defaults
+		if(is_object($Core)){
 		$element_array['defaults']=array(
 			'dbuser'=>$Core->DecodeConfParams(DB_USER),
 			'dbpass'=>$Core->DecodeConfParams(DB_PASS),
@@ -122,6 +123,7 @@ class AdminController extends BaseController{
 			'allowed_html_tags'=>ALLOWED_HTML_TAGS,
 			'cms_installed'=>CMS_INSTALLED
 		);
+		}
 		//create all of the form elements
 		$element_array['elements'] = array(	
 			array('type'=>'header','name'=>'','label'=>'Global Site Settings','group'=>'0'),
@@ -178,8 +180,9 @@ class AdminController extends BaseController{
 //		$form->applyFilter('__ALL__', 'strip_tags');
 
 		$form = self::generateForm($element_array);
+	//	$Core = parent::getCore();
 		if(is_bool($form)){
-			$Core->setMessage("Your settings were saved successfully!",'info');
+	//		$Core->setMessage("Your settings were saved successfully!",'info');
 			return $form;
 		}
 

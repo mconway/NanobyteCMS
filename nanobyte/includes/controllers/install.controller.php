@@ -56,8 +56,9 @@
 				parent::GetHTMLIncludes(); // Get CSS and Script Files
 				$Core->smarty->display('index.tpl'); // Display the Page
 			}else{
-				$Core->json_obj->content = $content;
+				$Core->json_obj->content = utf8_encode($content);
 				$Core->json_obj->messages = parent::displayMessages();
+				//var_dump($Core->json_obj);
 				print json_encode($Core->json_obj);
 			}
 		}
@@ -122,10 +123,12 @@ EOF;
 		}
 	
 		public static function step3(&$Install){
-			$Core = parent::getCore();
 			if(AdminController::ShowConfig('')!==true){ //save the posted data
+				$Core = parent::getCore();
 				$Core->setMessage("An error occurred saving your settings, please try again.","error");
 				return;
+			}else{
+				$Core = parent::getCore();
 			}
 			$content = "We will now create the database and required tables. Click the create database button to continue.<br /><form action='install/createDatabase'><input type='button' id='createdb' value='Create Database'/></form>";
 			
@@ -139,7 +142,8 @@ EOF;
 			$Core = parent::getCore();
 			
 			$ret_val = UserController::regForm('install/step4');
-			if(is_array($ret_val)){
+			if(is_object($ret_val)){
+				ModuleController::installModule(new Module('modules/content'));
 				$Core->json_obj->block_title = 'Step 4';
 				$Core->json_obj->block_body = 'Create admin user: Please enter credentials used by the site admin. This will be the first account created and will be granted FULL ACCESS to the site.';
 				$Core->smarty->assign('form',$ret_val);

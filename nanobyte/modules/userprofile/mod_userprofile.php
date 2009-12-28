@@ -31,7 +31,13 @@
 		public function commit(){
 			$Core = BaseController::getCore();
 			//better to make empty profile on user creation
-			$sql = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user_profiles SET avatar=:av, location=:loc, about=:about, facebook=:fb, twitter=:twit WHERE uid=:uid");
+			$query = $this->dbh->prepare("SELECT * FROM ".DB_PREFIX."_user_profiles WHERE uid=:uid");
+			$query->execute(array(':uid'=>$this->uid));
+			if($query->rowCount()==1){
+				$sql = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user_profiles SET avatar=:av, location=:loc, about=:about, facebook=:fb, twitter=:twit WHERE uid=:uid");
+			}else{
+				$sql = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_user_profiles (avatar,location,about,facebook,twitter,uid) VALUES (:av, :loc, :about, :fb, :twit, :uid)");
+			}
 			$sql->bindParam(':av', $this->avatar);
 			$sql->bindParam(':loc', $this->location);
 			$sql->bindParam(':about', $this->about);
@@ -41,7 +47,7 @@
 			try{
 				$sql->execute();
 				if ($sql->rowCount() == 1){
-//					$Core->SetMessage('Profile Updated!', 'info');
+					$Core->SetMessage('Profile Updated!', 'info');
 					return true;
 				}else{
 					return false;
@@ -64,7 +70,7 @@
 				switch($Core->args[2]){
 					case 'about':
 						$vars = $this->showProfile();
-						$content = "<h3>About Me:</h3>".$vars['about'];
+						$content = $vars['about'];
 						break;							
 					case 'edit':
 						$form_vals = $this->edit();
@@ -103,23 +109,24 @@
 				array('type'=>'textarea','name'=>'about','label'=>'About Me','options'=>array('rows'=>10,'cols'=>40,'id'=>'ckeditor')),
 				array('type'=>'submit','name'=>'submit','value'=>'Save Changes')
 			);
-			$element_array['callback'] = array(new self(),'Commit');
-//			if(isset($_POST['submit']) && $form->validate()){
-//				$values = $form->exportValues();
-//				$this->location = $values['location'];
-//				$this->about = strip_tags($values['about'],ALLOWED_HTML_TAGS);
-//				$this->facebook = $values['facebook'];
-//				$this->twitter = $values['twitter'];
-//				$this->commit();
-//				
-//				return;
-//			}
+			$element_array['callback'] = array($this,'saveData');
+
 			//send the form to smarty
 			return BaseController::generateForm($element_array);
 		}
 		
 		public function install(){
 			//this is the 'magic' query	"INSERT INTO ".DB_PREFIX."_user_profiles (uid) SELECT uid FROM ".DB_PREFIX."_user WHERE `username`=:name;";
+		}
+		
+		public function saveData($values){
+			$this->location = $values['location'];
+			$this->about = strip_tags($values['about'],ALLOWED_HTML_TAGS);
+			$this->facebook = $values['facebook'];
+			$this->twitter = $values['twitter'];
+			$this->commit();
+			
+			return;
 		}
 		
 		public function showProfile(){

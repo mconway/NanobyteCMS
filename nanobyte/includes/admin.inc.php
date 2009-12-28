@@ -36,7 +36,9 @@
 	
 	public static function writeConfig($params){
 		$cleanurl = $params['cleanurl'] ? 'true' : 'false';
-		$perms = new Perms($params['defaultgroup']);
+		if(CMS_INSTALLED == true){
+			$perms = new Perms($params['defaultgroup']);
+		}
 		$conf = <<<EOF
 <?php
 /*

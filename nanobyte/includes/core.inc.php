@@ -274,7 +274,7 @@
 		session_name("nanobytecms");
 		session_set_cookie_params(SESS_TTL);
 	    session_start();
-		set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
+		//set_include_path(get_include_path() . PATH_SEPARATOR . PEAR_PATH); 
 	}
 	
  	public function url($path){

@@ -88,7 +88,7 @@ EOF;
 	
 	public static function installModule(&$module){
 		$Core = parent::getCore();
-		require_once($module->modpath."Mod_".$module->name.'.php');
+		require_once($module->modpath."mod_".$module->name.'.php');
 		$mod_class = 'Mod_'.$module->name;
 		$m = new $mod_class();
 		$m->install();
