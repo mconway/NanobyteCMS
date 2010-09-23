@@ -1,0 +1,11 @@
+<theme author="Mike Conway" url="http://www.nanobytecms.com" email="mike.conway@nanobytecms.com" version="1.0">
+	<!-- Include CSS Files -->
+	<css>/css/style.css</css>
+	<css>/css/thickbox.css</css>
+	<css>/css/cupertino/jquery-ui.css</css>
+	<!-- Include JS Files -->
+	<javascript>/js/thickbox.js</javascript>
+	<javascript>/js/index.js</javascript>
+	<!--Custom PHP Functions -->
+	<custom></custom>
+</theme>

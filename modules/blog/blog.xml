@@ -1,0 +1,8 @@
+<module>
+	<author email="mike.conway@wiredbyte.com" url="http://www.wiredbyte.com/">Mike Conway</author>
+	<title>Blog Posts</title>
+	<version>.01</version>
+	<status>Dev</status>
+	<site>http://www.nanobytecms.com/</site>
+	<description>This module adds the Blog Post Content Type, as well as a Posts by Date block.</description>
+</module>

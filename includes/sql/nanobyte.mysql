@@ -1,0 +1,243 @@
+DROP TABLE IF EXISTS `***DBPREFIX***_blocks`;
+DROP TABLE IF EXISTS `***DBPREFIX***_content_types`;
+DROP TABLE IF EXISTS `***DBPREFIX***_email`;
+DROP TABLE IF EXISTS `***DBPREFIX***_user_groups`;
+DROP TABLE IF EXISTS `***DBPREFIX***_user`;
+DROP TABLE IF EXISTS `***DBPREFIX***_group_perms`;
+DROP TABLE IF EXISTS `***DBPREFIX***_groups`;
+DROP TABLE IF EXISTS `***DBPREFIX***_perms`;
+DROP TABLE IF EXISTS `***DBPREFIX***_menus`;
+DROP TABLE IF EXISTS `***DBPREFIX***_menu_links`;
+DROP TABLE IF EXISTS `***DBPREFIX***_sessions`;
+DROP TABLE IF EXISTS `***DBPREFIX***_settings`;
+DROP TABLE IF EXISTS `***DBPREFIX***_url_alias`;
+DROP TABLE IF EXISTS `***DBPREFIX***_modules`;
+DROP TABLE IF EXISTS `***DBPREFIX***_stats`;
+DROP TABLE IF EXISTS `***DBPREFIX***_user_profiles`;
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_blocks` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` text NOT NULL,
+  `providedby` text,
+  `position` text NOT NULL,
+  `weight` int(2) NOT NULL default '0',
+  `status` tinyint(4) NOT NULL,
+  `options` text,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_blocks` (`id`, `name`, `providedby`, `position`, `weight`, `status`, `options`) VALUES
+(1, 'UsersOnline', 'Users', 'rightsidebar', 1, 1, ''),
+(2, 'Menu', 'Menu', 'rightsidebar', -10, 1, '');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_content` (
+  `pid` tinyint(4) NOT NULL auto_increment,
+  `title` varchar(64) NOT NULL,
+  `body` text NOT NULL,
+  `images` text,
+  `created` varchar(12) NOT NULL,
+  `modified` varchar(12) NOT NULL default '0',
+  `author` int(11) NOT NULL,
+  `published` tinyint(1) NOT NULL default '0',
+  `type` tinyint(2) NOT NULL,
+  `parent` int(11) default NULL,
+  PRIMARY KEY  (`pid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_content_types` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(10) default NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_email` (
+  `id` int(11) NOT NULL auto_increment,
+  `subject` varchar(50) default NULL,
+  `body` text,
+  `function` varchar(20) default NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_email` (`id`, `subject`, `body`, `function`) VALUES
+(1, 'Thank you for registering with Nanobyte!', 'Thank you for registering with Nanobyte!\n\nYou have successfully registered with the following information:\nUsername: %u \nPassword: %p', 'register');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_groups` (
+  `gid` tinyint(4) NOT NULL auto_increment,
+  `name` varchar(10) NOT NULL,
+  `comments` text NOT NULL,
+  PRIMARY KEY  (`gid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_groups` (`gid`, `name`, `comments`) VALUES
+(1, 'admin', 'SuperUser'),
+(2, 'user', 'Default'),
+(3, 'guest', 'Anonymous Group');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_group_perms` (
+  `id` int(11) NOT NULL auto_increment,
+  `group_id` tinyint(4) default NULL,
+  `perm_id` int(11) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `Group_ID` (`group_id`),
+  KEY `perm_id` (`perm_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_group_perms` (`id`, `group_id`, `perm_id`) VALUES
+(127, 1, 1),
+(128, 1, 2),
+(129, 1, 3),
+(130, 1, 4),
+(131, 1, 5),
+(132, 1, 6);
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_menus` (
+  `mid` tinyint(1) NOT NULL auto_increment,
+  `name` tinytext,
+  `canDelete` tinyint(1) NOT NULL default '1',
+  `parent_id` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`mid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=11 ;
+
+INSERT INTO `***DBPREFIX***_menus` (`mid`, `name`, `canDelete`, `parent_id`) VALUES
+(1, 'main', 0, 0),
+(2, 'admin', 0, 0),
+(10, 'User', 1, 0);
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_menu_links` (
+  `id` tinyint(3) NOT NULL auto_increment,
+  `menu` tinyint(2) default NULL,
+  `linkpath` text,
+  `linktext` text,
+  `viewableby` text,
+  `styleid` varchar(10) default NULL,
+  `class` varchar(10) default NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_menu_links` (`id`, `menu`, `linkpath`, `linktext`, `viewableby`, `styleid`, `class`) VALUES
+(1, 1, 'home', 'Home', 'admin,user,guest', 'm-home', ''),
+(2, 1, 'user', 'User', '', 'm-user', ''),
+(3, 1, 'admin', 'Admin', 'admin', 'm-admin', ''),
+(4, 1, 'user/login', 'Log In', 'guest', 'menu-login', ''),
+(5, 1, 'user/logout', 'Log Out', 'admin,user', 'm-logout', ''),
+(6, 1, 'user/register', 'Register', 'guest', 'menu-reg', ''),
+(7, 2, 'admin', 'Home', 'admin', 'a-admin', 'active'),
+(8, 2, 'admin/user', 'Users', 'admin', 'a-users', ''),
+(9, 2, 'admin/content', 'Content', 'admin', 'a-content', ''),
+(10, 2, 'admin/module', 'Modules', 'admin', 'a-modules', ''),
+(11, 2, 'admin/menu', 'Menus', 'admin', 'a-menus', ''),
+(12, 2, 'admin/settings', 'Settings', 'admin', 'a-settings', ''),
+(13, 2, 'admin/stats', 'Stats', 'admin', 'a-stats', '');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_modules` (
+  `name` text NOT NULL,
+  `module` text NOT NULL,
+  `status` smallint(1) default '0'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_modules` (`name`, `module`, `status`) VALUES
+('content', './modules/content/', 1),
+('menu', './modules/menu/', 1),
+('users', './modules/users/', 1);
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_perms` (
+  `id` int(11) NOT NULL auto_increment,
+  `category` text,
+  `description` text,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_perms` (`id`, `category`, `description`) VALUES
+(1, 'admin', 'access admin pages'),
+(2, 'menu', 'show admin menu'),
+(3, 'menu', 'show user menu'),
+(4, 'admin', 'edit user accounts'),
+(5, 'user', 'view user profiles'),
+(6, 'user', 'edit user profiles');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_sessions` (
+  `session_id` varchar(100) NOT NULL default '',
+  `session_data` text NOT NULL,
+  `expires` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_settings` (
+  `id` int(11) NOT NULL auto_increment,
+  `setting` varchar(20) NOT NULL,
+  `value` text NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+
+INSERT INTO `***DBPREFIX***_settings` (`id`, `setting`, `value`) VALUES
+(1, 'defaultContentType', '30'),
+(2, 'systemLogFiles', '/var/log/apache2/error.log');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_stats` (
+  `ID` int(11) NOT NULL auto_increment,
+  `ip` varchar(32) default NULL,
+  `browser` varchar(255) default NULL,
+  `hour` smallint(2) NOT NULL default '0',
+  `minute` smallint(2) NOT NULL default '0',
+  `date` timestamp NOT NULL default CURRENT_TIMESTAMP,
+  `day` smallint(2) NOT NULL,
+  `month` smallint(2) NOT NULL,
+  `year` smallint(4) NOT NULL,
+  `refferer` varchar(255) default NULL,
+  `page` varchar(255) default NULL,
+  PRIMARY KEY  (`ID`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_url_alias` (
+  `id` int(11) NOT NULL auto_increment,
+  `alias` varchar(255) NOT NULL,
+  `path` varchar(255) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+INSERT INTO `***DBPREFIX***_url_alias` (`id`, `alias`, `path`) VALUES
+(1, 'block', 'module'),
+(2, 'settings', 'admin');
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_user` (
+  `uid` int(11) NOT NULL auto_increment,
+  `username` varchar(15) NOT NULL,
+  `password` varchar(40) NOT NULL,
+  `email` varchar(64) NOT NULL,
+  `joined` int(11) NOT NULL,
+  `lastlogin` int(11) default NULL,
+  `online` int(10) default NULL,
+  PRIMARY KEY  (`uid`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_user_groups` (
+  `id` int(11) NOT NULL auto_increment,
+  `user_id` int(11) NOT NULL,
+  `group_id` tinyint(4) NOT NULL default '2',
+  PRIMARY KEY  (`id`),
+  KEY `UserID` (`user_id`),
+  KEY `GroupID` (`group_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_user_profiles` (
+  `uid` int(11) NOT NULL,
+  `avatar` text,
+  `location` text,
+  `about` text,
+  `facebook` varchar(20) default NULL,
+  `twitter` varchar(20) default NULL,
+  PRIMARY KEY  (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Constraints for table ``***DBPREFIX***_group_perms`
+--
+ALTER TABLE `***DBPREFIX***_group_perms`
+  ADD CONSTRAINT `***DBPREFIX***_group_perms_ibfk_1` FOREIGN KEY (`perm_id`) REFERENCES `***DBPREFIX***_perms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `Group_ID` FOREIGN KEY (`group_id`) REFERENCES `***DBPREFIX***_groups` (`gid`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `cms_menu_links`
+--
+ALTER TABLE `***DBPREFIX***_menu_links`
+  ADD CONSTRAINT `Menu ID` FOREIGN KEY (`menu`) REFERENCES `***DBPREFIX***_menus` (`mid`) ON DELETE CASCADE ON UPDATE CASCADE;
