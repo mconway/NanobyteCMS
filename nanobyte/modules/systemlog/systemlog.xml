@@ -1,9 +1,0 @@
-<module>
-	<author email="mike.conway@wiredbyte.com" url="http://www.wiredbyte.com/">Mike Conway</author>
-	<title>Server Log Viewer</title>
-	<version>.01</version>
-	<status>Dev</status>
-	<site>http://www.nanobytecms.com/</site>
-	<description>Provides an easy way to view your server logs</description>
-</module>
- 

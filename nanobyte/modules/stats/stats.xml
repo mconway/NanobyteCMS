@@ -1,9 +1,0 @@
-<module>
-	<author email="mike.conway@wiredbyte.com" url="http://www.nanobytecms.com/">Mike Conway</author>
-	<title>Site Statistics</title>
-	<version>.01</version>
-	<status>Dev</status>
-	<site>http://www.nanobytecms.com/</site>
-	<description>This module includes site statistics and referrer functions for Nanobyte. It is included in the core distribution of Nanobyte CMS.</description>
-</module>
-
