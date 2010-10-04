@@ -4,7 +4,8 @@
  * All page requests are directed here. The correct Classes and functions are called automagically to display the page
  * Since 5/1/2008
  */
-ini_set('display_messages',E_ALL);
+ini_set('display_messages',1);
+error_reporting(E_ALL);
 //require the Core and Smarty Classes
 require_once './includes/controllers/base.controller.php';
 require_once './includes/contrib/smarty/libs/Smarty.class.php';
