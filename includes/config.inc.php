@@ -7,16 +7,16 @@
  *@author Mike Conway
  *@since Jun 3, 2008
 */
-define("DB_USER", 'ZWJiZw==');
-define("DB_PASS", 'cXBtNndl');
+define("DB_USER", '');
+define("DB_PASS", '');
 define("DB_HOST", 'localhost');
-define("DB_NAME", 'nanobyte');
-define("DB_PREFIX", 'cms');
+define("DB_NAME", '');
+define("DB_PREFIX", '');
 
 define("PATH", 'NanobyteCMS/');
-define("SITE_NAME", 'Nanobyte');
-define("SITE_SLOGAN", 'The Wiredbyte CMS');
-define("SITE_DOMAIN", 'http://dev.wiredbyte.local');
+define("SITE_NAME", '');
+define("SITE_SLOGAN", '');
+define("SITE_DOMAIN", '');
 define("SITE_LOGO", 'templates/NanobyteBlue/images/nanobyte_small.png');
 define("UPLOAD_PATH", 'files/');
 define("FILE_TYPES", '.jpg, .gif, .png, .bmp, .jpeg');
@@ -31,17 +31,17 @@ define("PEAR_PATH", '');
 define("LIMIT", '10');
 define("HOME","content");
 
-define("CMS_INSTALLED",'1');
+define("CMS_INSTALLED",'0');
 
-define("EMAIL_FROM",'noreply@wiredbyte.com');
-define("EMAIL_SUBJECT",'Auto generated Email from the Nanobyte CMS');
+define("EMAIL_FROM",'');
+define("EMAIL_SUBJECT",'');
 define("EMAIL_IS_HTML",'');
 
-define("SMTP_AUTH",'1');
-define("SMTP_SERVER",'208.97.132.208');
+define("SMTP_AUTH",'0');
+define("SMTP_SERVER",'');
 define("SMTP_PORT",'25');
-define("SMTP_USER",'Ymhnb2JoYXFAanZlcnFvbGdyLnBieg==');
-define("SMTP_PASS",'YmNndmJhbnk=');
+define("SMTP_USER",'');
+define("SMTP_PASS",'');
 
 define('ALLOWED_HTML_TAGS','<a><p><ul><img><center><br><li>');
 ?>
