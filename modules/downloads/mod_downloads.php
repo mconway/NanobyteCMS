@@ -18,6 +18,7 @@ class Mod_Downloads{
 	private $root_folder;
 	public $file_path;
 	public $tmp_path;
+	public $file;
 	
 	/**
 	 * 
@@ -29,6 +30,11 @@ class Mod_Downloads{
 		$this->root_folder = 'downloads/';
 		$this->file_path = 'downloads/files/';
 		$this->tmp_path = 'downloads/tmp/';
+		
+		if(isset($id)){
+			$this->readFile($id);
+			return;
+		}
 		$this->setup = array(
 			'category_types'=>array('Downloads'),
 			'folders'=>array($this->root_folder,$this->tmp_path,$this->file_path),
@@ -85,6 +91,10 @@ class Mod_Downloads{
 		$Core->json_obj->args = $file_name;
 	}
 	
+	public function incrementCounter($id){
+		$this->dbh->query("UPDATE ". DB_PREFIX . "_downloads SET counter=counter+1 WHERE download_id={$id}");
+	}
+	
 	/**
 	 * 
 	 * @return 
@@ -121,6 +131,11 @@ class Mod_Downloads{
 		}
 	}
 
+	public function readFile($id){
+		$row = $this->dbh->query("SELECT * FROM " . DB_PREFIX . "_downloads WHERE download_id={$id}")->fetch(PDO::FETCH_ASSOC);
+		$this->file = $row;
+	}
+	
 	/**
 	 * 
 	 * @return 
@@ -289,13 +304,18 @@ class DownloadsController extends BaseController{
 						'name'=>$file['name'],
 						'description'=>$file['description'],
 						'downloads'=>$file['counter'],
-						'actions'=>$Core->l('Download',UPLOAD_PATH.$downloads->file_path.$file['filename'])
+						//'actions'=>$Core->l('Download',UPLOAD_PATH.$downloads->file_path.$file['filename'])
+						'actions'=>$Core->l('Download','downloads/file/' . $file['download_id'],array("target"=>"_blank"))
 					));
 				}
 				$Core->smarty->assign(array(
 					'list'=>$file_list,
 					'list_title'=>$Core->l($category_info[0]['name'],'downloads/categories')
 				));
+			}elseif(isset($Core->args[0]) && isset($Core->args[1]) &&  $Core->args[0] == 'file'){
+				$download = new Mod_Downloads($Core->args[1]);
+				$download->incrementCounter($Core->args[1]);
+				echo "<iframe src='http://dev.wiredbyte.local/NanobyteCMS/" . UPLOAD_PATH . $downloads->file_path . $download->file['filename'] . "'/>";
 			}else{
 				$categories = $Core->getCategories('Downloads');
 				$cat_list = array();
@@ -310,7 +330,7 @@ class DownloadsController extends BaseController{
 			
 			$Core->smarty->assign('content',$Core->smarty->fetch('list.tpl'));
 		}else{
-			$Core->setMessage('You do not have permission to access the Gallery.','error');
+			$Core->setMessage('You do not have permission to access downloads.','error');
 			BaseController::Redirect('home');
 		}
 		BaseController::getHTMLIncludes();

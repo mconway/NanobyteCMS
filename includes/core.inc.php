@@ -281,11 +281,14 @@
 		if(isset($options['image'])){
 			$text = '<img src="'.THEME_PATH.'/images/'.strtolower($text).'-'.$options['image'].'.png" alt="'.$text.'"/>';
 		}
-		$class = isset($options['class']) ? $options['class'] : '';
-		$id = isset($options['id']) ? $options['id'] : '';
-		$title = isset($options['title']) ? $options['title'] : '';
-		$link = "<a href='{$url}' class='{$class}' id='{$id}' title='{$title}'>{$text}</a>";
-		return $link;
+		$alink = "<a href='{$url}'";
+		foreach($options as $key=>$option){
+			if($key != 'image'){
+				$alink .= " {$key}='{$option}'";
+			}
+		}
+		$alink .= ">{$text}</a>";
+		return $alink;
 	}
 	
 	public function parseArgs(){
