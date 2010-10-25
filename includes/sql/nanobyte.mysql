@@ -30,6 +30,22 @@ INSERT INTO `***DBPREFIX***_blocks` (`id`, `name`, `providedby`, `position`, `we
 (1, 'UsersOnline', 'Users', 'rightsidebar', 1, 1, ''),
 (2, 'Menu', 'Menu', 'rightsidebar', -10, 1, '');
 
+DROP TABLE IF EXISTS `***DBPREFIX***_category`;
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_category` (
+  `category_id` int(11) NOT NULL auto_increment,
+  `name` varchar(25) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `category_type` int(11) NOT NULL,
+  PRIMARY KEY  (`category_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `***DBPREFIX***_category_types`;
+CREATE TABLE IF NOT EXISTS `***DBPREFIX***_category_types` (
+  `category_type_id` int(11) NOT NULL auto_increment,
+  `name` varchar(25) NOT NULL,
+  PRIMARY KEY  (`category_type_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS `***DBPREFIX***_content` (
   `pid` tinyint(4) NOT NULL auto_increment,
   `title` varchar(64) NOT NULL,
