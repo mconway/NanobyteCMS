@@ -355,6 +355,9 @@ class ContentController extends BaseController{
 		}elseif(!isset($Core->args[1]) || empty($Core->args[1])){
 			self::View($Core->args[0]);
 			$content = $Core->smarty->fetch('post.tpl');
+		}else{
+			$comments = new Mod_Comments();
+			$comments->commit(array('pid'=>$Core->args[0],'title'=>$_POST['title'], 'body'=>$_POST['body']));
 		}
 		if(!$Core->ajax){
 			parent::DisplayMessages();
