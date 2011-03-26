@@ -4,6 +4,7 @@
 var nanobyte = {
 	ui: {index: 0},
 	lastUI: {index: 0},
+	callback: false,
 	submitForm : function(form,me){
 		if(this.initValidate(form)===true){
 			if (CKEDITOR && CKEDITOR.instances.ckeditor) {
@@ -29,6 +30,7 @@ var nanobyte = {
 					}else if(!nanobyte.empty(r.content)){
 						$("#content").html(r.content).prepend(r.tabs).fadeIn('slow');
 					}
+					
 					nanobyte.showInlineMessage(r.messages);
 					$(this).dialog('close');
 					
@@ -86,6 +88,7 @@ var nanobyte = {
 	},
 	initValidate : function(form){
 		var errors = false;
+		var messages = '<ul class="messages">';
 		form.find('.required').each(function(){
 			if ($(this).children('input').val() == ''){
 				$(this).children('input').focus().animate({backgroundColor:'#ffff80'}).keypress(function(){
@@ -94,13 +97,14 @@ var nanobyte = {
 					})
 				});
 				var msg = 'You must enter a '+$(this).children('label').text().replace(':','')+'!';
-				nanobyte.showInlineMessage(nanobyte.createMessage('Error: '+msg,'error'));
+				messages += nanobyte.createMessage('Error: '+msg,'error');
 				errors = true;
 			}
 		});
 		if(!errors){
 			return true;
 		}else{
+			nanobyte.showInlineMessage(messages + '</ul>');
 			return false;
 		}
 	},
@@ -112,14 +116,20 @@ var nanobyte = {
 		}
 	},
 	showInlineMessage : function(msg){
-		if($('#mcont').parents('.ui-dialog:not(:hidden)').length>0){
-			$('#mcont .messages').html(msg).slideDown('slow').pause(10000).slideUp('slow');
+		if(!this.callback){
+			if($('#mcont').parents('.ui-dialog:not(:hidden)').length>0){
+				$('#mcont .messages').html(msg).slideDown('slow').pause(10000).slideUp('slow');
+			}else{
+				$('#messages').html(msg).removeClass('hidden').slideDown('slow').pause(10000).slideUp('slow');
+			}	
 		}else{
-			$('#messages').html(msg).removeClass('hidden').slideDown('slow').pause(10000).slideUp('slow');
+			msg = msg.replace(/\"/g,'\'');
+			console.log(msg);
+			eval(this.callback + '("' + msg + '")');
 		}
 	},
 	createMessage : function(msg, cls){
-		var html = '<ul class="messages"><li class="'+cls+'">'+msg+'</li></ul>';
+		var html = '<li class="'+cls+'">'+msg+'</li>';
 		return html;
 	},
 	showLoader : function(){
@@ -163,7 +173,7 @@ var nanobyte = {
 	ajaxcall : function(event){
 		var classes = event.currentTarget.className.split(' ');
 		var noloader = false;
-		$(this).addClass('active').parent().siblings('li').children('.active').removeClass('active');
+		$(event.currentTarget).addClass('active').parent().siblings('li').children('.active').removeClass('active');
 		$.each(classes,function(i,v){
 			if(v=='noloader'){
 				noloader=true;
@@ -173,7 +183,7 @@ var nanobyte = {
 			nanobyte.showLoader();
 		}
 		$.ajax({
-	  		url: $(this).attr('href')+'/ajax',
+	  		url: $(event.currentTarget).attr('href')+'/ajax',
 	  		cache: false,
 			dataType: "json",
 	  		success: function(r){

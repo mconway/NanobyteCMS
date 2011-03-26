@@ -50,10 +50,12 @@ BaseController::addCss('includes/js/jquery.tooltip.css');
 BaseController::addCss('includes/js/jquery.lightbox.css');
 
 //Add Global JS Files
-BaseController::addJs('includes/js/jquery.js');
+//BaseController::addJs('includes/js/jquery.js');
+BaseController::addJs('includes/js/jquery-1.4.4.min.js');
 BaseController::addJs('includes/js/livequery.js');
 BaseController::addJs('includes/contrib/ckeditor/ckeditor.js');
-BaseController::addJs('includes/js/jquery-ui-1.7.2.custom.js');
+//BaseController::addJs('includes/js/jquery-ui-1.7.2.custom.js');
+BaseController::addJs('includes/js/jquery-ui-1.8.10.custom.min.js');
 BaseController::addJs('includes/js/jquery.jcarousel.js');
 BaseController::addJs('includes/js/pause.js');
 BaseController::addJs('includes/js/ajaxfileupload.js');

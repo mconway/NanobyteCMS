@@ -6,17 +6,17 @@ class Mod_Comments{
 	public function install(){
 		//Add Page Content type
 		$content = new Mod_Content();
-		$content->RegisterContentType('Comments');
+		$content->RegisterContentType('Page');
 	}
 	
 	public static function uninstall(){
 		$content = new Mod_Content();
-		$content->UnregisterContentType('Comments');
+		$content->UnregisterContentType('Page');
 	}
 	
 	public function __construct($pid=null){
 		$this->dbh = DBCreator::GetDBObject();
-		$this->setup = array('permissions'=>array('View Comments','Post Comments'));
+		$this->setup = array('permissions'=>array('View Pages','Create Pages'));
 		if (isset($pid)){
 			$query = $this->dbh->prepare("SELECT pid, title, body, username, created FROM ".DB_PREFIX."_content LEFT JOIN ".DB_PREFIX."_user AS user ON author=uid LEFT JOIN ".DB_PREFIX."_content_types ON type=id WHERE parent=:pid");
 			$query->execute(array(':pid'=>$pid));
@@ -26,7 +26,7 @@ class Mod_Comments{
 	
 	public function read($limit=15,$start=0){ //Replaces GetPostLst
 		$Core = BaseController::getCore();
-		$result = $this->dbh->prepare("SELECT SQL_CALC_FOUND_ROWS * FROM ".DB_PREFIX."_content LEFT JOIN ".DB_PREFIX."_content_types ON type=id WHERE name = 'Comments' ORDER BY created DESC LIMIT {$start},{$limit}");
+		$result = $this->dbh->prepare("SELECT SQL_CALC_FOUND_ROWS * FROM ".DB_PREFIX."_content LEFT JOIN ".DB_PREFIX."_content_types ON type=id WHERE name = 'Page' ORDER BY created DESC LIMIT {$start},{$limit}");
 		//get the row count
 		$cRows = $this->dbh->prepare('SELECT found_rows() AS rows');
 		try{
@@ -47,7 +47,7 @@ class Mod_Comments{
 	
 	public function commit($params){
 		$Core= BaseController::getCore();
-		$sql = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_content SET title=:t, body=:b, author=:a, created=:d, parent=:p, type=(SELECT category_id FROM ".DB_PREFIX."_category WHERE name = 'Comments')");
+		$sql = $this->dbh->prepare("INSERT INTO ".DB_PREFIX."_content SET title=:t, body=:b, author=:a, created=:d, parent=:p, type=(SELECT category_id FROM ".DB_PREFIX."_category WHERE name = 'Page')");
 		$sql->execute(array(
 			':t'=> $params['title'],
 			':b'=> $params['body'],

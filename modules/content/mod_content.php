@@ -350,19 +350,30 @@ class ContentController extends BaseController{
 	 */
 	public static function display(){
 		$Core = parent::getCore();
+		//If we are not passing arguments, display default content
 		if(empty($Core->args)){
 			$Core->smarty->assign('posts',self::displayContent(1));
+		//Display a specific content post
 		}elseif(!isset($Core->args[1]) || empty($Core->args[1])){
-			self::View($Core->args[0]);
-			$content = $Core->smarty->fetch('post.tpl');
+			$cData = self::getContent($Core->args[0]);
+			//Handle page display differently. Only works for AJAX calls right now.
+			if($cData->type == 6)
+				$content = PageController::display($cData);
+			else{
+				self::view($Core->args[0]);
+				$content = $Core->smarty->fetch('post.tpl');
+			}
+		//Display comment
 		}else{
 			$comments = new Mod_Comments();
 			$comments->commit(array('pid'=>$Core->args[0],'title'=>$_POST['title'], 'body'=>$_POST['body']));
 		}
+		//Return full page if ajax was not requested
 		if(!$Core->ajax){
 			parent::DisplayMessages();
 			parent::GetHTMLIncludes(); // Get style and JS
 			$Core->smarty->display('index.tpl'); //Display the page
+		//Return json for ajax requests
 		}else{
 			$Core->json_obj->content = $content;
 			$Core->json_obj->messages = parent::DisplayMessages();
@@ -673,9 +684,9 @@ class ContentController extends BaseController{
 	 * @return 
 	 * @param object $pid
 	 */
-	public static function view($pid){
+	public static function view($pid, $content = null){
 		$Core = BaseController::getCore();
-		$post = self::GetContent($pid);
+		$post = !isset($content) ? self::GetContent($pid) : $content;
 		if(isset($post->comments)){
 			$num = count($post->comments->all);
 		}
