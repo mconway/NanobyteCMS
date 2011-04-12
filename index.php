@@ -7,13 +7,14 @@
 ini_set('display_messages',1);
 error_reporting(E_ALL);
 //require the Core and Smarty Classes
-require_once './includes/controllers/base.controller.php';
-require_once './includes/contrib/smarty/libs/Smarty.class.php';
-require_once './includes/contrib/geshi/geshi.php';
-if(!include_once './includes/config.inc.php'){
-	echo "Unable to find configuration file";
-	exit;
-}
+require_once './includes/class/utils.inc.php';
+require_once './includes/contrib/smarty/libs/Smarty.class.php'; //make into module
+require_once './includes/contrib/geshi/geshi.php'; //make into module
+
+Core::setConfigFile('config.xml');
+Core::setDatabase(DBCreator::GetDbObject());
+
+Utils::getRoute();
 
 ###SERVE CSS AND JS###
 //Serve any JS and CSS files before we call anything we dont need to (faster)
@@ -37,12 +38,14 @@ if(isset($_GET['file']) && isset($_GET['type']) && COMPRESS){
 
 // Make the Core Object (Ghetto Bootstrap)
 $Core = BaseController::getCore();
+//
+//if($Core->isEnabled('stats')){
+//	$stats = new Mod_Stats();
+//	$stats->commit();
+//}
+//TODO: Load all modules so they can do their thing.
 
-if($Core->isEnabled('stats')){
-	$stats = new Mod_Stats();
-	$stats->commit();
-}
-
+//TODO: Remove all the hard coded html includes (theme specific)
 // Add the main CSS styles for inclusion
 BaseController::addCss('includes/js/jquery.jcarousel.css');
 BaseController::addCss('includes/js/tango/skin.css');
@@ -77,6 +80,7 @@ $Core->smarty->assign(array(
 	'theme_path' => THEME_PATH
 ));
 
+//TODO: Make site disabling a real feature.
 //if(SITE_DISABLED===true){
 //	if(!isset($_GET['page']) || $_GET['page']!=='admin'){
 //		$Core->smarty->display('site_disabled.tpl');
@@ -84,7 +88,6 @@ $Core->smarty->assign(array(
 //	}
 //}
 if(!CMS_INSTALLED){
-	array_shift($Core->args); 
 	$class = 'InstallController';
 	call_user_func(array($class,'Display'));
 }else{
@@ -114,13 +117,11 @@ if(!CMS_INSTALLED){
 		$script = array_shift($Core->args);
 	}
 	
-	//$class = $script.'Controller'; //for php 5.3.0
 	//If there is a file for the requested page - include it
 	if(BaseController::autoload($script.'Controller',false)){
 		$class = $script.'Controller';
 	//If it's not a file or enabled mod - display a 404 error
 	}else{
-		header("HTTP/1.1 404 Not Found");
 		$error = new Error(404,$script);
 		$Core->smarty->assign(array(
 			'error_code'=>$error->error_code,

@@ -44,10 +44,11 @@ class Error{
 		
 			# "404 - Not Found"
 			case 404:
-			$this->error_code = "404 - Not Found";
-			$this->explanation = "The requested resource '" . $this->page_redirected_from . "' could not be found on this server.  Please verify the address and try again.";
-			$this->redirect_to = $this->server_url . $this->end_of_path;
-			break;
+				header("HTTP/1.1 404 Not Found");
+				$this->error_code = "404 - Not Found";
+				$this->explanation = "The requested resource '" . $this->page_redirected_from . "' could not be found on this server.  Please verify the address and try again.";
+				$this->redirect_to = $this->server_url . $this->end_of_path;
+				break;
 		
 			# "500 - Internal Server Error"
 			case 500:
