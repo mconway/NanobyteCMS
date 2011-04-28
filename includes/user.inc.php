@@ -106,6 +106,15 @@ class User extends Core{
 		$this->$name = $value;
 	}
 	
+	public function changePassword($password){
+		$pw = $this->getPassword($this->name, $password);
+		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user SET password=:pw WHERE username=:un");
+		$query->execute(array(':pw'=>$pw,':un'=>$this->name));
+		if($query->rowCount()==1)
+			return true;
+		return false;
+	}
+	
 	/**
 	 * Save changed object data to the database
 	 * @return bool
@@ -294,21 +303,17 @@ class User extends Core{
 	 * Called when a user forgot their password. Verifies the user's information and emails them a new password to use for login.
 	 * @return bool
 	 */
-	public function resetPassword(){
+	public function resetPassword(){ //move to controller
 		$genPw = $this->generatePassword();
-		$pw = $this->getPassword($this->username, $genPw);
-		$query = $this->dbh->prepare("UPDATE ".DB_PREFIX."_user SET password=:pw WHERE username=:un");
-		$query->execute(array(':pw'=>$pw,':un'=>$this->username));
-		if($query->rowCount()==1){
+		if($this->changePassword($genPw)){
 			$email = new Email();
 			$email->setSubject("Your password has been reset");
 			$email->setBody("Your password has been reset. your new password is: ".$genPw);
 			$email->addRecipient($this->email);
 			$email->sendMessage();
 			return true;
-		}else{
-			return false;
 		}
+		return false;
 	}
 	
 	/**
